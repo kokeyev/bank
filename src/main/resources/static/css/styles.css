@@ -1,0 +1,143 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f7f8fa;
+    color: #1f2933;
+}
+
+.navbar {
+    display: flex;
+    align-items: center;
+    padding: 20px 40px;
+    border-bottom: 1px solid #e5e5e5;
+    background: white;
+}
+
+.logo a {
+    text-decoration: none;
+    color: black;
+    font-size: 24px;
+    font-weight: 600;
+    margin-right: 50px;
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 30px;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: black;
+    font-size: 15px;
+}
+
+.nav-links a:hover {
+    text-decoration: underline;
+}
+
+.accounts-page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px;
+}
+
+.accounts-page h1 {
+    font-size: 32px;
+    font-weight: 500;
+    margin-bottom: 30px;
+}
+
+.account-card {
+    display: inline-flex;
+    align-items: center;
+    gap: 80px;
+    width: fit-content;
+    max-width: 100%;
+
+    padding: 40px;
+
+    background: white;
+    border: 1px solid #e5e5e5;
+    border-radius: 10px;
+}
+
+.account-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.account-header {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 35px;
+}
+
+.balance {
+    font-size: 48px;
+    font-weight: 600;
+}
+
+.currency-icon {
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.card-number {
+    font-size: 22px;
+    letter-spacing: 3px;
+    margin-bottom: 20px;
+}
+
+.card-details {
+    display: flex;
+    gap: 40px;
+    color: #666;
+}
+
+.account-actions {
+    display: flex;
+    flex-direction: column;
+
+    gap: 15px;
+
+    width: 240px;
+}
+
+.action-block {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.action-block label {
+    font-size: 14px;
+}
+
+.action-block input,
+.action-block button {
+    width: 240px;
+    height: 44px;
+
+    padding: 0 12px;
+
+    border: 1px solid #d0d0d0;
+    border-radius: 6px;
+
+    background: white;
+}
+
+.action-block button {
+    cursor: pointer;
+}
+
+.action-block button:hover {
+    border-color: #555;
+}

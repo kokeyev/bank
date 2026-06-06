@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Мои счета</title>
+    <link rel="stylesheet" href="../static/css/styles.css" th:href="@{/css/styles.css}">
+    <meta charset="UTF-8">
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<main class="accounts-page">
+
+    <h1>Мои счета</h1>
+
+    <div class="account-card">
+
+        <div class="account-info">
+
+            <div class="account-header">
+                <div class="balance">125 430.50</div>
+                <div class="currency-icon">₸</div>
+            </div>
+
+            <div class="card-number">
+                4400 1234 5678 9012
+            </div>
+
+            <div class="card-details">
+                <span>12/29</span>
+                <span>CVV: 123</span>
+            </div>
+
+        </div>
+
+        <div class="account-actions">
+
+            <div class="action-block">
+                <label>Лимит на транзакцию</label>
+                <input type="number" placeholder="100000">
+            </div>
+
+            <div class="action-block">
+                <button>Сделать основной</button>
+            </div>
+
+            <div class="action-block">
+                <button>Деактивировать</button>
+            </div>
+
+        </div>
+
+    </div>
+
+</main>
+
+</body>
+</html>
