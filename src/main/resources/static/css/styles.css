@@ -141,3 +141,660 @@ body {
 .action-block button:hover {
     border-color: #555;
 }
+
+.open-account-button {
+    display: block;
+    width: 240px;
+    height: 44px;
+    margin-top: 24px;
+
+    border: 1px solid #111827;
+    border-radius: 6px;
+
+    background: #111827;
+    color: white;
+    cursor: pointer;
+}
+
+.open-account-button:hover {
+    background: #1f2937;
+}
+
+.transfers-page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px;
+}
+
+.transfers-page h1 {
+    font-size: 32px;
+    font-weight: 500;
+    margin-bottom: 30px;
+}
+
+.transfer-list {
+    width: 420px;
+    max-width: 100%;
+    background: white;
+    border: 1px solid #e5e5e5;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.transfer-option {
+    display: block;
+    padding: 18px 22px;
+    border-bottom: 1px solid #e5e5e5;
+    color: #1f2933;
+    text-decoration: none;
+    font-size: 16px;
+    transition: background 0.2s ease;
+}
+
+.transfer-option:last-child {
+    border-bottom: none;
+}
+
+.transfer-option:hover {
+    background: #f1f3f5;
+}
+
+.deposits-page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px;
+}
+
+.deposits-page h1 {
+    font-size: 32px;
+    font-weight: 500;
+    margin-bottom: 30px;
+}
+
+.deposit-cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+}
+
+.deposit-card {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    min-height: 340px;
+    padding: 28px;
+    background: white;
+    border: 1px solid #e5e5e5;
+    border-radius: 10px;
+    color: #1f2933;
+    text-decoration: none;
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.deposit-card:hover {
+    border-color: #c8cdd3;
+    box-shadow: 0 10px 24px rgba(17, 24, 39, 0.08);
+    transform: translateY(-2px);
+}
+
+.deposit-card h2 {
+    font-size: 26px;
+    font-weight: 600;
+}
+
+.deposit-card p {
+    min-height: 44px;
+    color: #4b5563;
+    line-height: 1.4;
+}
+
+.deposit-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.deposit-detail span {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.deposit-detail strong {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.deposit-rates {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: auto;
+}
+
+.deposit-rates span {
+    padding: 10px;
+    background: #f7f8fa;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+@media (max-width: 900px) {
+    .deposit-cards {
+        grid-template-columns: 1fr;
+    }
+}
+
+.deposit-details-page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px;
+}
+
+.back-link {
+    display: inline-block;
+    margin-bottom: 24px;
+    color: #1f2933;
+    text-decoration: none;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
+.deposit-details-card {
+    width: 520px;
+    max-width: 100%;
+    padding: 32px;
+    background: white;
+    border: 1px solid #e5e5e5;
+    border-radius: 10px;
+}
+
+.deposit-details-card h1 {
+    font-size: 32px;
+    font-weight: 500;
+    margin-bottom: 16px;
+}
+
+.deposit-details-card p {
+    margin-bottom: 24px;
+    color: #4b5563;
+    line-height: 1.5;
+}
+
+.open-deposit-button {
+    width: 220px;
+    height: 44px;
+    border: 1px solid #111827;
+    border-radius: 6px;
+    background: #111827;
+    color: white;
+    cursor: pointer;
+}
+
+.open-deposit-button:hover {
+    background: #1f2937;
+}
+
+.loans-page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px;
+}
+
+.loans-page h1 {
+    font-size: 32px;
+    font-weight: 500;
+    margin-bottom: 30px;
+}
+
+.loan-summary {
+    margin-bottom: 24px;
+    padding: 28px;
+    background: white;
+    border: 1px solid #e5e5e5;
+    border-radius: 10px;
+}
+
+.loan-summary h2 {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.loan-summary p {
+    color: #4b5563;
+    line-height: 1.5;
+}
+
+.loan-cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+}
+
+.loan-card {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    min-height: 360px;
+    padding: 28px;
+    background: white;
+    border: 1px solid #e5e5e5;
+    border-radius: 10px;
+    color: #1f2933;
+    text-decoration: none;
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.loan-card:hover {
+    border-color: #c8cdd3;
+    box-shadow: 0 10px 24px rgba(17, 24, 39, 0.08);
+    transform: translateY(-2px);
+}
+
+.loan-card-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.loan-card-header h2 {
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.loan-card-header span {
+    padding: 6px 10px;
+    background: #f1f3f5;
+    border-radius: 6px;
+    color: #4b5563;
+    font-size: 13px;
+}
+
+.loan-card p {
+    min-height: 66px;
+    color: #4b5563;
+    line-height: 1.4;
+}
+
+.loan-info {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: auto;
+}
+
+.loan-info div {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.loan-info span {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.loan-info strong {
+    font-size: 15px;
+    line-height: 1.4;
+}
+
+.loan-note {
+    margin-top: 24px;
+    padding: 24px 28px;
+    background: white;
+    border: 1px solid #e5e5e5;
+    border-radius: 10px;
+}
+
+.loan-note h2 {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.loan-note p {
+    color: #4b5563;
+    line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+    .loan-cards {
+        grid-template-columns: 1fr;
+    }
+}
+
+.exchange-page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px;
+}
+
+.exchange-page h1 {
+    font-size: 32px;
+    font-weight: 500;
+    margin-bottom: 30px;
+}
+
+.exchange-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 24px;
+}
+
+.exchange-rates-card,
+.exchange-converter-card {
+    background: white;
+    border: 1px solid #e5e5e5;
+    border-radius: 10px;
+}
+
+.exchange-rates-card {
+    overflow: hidden;
+}
+
+.exchange-card-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    align-items: flex-start;
+    padding: 28px;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.exchange-card-header h2,
+.exchange-converter-card h2 {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.exchange-card-header p {
+    color: #4b5563;
+    line-height: 1.5;
+}
+
+.exchange-card-header span {
+    padding: 8px 12px;
+    background: #f1f3f5;
+    border-radius: 6px;
+    color: #4b5563;
+    font-size: 14px;
+}
+
+.exchange-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.exchange-table th,
+.exchange-table td {
+    padding: 18px 28px;
+    border-bottom: 1px solid #e5e5e5;
+    text-align: left;
+}
+
+.exchange-table th {
+    background: #f7f8fa;
+    color: #6b7280;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.exchange-table tr:last-child td {
+    border-bottom: none;
+}
+
+.exchange-table td {
+    font-size: 15px;
+}
+
+.exchange-table td:first-child {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.exchange-table td:first-child span {
+    color: #6b7280;
+    font-size: 13px;
+}
+
+.rate-up {
+    color: #15803d;
+    font-weight: 600;
+}
+
+.rate-down {
+    color: #b91c1c;
+    font-weight: 600;
+}
+
+.exchange-converter-card {
+    padding: 28px;
+}
+
+.converter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+.converter-field label {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.converter-input {
+    display: flex;
+    height: 44px;
+}
+
+.converter-input input,
+.converter-input select {
+    border: 1px solid #d0d0d0;
+    background: white;
+}
+
+.converter-input input {
+    min-width: 0;
+    width: 100%;
+    padding: 0 12px;
+    border-radius: 6px 0 0 6px;
+}
+
+.converter-input select {
+    width: 88px;
+    padding: 0 8px;
+    border-left: none;
+    border-radius: 0 6px 6px 0;
+}
+
+.exchange-button {
+    width: 100%;
+    height: 44px;
+    margin-top: 6px;
+    border: 1px solid #111827;
+    border-radius: 6px;
+    background: #111827;
+    color: white;
+    cursor: pointer;
+}
+
+.exchange-button:hover {
+    background: #1f2937;
+}
+
+.exchange-hint {
+    margin-top: 18px;
+    color: #6b7280;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+    .exchange-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .exchange-table th,
+    .exchange-table td {
+        padding: 14px;
+    }
+}
+
+.settings-page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px;
+}
+
+.settings-page h1 {
+    font-size: 32px;
+    font-weight: 500;
+    margin-bottom: 30px;
+}
+
+.settings-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+.settings-card {
+    padding: 28px;
+    background: white;
+    border: 1px solid #e5e5e5;
+    border-radius: 10px;
+}
+
+.settings-card h2 {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.settings-card p {
+    margin-bottom: 22px;
+    color: #4b5563;
+    line-height: 1.5;
+}
+
+.language-options {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.language-options label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 0 14px;
+    border: 1px solid #d0d0d0;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.language-options label:hover {
+    background: #f7f8fa;
+}
+
+.settings-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.settings-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.settings-field label {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.settings-field input {
+    height: 44px;
+    padding: 0 12px;
+    border: 1px solid #d0d0d0;
+    border-radius: 6px;
+    background: white;
+}
+
+.save-settings-button,
+.logout-button,
+.delete-account-button {
+    height: 44px;
+    padding: 0 18px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.save-settings-button {
+    width: 220px;
+    border: 1px solid #111827;
+    background: #111827;
+    color: white;
+}
+
+.save-settings-button:hover {
+    background: #1f2937;
+}
+
+.account-actions-card {
+    grid-column: 1 / -1;
+}
+
+.settings-actions {
+    display: flex;
+    gap: 14px;
+}
+
+.logout-button {
+    border: 1px solid #111827;
+    background: white;
+    color: #111827;
+}
+
+.logout-button:hover {
+    background: #f1f3f5;
+}
+
+.delete-account-button {
+    border: 1px solid #b91c1c;
+    background: #b91c1c;
+    color: white;
+}
+
+.delete-account-button:hover {
+    background: #991b1b;
+}
+
+@media (max-width: 900px) {
+    .settings-layout,
+    .language-options {
+        grid-template-columns: 1fr;
+    }
+
+    .settings-actions {
+        flex-direction: column;
+    }
+
+    .save-settings-button,
+    .logout-button,
+    .delete-account-button {
+        width: 100%;
+    }
+}

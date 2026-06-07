@@ -11,4 +11,34 @@ public class HomeController {
 
         return "accounts";
     }
+
+    @GetMapping("/transfers")
+    public String transfers() {
+
+        return "transfers";
+    }
+
+    @GetMapping("/deposits")
+    public String deposits() {
+
+        return "deposits";
+    }
+
+    @GetMapping("/loans")
+    public String loans() {
+
+        return "loans";
+    }
+
+    @GetMapping("/exchange")
+    public String exchange() {
+
+        return "exchange";
+    }
+
+    @GetMapping("/settings")
+    public String settings() {
+
+        return "settings";
+    }
 }

@@ -22,16 +22,14 @@ public class WebConfig implements WebMvcConfigurer {
 
   private final ApplicationContext applicationContext;
 
-  public WebConfig(
-      ApplicationContext applicationContext) {
+  public WebConfig(ApplicationContext applicationContext) {
     this.applicationContext = applicationContext;
   }
 
   @Bean
   public SpringResourceTemplateResolver templateResolver() {
 
-    SpringResourceTemplateResolver resolver =
-        new SpringResourceTemplateResolver();
+    SpringResourceTemplateResolver resolver = new SpringResourceTemplateResolver();
 
     resolver.setApplicationContext(applicationContext);
     resolver.setPrefix("classpath:/templates/");
