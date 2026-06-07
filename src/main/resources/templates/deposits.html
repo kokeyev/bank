@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Депозиты</title>
+    <link rel="stylesheet" href="../static/css/styles.css" th:href="@{/css/styles.css}">
+    <meta charset="UTF-8">
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<main class="deposits-page">
+
+    <h1>Депозиты</h1>
+
+    <div class="deposit-cards">
+        <a class="deposit-card" href="deposit-details.html" th:href="@{/deposits/kopilka}">
+            <h2>Копилка</h2>
+            <p>С пополнением и выводом</p>
+
+            <div class="deposit-detail">
+                <span>Сумма</span>
+                <strong>от 10 долларов (или эквивалент)</strong>
+            </div>
+
+            <div class="deposit-detail">
+                <span>Срок</span>
+                <strong>от 6 до 36 месяцев</strong>
+            </div>
+
+            <div class="deposit-rates">
+                <span>тенге 17%</span>
+                <span>доллар 1%</span>
+                <span>евро 0.8%</span>
+                <span>рубль 1%</span>
+            </div>
+        </a>
+
+        <a class="deposit-card" href="deposit-details.html" th:href="@{/deposits/strategy}">
+            <h2>Стратегия</h2>
+            <p>С пополнением, но без снятия</p>
+
+            <div class="deposit-detail">
+                <span>Сумма</span>
+                <strong>от 100 долларов (или эквивалент)</strong>
+            </div>
+
+            <div class="deposit-detail">
+                <span>Срок</span>
+                <strong>от 3 до 24 месяцев</strong>
+            </div>
+
+            <div class="deposit-rates">
+                <span>тенге 19%</span>
+                <span>доллар 1.2%</span>
+                <span>евро 1%</span>
+                <span>рубль 1.5%</span>
+            </div>
+        </a>
+
+        <a class="deposit-card" href="deposit-details.html" th:href="@{/deposits/capital}">
+            <h2>Капитал</h2>
+            <p>Без пополнения и без снятия</p>
+
+            <div class="deposit-detail">
+                <span>Сумма</span>
+                <strong>от 1000 долларов (или эквивалент)</strong>
+            </div>
+
+            <div class="deposit-detail">
+                <span>Срок</span>
+                <strong>от 3 до 36 месяцев</strong>
+            </div>
+
+            <div class="deposit-rates">
+                <span>тенге 20%</span>
+                <span>доллар 1.2%</span>
+                <span>евро 0.9%</span>
+                <span>рубль 1.75%</span>
+            </div>
+        </a>
+    </div>
+
+</main>
+
+</body>
+</html>

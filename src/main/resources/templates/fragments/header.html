@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8">
+</head>
+
+<body>
+
+<header th:fragment="header">
+  <nav class="navbar">
+    <div class="logo">
+      <a href="accounts.html" th:href="@{/}">Bank</a>
+    </div>
+
+    <ul class="nav-links">
+      <li><a href="accounts.html" th:href="@{/accounts}">Мои счета</a></li>
+      <li><a href="#" th:href="@{/transfers}">Операции</a></li>
+      <li><a href="#" th:href="@{/deposits}">Депозиты</a></li>
+      <li><a href="#" th:href="@{/loans}">Кредиты</a></li>
+      <li><a href="#" th:href="@{/exchange}">Обменник</a></li>
+      <li><a href="#" th:href="@{/settings}">Настройки</a></li>
+    </ul>
+  </nav>
+</header>
+
+</body>
+</html>

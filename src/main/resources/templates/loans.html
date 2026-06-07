@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Кредиты</title>
+    <link rel="stylesheet" href="../static/css/styles.css" th:href="@{/css/styles.css}">
+    <meta charset="UTF-8">
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<main class="loans-page">
+
+    <h1>Кредиты</h1>
+
+    <div class="loan-summary">
+        <div>
+            <h2>Подберите кредит под свою цель</h2>
+            <p>Можно оформить заявку, выбрать счет для зачисления и погашать платежи через операции банка.</p>
+        </div>
+    </div>
+
+    <div class="loan-cards">
+        <a class="loan-card" href="#">
+            <div class="loan-card-header">
+                <h2>На любые цели</h2>
+                <span>быстро</span>
+            </div>
+            <p>Для покупок, ремонта, учебы или других личных планов.</p>
+
+            <div class="loan-info">
+                <div>
+                    <span>Сумма</span>
+                    <strong>от 50 000 до 5 000 000 ₸</strong>
+                </div>
+                <div>
+                    <span>Срок</span>
+                    <strong>от 3 до 60 месяцев</strong>
+                </div>
+                <div>
+                    <span>Ставка</span>
+                    <strong>от 21%</strong>
+                </div>
+            </div>
+        </a>
+
+        <a class="loan-card" href="#">
+            <div class="loan-card-header">
+                <h2>Автокредит</h2>
+                <span>транспорт</span>
+            </div>
+            <p>Для покупки нового или поддержанного автомобиля с удобным графиком платежей.</p>
+
+            <div class="loan-info">
+                <div>
+                    <span>Сумма</span>
+                    <strong>от 500 000 до 20 000 000 ₸</strong>
+                </div>
+                <div>
+                    <span>Срок</span>
+                    <strong>от 12 до 84 месяцев</strong>
+                </div>
+                <div>
+                    <span>Ставка</span>
+                    <strong>от 18%</strong>
+                </div>
+            </div>
+        </a>
+
+        <a class="loan-card" href="#">
+            <div class="loan-card-header">
+                <h2>Ипотека</h2>
+                <span>жилье</span>
+            </div>
+            <p>Для покупки квартиры или дома с первоначальным взносом.</p>
+
+            <div class="loan-info">
+                <div>
+                    <span>Сумма</span>
+                    <strong>от 3 000 000 до 80 000 000 ₸</strong>
+                </div>
+                <div>
+                    <span>Срок</span>
+                    <strong>от 3 до 20 лет</strong>
+                </div>
+                <div>
+                    <span>Ставка</span>
+                    <strong>от 16%</strong>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="loan-note">
+        <h2>Как это связано с другими разделами</h2>
+        <p>После одобрения деньги можно получить на счет, платежи проводить через операции, а свободные средства хранить в депозитах.</p>
+    </div>
+
+</main>
+
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Обменник</title>
+    <link rel="stylesheet" href="../static/css/styles.css" th:href="@{/css/styles.css}">
+    <meta charset="UTF-8">
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<main class="exchange-page">
+
+    <h1>Обменник</h1>
+
+    <div class="exchange-layout">
+        <section class="exchange-rates-card">
+            <div class="exchange-card-header">
+                <div>
+                    <h2>Курсы валют</h2>
+                    <p>Актуальные курсы для покупки и продажи валюты в банке.</p>
+                </div>
+                <span>Сегодня</span>
+            </div>
+
+            <table class="exchange-table">
+                <thead>
+                <tr>
+                    <th>Валюта</th>
+                    <th>Покупка</th>
+                    <th>Продажа</th>
+                    <th>Изменение</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>
+                        <strong>USD</strong>
+                        <span>Доллар США</span>
+                    </td>
+                    <td>445.20 ₸</td>
+                    <td>450.80 ₸</td>
+                    <td class="rate-up">+0.6%</td>
+                </tr>
+                <tr>
+                    <td>
+                        <strong>EUR</strong>
+                        <span>Евро</span>
+                    </td>
+                    <td>482.10 ₸</td>
+                    <td>489.40 ₸</td>
+                    <td class="rate-down">-0.2%</td>
+                </tr>
+                <tr>
+                    <td>
+                        <strong>RUB</strong>
+                        <span>Российский рубль</span>
+                    </td>
+                    <td>4.70 ₸</td>
+                    <td>5.05 ₸</td>
+                    <td class="rate-up">+0.1%</td>
+                </tr>
+                <tr>
+                    <td>
+                        <strong>GBP</strong>
+                        <span>Фунт стерлингов</span>
+                    </td>
+                    <td>565.00 ₸</td>
+                    <td>574.20 ₸</td>
+                    <td>0%</td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="exchange-converter-card">
+            <h2>Быстрый расчет</h2>
+
+            <div class="converter-field">
+                <label>Отдаете</label>
+                <div class="converter-input">
+                    <input type="number" value="100000">
+                    <select>
+                        <option>KZT</option>
+                        <option>USD</option>
+                        <option>EUR</option>
+                        <option>RUB</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="converter-field">
+                <label>Получаете</label>
+                <div class="converter-input">
+                    <input type="number" value="221">
+                    <select>
+                        <option>USD</option>
+                        <option>EUR</option>
+                        <option>RUB</option>
+                        <option>KZT</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="exchange-button">Обменять</button>
+
+            <p class="exchange-hint">Расчет предварительный. Итоговая сумма может измениться при подтверждении операции.</p>
+        </section>
+    </div>
+
+</main>
+
+</body>
+</html>

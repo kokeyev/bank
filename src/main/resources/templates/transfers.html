@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Переводы</title>
+    <link rel="stylesheet" href="../static/css/styles.css" th:href="@{/css/styles.css}">
+    <meta charset="UTF-8">
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<main class="transfers-page">
+
+    <h1>Операции</h1>
+
+    <div class="transfer-list">
+        <a class="transfer-option" href="#">Между своими счетами</a>
+        <a class="transfer-option" href="#">По номеру телефона</a>
+        <a class="transfer-option" href="#">По номеру карты</a>
+        <a class="transfer-option" href="#">Пополнить депозит</a>
+        <a class="transfer-option" href="#">Погасить кредит</a>
+        <a class="transfer-option" href="#">Перевести на карту другого банка</a>
+    </div>
+
+</main>
+
+</body>
+</html>
