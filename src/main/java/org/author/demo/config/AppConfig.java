@@ -6,6 +6,5 @@ import org.springframework.context.annotation.Import;
 
 @Configuration
 @ComponentScan(basePackages = "org.author.demo")
-@Import({DataSourceConfig.class})
 public class AppConfig {
 }

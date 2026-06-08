@@ -17,6 +17,8 @@ public class User {
   private LocalDate dateModified;
   private String password_hash;
 
+  public User() {}
+
   public User(Long userId, String name, String surname, String phoneNumber, String emailAddress, String role, String status, LocalDate dateCreated, LocalDate dateModified, String password_hash) {
     this.userId = userId;
     this.name = name;

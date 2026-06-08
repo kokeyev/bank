@@ -6,7 +6,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-// нужен ли Interface
 public class ConnectionPool {
 
   private String url;
@@ -27,11 +26,13 @@ public class ConnectionPool {
     this.usedConnections = new ArrayList<>();
 
     try {
+      Class.forName("org.postgresql.Driver");
+
       for (int i = 0; i < poolSize; i++) {
         Connection connection = DriverManager.getConnection(url, username, password);
         availableConnections.add(connection);
       }
-    } catch (SQLException e) {
+    } catch (ClassNotFoundException | SQLException e) {
       throw new RuntimeException("Не удалось создать пул соединений", e);
     }
   }

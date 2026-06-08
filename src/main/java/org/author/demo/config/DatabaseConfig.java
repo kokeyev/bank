@@ -12,7 +12,7 @@ public class DatabaseConfig {
     return new ConnectionPool(
         "jdbc:postgresql://localhost:5432/bank?charSet=UTF-8",
         "postgres",
-        "postgres",
+        "1234",
         10
     );
   }
