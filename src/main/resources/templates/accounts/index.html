@@ -17,6 +17,8 @@
 
         <div class="account-info">
 
+            <div class="account-name">Основная</div>
+
             <div class="account-header">
                 <div class="balance">125 430.50</div>
                 <div class="currency-icon">₸</div>
@@ -45,14 +47,14 @@
             </div>
 
             <div class="action-block">
-                <button>Деактивировать</button>
+                <button class="deactivate-account-button">Деактивировать</button>
             </div>
 
         </div>
 
     </div>
 
-    <button class="open-account-button">Открыть счет</button>
+    <a class="open-account-button" href="open.html" th:href="@{/accounts/open}">Открыть счет</a>
 
 </main>
 

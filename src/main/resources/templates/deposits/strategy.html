@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Открыть депозит Стратегия</title>
+    <link rel="stylesheet" href="../static/css/styles.css" th:href="@{/css/styles.css}">
+    <meta charset="UTF-8">
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<main class="deposit-form-page">
+
+    <a class="back-link" href="index.html" th:href="@{/deposits}">Назад к депозитам</a>
+
+    <section class="deposit-open-card">
+        <div class="deposit-form-header">
+            <span>Открыть депозит</span>
+            <h1>Стратегия</h1>
+            <p>Депозит с повышенной ставкой для накопления без снятия.</p>
+        </div>
+
+        <form class="deposit-open-form" method="post" th:action="@{/deposits/strategy}">
+            <div class="deposit-form-field">
+                <label for="amount">Введите сумму</label>
+                <input id="amount" name="amount" type="number" placeholder="0" required>
+            </div>
+
+            <div class="deposit-form-field">
+                <label for="term">Выберите срок</label>
+                <select id="term" name="term" required>
+                    <option value="" disabled selected>Срок депозита</option>
+                    <option value="3">3 месяца</option>
+                    <option value="6">6 месяцев</option>
+                    <option value="12">12 месяцев</option>
+                    <option value="24">24 месяца</option>
+                    <option value="36">36 месяцев</option>
+                </select>
+            </div>
+
+            <div class="deposit-switches">
+                <label class="switch-row">
+                    <span>Автопродление</span>
+                    <input type="checkbox" name="autoRenewal">
+                    <span class="switch-control"></span>
+                </label>
+
+                <label class="switch-row">
+                    <span>Вознаграждение оставлять на депозите</span>
+                    <input type="checkbox" name="capitalizeReward">
+                    <span class="switch-control"></span>
+                </label>
+            </div>
+
+            <fieldset class="rate-preview">
+                <legend>Выбор валюты и ставка</legend>
+
+                <div>
+                    <label class="rate-option">
+                        <input type="radio" name="currency" value="kzt" checked>
+                        <span class="rate-option-card">₸ 19%</span>
+                    </label>
+
+                    <label class="rate-option">
+                        <input type="radio" name="currency" value="usd">
+                        <span class="rate-option-card">$ 1.2%</span>
+                    </label>
+
+                    <label class="rate-option">
+                        <input type="radio" name="currency" value="eur">
+                        <span class="rate-option-card">€ 1%</span>
+                    </label>
+
+                    <label class="rate-option">
+                        <input type="radio" name="currency" value="rub">
+                        <span class="rate-option-card">₽ 1.5%</span>
+                    </label>
+                </div>
+            </fieldset>
+
+            <button class="open-deposit-submit-button" type="submit">Открыть депозит</button>
+        </form>
+    </section>
+
+</main>
+
+</body>
+</html>

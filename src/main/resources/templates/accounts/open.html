@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Открыть счет</title>
+    <link rel="stylesheet" href="../../static/css/styles.css" th:href="@{/css/styles.css}">
+    <meta charset="UTF-8">
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<main class="open-account-page">
+
+    <a class="back-link" href="index.html" th:href="@{/accounts}">Назад к счетам</a>
+
+    <section class="open-account-card">
+        <h1>Открыть счет</h1>
+
+        <form class="open-account-form" method="post" th:action="@{/accounts/open}">
+            <div class="open-account-field">
+                <label for="accountName">Название счета</label>
+                <input id="accountName" name="accountName" type="text" placeholder="Например, Основной счет" required>
+            </div>
+
+            <div class="open-account-field">
+                <label for="currency">Выберите валюту</label>
+                <select id="currency" name="currency" required>
+                    <option value="" disabled selected>Выберите валюту</option>
+                    <option value="KZT">KZT - Казахстанский тенге</option>
+                    <option value="USD">USD - Доллар США</option>
+                    <option value="EUR">EUR - Евро</option>
+                    <option value="RUB">RUB - Российский рубль</option>
+                </select>
+            </div>
+
+            <button class="create-account-button" type="submit">Открыть счет</button>
+        </form>
+    </section>
+
+</main>
+
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Открыть кредит На любые цели</title>
+    <link rel="stylesheet" href="../static/css/styles.css" th:href="@{/css/styles.css}">
+    <meta charset="UTF-8">
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<main class="loan-form-page">
+
+    <a class="back-link" href="index.html" th:href="@{/loans}">Назад к кредитам</a>
+
+    <section class="loan-application-card">
+        <div class="loan-form-header">
+            <span>Открыть кредит</span>
+            <h1>На любые цели</h1>
+            <p>Укажите желаемую сумму. Срок и процентную ставку менеджер рассчитает индивидуально и отправит вам после рассмотрения заявки.</p>
+        </div>
+
+        <form class="loan-application-form" method="post" th:action="@{/loans/purpose}">
+            <div class="loan-form-field">
+                <label for="amount">Сумма</label>
+                <input id="amount" name="amount" type="number" placeholder="0" required>
+            </div>
+
+            <button class="loan-submit-button" type="submit">Отправить заявку</button>
+        </form>
+    </section>
+
+</main>
+
+</body>
+</html>

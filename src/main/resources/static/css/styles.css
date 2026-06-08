@@ -73,6 +73,13 @@ body {
     flex-direction: column;
 }
 
+.account-name {
+    margin-bottom: 10px;
+    color: #6b7280;
+    font-size: 18px;
+    font-weight: 500;
+}
+
 .account-header {
     display: flex;
     align-items: baseline;
@@ -142,8 +149,31 @@ body {
     border-color: #555;
 }
 
+.action-block input[type="number"] {
+    appearance: textfield;
+    -moz-appearance: textfield;
+}
+
+.action-block input[type="number"]::-webkit-outer-spin-button,
+.action-block input[type="number"]::-webkit-inner-spin-button {
+    margin: 0;
+    -webkit-appearance: none;
+}
+
+.action-block .deactivate-account-button {
+    border-color: #b91c1c;
+    color: #b91c1c;
+}
+
+.action-block .deactivate-account-button:hover {
+    border-color: #991b1b;
+    color: #991b1b;
+}
+
 .open-account-button {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 240px;
     height: 44px;
     margin-top: 24px;
@@ -154,9 +184,83 @@ body {
     background: #111827;
     color: white;
     cursor: pointer;
+    text-decoration: none;
 }
 
 .open-account-button:hover {
+    background: #1f2937;
+}
+
+.open-account-page {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 40px;
+}
+
+.back-link {
+    display: inline-block;
+    margin-bottom: 20px;
+    color: #4b5563;
+    font-size: 14px;
+    text-decoration: none;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
+.open-account-card {
+    max-width: 520px;
+    padding: 32px;
+    background: white;
+    border: 1px solid #e5e5e5;
+    border-radius: 10px;
+}
+
+.open-account-card h1 {
+    margin-bottom: 24px;
+    font-size: 32px;
+    font-weight: 500;
+}
+
+.open-account-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.open-account-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.open-account-field label {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.open-account-field input,
+.open-account-field select {
+    height: 44px;
+    padding: 0 12px;
+    border: 1px solid #d0d0d0;
+    border-radius: 6px;
+    background: white;
+}
+
+.create-account-button {
+    width: 180px;
+    height: 44px;
+    margin-top: 6px;
+    border: 1px solid #111827;
+    border-radius: 6px;
+    background: #111827;
+    color: white;
+    cursor: pointer;
+}
+
+.create-account-button:hover {
     background: #1f2937;
 }
 
@@ -197,6 +301,134 @@ body {
 
 .transfer-option:hover {
     background: #f1f3f5;
+}
+
+.transfer-form-page {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 40px;
+}
+
+.transfer-form-card {
+    max-width: 520px;
+    padding: 32px;
+    background: white;
+    border: 1px solid #e5e5e5;
+    border-radius: 10px;
+}
+
+.transfer-form-card h1 {
+    margin-bottom: 24px;
+    font-size: 32px;
+    font-weight: 500;
+}
+
+.transfer-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.transfer-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.transfer-field label {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.transfer-field-caption {
+    color: #1f2933;
+    font-size: 15px;
+}
+
+.transfer-field input,
+.transfer-field select {
+    height: 44px;
+    padding: 0 12px;
+    border: 1px solid #d0d0d0;
+    border-radius: 6px;
+    background: white;
+}
+
+.transfer-field input[type="number"] {
+    appearance: textfield;
+    -moz-appearance: textfield;
+}
+
+.transfer-field input[type="number"]::-webkit-outer-spin-button,
+.transfer-field input[type="number"]::-webkit-inner-spin-button {
+    margin: 0;
+    -webkit-appearance: none;
+}
+
+.phone-input {
+    display: flex;
+    align-items: center;
+    height: 44px;
+    border: 1px solid #d0d0d0;
+    border-radius: 6px;
+    background: white;
+    overflow: hidden;
+}
+
+.phone-input span {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding: 0 12px;
+    border-right: 1px solid #e5e5e5;
+    color: #1f2933;
+    background: #f7f8fa;
+}
+
+.phone-input input {
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+    border: none;
+    border-radius: 0;
+}
+
+.phone-input input:focus {
+    outline: none;
+}
+
+.commission-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 14px;
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+    background: #f7f8fa;
+}
+
+.commission-row span {
+    color: #6b7280;
+}
+
+.commission-row strong {
+    font-size: 16px;
+}
+
+.transfer-submit-button {
+    width: 180px;
+    height: 44px;
+    margin-top: 6px;
+    border: 1px solid #111827;
+    border-radius: 6px;
+    background: #111827;
+    color: white;
+    cursor: pointer;
+}
+
+.transfer-submit-button:hover {
+    background: #1f2937;
 }
 
 .deposits-page {
@@ -338,6 +570,221 @@ body {
     background: #1f2937;
 }
 
+.deposit-form-page {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 40px;
+}
+
+.deposit-open-card {
+    max-width: 560px;
+    padding: 32px;
+    background: white;
+    border: 1px solid #e5e5e5;
+    border-radius: 10px;
+}
+
+.deposit-form-header {
+    margin-bottom: 26px;
+}
+
+.deposit-form-header span {
+    display: block;
+    margin-bottom: 8px;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.deposit-form-header h1 {
+    margin-bottom: 10px;
+    font-size: 34px;
+    font-weight: 500;
+}
+
+.deposit-form-header p {
+    color: #4b5563;
+    line-height: 1.5;
+}
+
+.deposit-open-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.deposit-form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.deposit-form-field label {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.deposit-form-field input,
+.deposit-form-field select {
+    height: 44px;
+    padding: 0 12px;
+    border: 1px solid #d0d0d0;
+    border-radius: 6px;
+    background: white;
+}
+
+.deposit-form-field input[type="number"] {
+    appearance: textfield;
+    -moz-appearance: textfield;
+}
+
+.deposit-form-field input[type="number"]::-webkit-outer-spin-button,
+.deposit-form-field input[type="number"]::-webkit-inner-spin-button {
+    margin: 0;
+    -webkit-appearance: none;
+}
+
+.deposit-switches {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.switch-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    min-height: 52px;
+    padding: 0 14px;
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+    background: #f7f8fa;
+    cursor: pointer;
+}
+
+.switch-row span:first-child {
+    color: #1f2933;
+    line-height: 1.4;
+}
+
+.switch-row input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.switch-control {
+    position: relative;
+    flex: 0 0 auto;
+    width: 46px;
+    height: 26px;
+    border-radius: 999px;
+    background: #d1d5db;
+    transition: background 0.2s ease;
+}
+
+.switch-control::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: white;
+    box-shadow: 0 1px 3px rgba(17, 24, 39, 0.18);
+    transition: transform 0.2s ease;
+}
+
+.switch-row input:checked + .switch-control {
+    background: #111827;
+}
+
+.switch-row input:checked + .switch-control::after {
+    transform: translateX(20px);
+}
+
+.rate-preview {
+    padding: 14px;
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+    background: #f7f8fa;
+}
+
+.rate-preview legend {
+    display: block;
+    margin-bottom: 10px;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.rate-preview div {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.rate-option {
+    cursor: pointer;
+}
+
+.rate-option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.rate-option-card {
+    display: block;
+    padding: 14px 8px;
+    border-radius: 6px;
+    background: white;
+    color: #1f2933;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 700;
+    transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.rate-option:hover .rate-option-card {
+    box-shadow: inset 0 0 0 1px #d0d0d0;
+}
+
+.rate-option input:checked + .rate-option-card {
+    background: #111827;
+    color: white;
+    box-shadow: 0 8px 18px rgba(17, 24, 39, 0.16);
+}
+
+.open-deposit-submit-button {
+    width: 180px;
+    height: 44px;
+    margin-top: 6px;
+    border: 1px solid #111827;
+    border-radius: 6px;
+    background: #111827;
+    color: white;
+    cursor: pointer;
+}
+
+.open-deposit-submit-button:hover {
+    background: #1f2937;
+}
+
+@media (max-width: 640px) {
+    .deposit-form-page {
+        padding: 24px;
+    }
+
+    .deposit-open-card {
+        padding: 24px;
+    }
+
+    .rate-preview div {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
 .loans-page {
     max-width: 1100px;
     margin: 0 auto;
@@ -470,6 +917,103 @@ body {
     }
 }
 
+.loan-form-page {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 40px;
+}
+
+.loan-application-card {
+    max-width: 540px;
+    padding: 32px;
+    background: white;
+    border: 1px solid #e5e5e5;
+    border-radius: 10px;
+}
+
+.loan-form-header {
+    margin-bottom: 26px;
+}
+
+.loan-form-header span {
+    display: block;
+    margin-bottom: 8px;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.loan-form-header h1 {
+    margin-bottom: 10px;
+    font-size: 34px;
+    font-weight: 500;
+}
+
+.loan-form-header p {
+    color: #4b5563;
+    line-height: 1.5;
+}
+
+.loan-application-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.loan-form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.loan-form-field label {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.loan-form-field input {
+    height: 44px;
+    padding: 0 12px;
+    border: 1px solid #d0d0d0;
+    border-radius: 6px;
+    background: white;
+}
+
+.loan-form-field input[type="number"] {
+    appearance: textfield;
+    -moz-appearance: textfield;
+}
+
+.loan-form-field input[type="number"]::-webkit-outer-spin-button,
+.loan-form-field input[type="number"]::-webkit-inner-spin-button {
+    margin: 0;
+    -webkit-appearance: none;
+}
+
+.loan-submit-button {
+    width: 180px;
+    height: 44px;
+    margin-top: 6px;
+    border: 1px solid #111827;
+    border-radius: 6px;
+    background: #111827;
+    color: white;
+    cursor: pointer;
+}
+
+.loan-submit-button:hover {
+    background: #1f2937;
+}
+
+@media (max-width: 640px) {
+    .loan-form-page {
+        padding: 24px;
+    }
+
+    .loan-application-card {
+        padding: 24px;
+    }
+}
+
 .exchange-page {
     max-width: 1100px;
     margin: 0 auto;
@@ -566,16 +1110,6 @@ body {
     font-size: 13px;
 }
 
-.rate-up {
-    color: #15803d;
-    font-weight: 600;
-}
-
-.rate-down {
-    color: #b91c1c;
-    font-weight: 600;
-}
-
 .exchange-converter-card {
     padding: 28px;
 }
@@ -594,6 +1128,7 @@ body {
 
 .converter-input {
     display: flex;
+    gap: 10px;
     height: 44px;
 }
 
@@ -607,14 +1142,21 @@ body {
     min-width: 0;
     width: 100%;
     padding: 0 12px;
-    border-radius: 6px 0 0 6px;
+    border-radius: 6px;
+    appearance: textfield;
+    -moz-appearance: textfield;
+}
+
+.converter-input input::-webkit-outer-spin-button,
+.converter-input input::-webkit-inner-spin-button {
+    margin: 0;
+    -webkit-appearance: none;
 }
 
 .converter-input select {
     width: 88px;
     padding: 0 8px;
-    border-left: none;
-    border-radius: 0 6px 6px 0;
+    border-radius: 6px;
 }
 
 .exchange-button {
@@ -795,6 +1337,172 @@ body {
     .save-settings-button,
     .logout-button,
     .delete-account-button {
+        width: 100%;
+    }
+}
+
+.auth-page {
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 56px 24px;
+}
+
+.auth-card {
+    width: 440px;
+    max-width: 100%;
+    align-self: flex-start;
+    padding: 32px;
+    background: white;
+    border: 1px solid #e5e5e5;
+    border-radius: 10px;
+}
+
+.auth-card-wide {
+    width: 560px;
+}
+
+.auth-header {
+    margin-bottom: 26px;
+}
+
+.auth-logo {
+    display: inline-block;
+    margin-bottom: 28px;
+    color: #111827;
+    text-decoration: none;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.auth-header span {
+    display: block;
+    margin-bottom: 8px;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.auth-header h1 {
+    font-size: 34px;
+    font-weight: 500;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.auth-fields-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.auth-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.auth-field label,
+.login-method legend {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.auth-field input {
+    height: 44px;
+    padding: 0 12px;
+    border: 1px solid #d0d0d0;
+    border-radius: 6px;
+    background: white;
+}
+
+.login-method {
+    padding: 0;
+    border: none;
+}
+
+.login-method > div {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.login-method-option {
+    cursor: pointer;
+}
+
+.login-method-option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.login-method-option span {
+    display: block;
+    padding: 13px 12px;
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+    background: #f7f8fa;
+    color: #1f2933;
+    text-align: center;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.login-method-option input:checked + span {
+    border-color: #111827;
+    background: #111827;
+    color: white;
+}
+
+.auth-submit-button {
+    width: 190px;
+    height: 44px;
+    margin-top: 6px;
+    border: 1px solid #111827;
+    border-radius: 6px;
+    background: #111827;
+    color: white;
+    cursor: pointer;
+}
+
+.auth-submit-button:hover {
+    background: #1f2937;
+}
+
+.auth-switch-link {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.auth-switch-link a {
+    color: #111827;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.auth-switch-link a:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+    .auth-page {
+        padding: 24px;
+    }
+
+    .auth-card {
+        padding: 24px;
+    }
+
+    .auth-fields-grid,
+    .login-method > div {
+        grid-template-columns: 1fr;
+    }
+
+    .auth-submit-button {
         width: 100%;
     }
 }

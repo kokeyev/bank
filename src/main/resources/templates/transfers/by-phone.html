@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Перевод по номеру телефона</title>
+    <link rel="stylesheet" href="../../static/css/styles.css" th:href="@{/css/styles.css}">
+    <meta charset="UTF-8">
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<main class="transfer-form-page">
+
+    <a class="back-link" href="index.html" th:href="@{/transfers}">Назад к операциям</a>
+
+    <section class="transfer-form-card">
+        <h1>Перевод по номеру телефона</h1>
+
+        <form class="transfer-form" method="post" th:action="@{/transfers/by-phone}">
+            <div class="transfer-field">
+                <label for="fromAccount">Откуда</label>
+                <select id="fromAccount" name="fromAccount" required>
+                    <option value="" disabled selected>Список счетов</option>
+                    <option value="main">Основная - 125 430.50 ₸</option>
+                    <option value="usd">Долларовый счет - 820.00 $</option>
+                    <option value="eur">Евро счет - 540.00 €</option>
+                </select>
+            </div>
+
+            <div class="transfer-field">
+                <label for="recipientPhone">Куда</label>
+                <span class="transfer-field-caption">Номер получателя</span>
+                <div class="phone-input">
+                    <span>+7</span>
+                    <input id="recipientPhone" name="recipientPhone" type="tel" placeholder="700 000 00 00" required>
+                </div>
+            </div>
+
+            <div class="transfer-field">
+                <label for="amount">Сумма перевода</label>
+                <input id="amount" name="amount" type="number" placeholder="0" required>
+            </div>
+
+            <div class="commission-row">
+                <span>Комиссия</span>
+                <strong>0 ₸</strong>
+            </div>
+
+            <button class="transfer-submit-button" type="submit">Перевести</button>
+        </form>
+    </section>
+
+</main>
+
+</body>
+</html>
