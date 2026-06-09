@@ -1,4 +1,74 @@
 package org.author.demo.dao.depositType;
 
-public class DepositTypeDaoImpl {
+import org.author.demo.db.ConnectionPool;
+import org.springframework.stereotype.Repository;
+
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+
+@Repository
+public class DepositTypeDaoImpl implements DepositTypeDao {
+
+  private final ConnectionPool connectionPool;
+
+  public DepositTypeDaoImpl(ConnectionPool connectionPool) {
+    this.connectionPool = connectionPool;
+  }
+
+  @Override
+  public boolean createNewDepositType(String name, BigDecimal rate, Integer duration, Boolean withdrawal, BigDecimal minimumAmount, Long currencyId) {
+    String sql = """
+        insert into deposit_types (name, rate, duration, withdrawal, minimum_amount, currency_id)
+        values (?, ?, ?, ?, ?, ?)
+        """;
+
+    Connection connection = null;
+
+    try {
+      connection = connectionPool.getConnection();
+      try (PreparedStatement statement = connection.prepareStatement(sql)) {
+        statement.setString(1, name);
+        statement.setBigDecimal(2, rate);
+        statement.setInt(3, duration);
+        statement.setBoolean(4, withdrawal);
+        statement.setBigDecimal(5, minimumAmount);
+        statement.setLong(6, currencyId);
+
+        int rowsAffected = statement.executeUpdate();
+        return rowsAffected > 0;
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException("Не удалось создать тип депозита", e);
+    } finally {
+      connectionPool.releaseConnection(connection);
+    }
+  }
+
+  @Override
+  public boolean changeRateOfDepositType(Long depositTypeId, BigDecimal newRate) {
+    String sql = """
+        update deposit_types
+        set rate = ?
+        where deposit_type_id = ?
+        """;
+
+    Connection connection = null;
+
+    try {
+      connection = connectionPool.getConnection();
+      try (PreparedStatement statement = connection.prepareStatement(sql)) {
+        statement.setBigDecimal(1, newRate);
+        statement.setLong(2, depositTypeId);
+
+        int rowsAffected = statement.executeUpdate();
+        return rowsAffected > 0;
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException("Не удалось изменить ставку типа депозита", e);
+    } finally {
+      connectionPool.releaseConnection(connection);
+    }
+  }
 }

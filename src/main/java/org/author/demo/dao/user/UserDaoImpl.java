@@ -51,7 +51,9 @@ public class UserDaoImpl implements UserDao{
   @Override
   public Optional<User> getUserByPhoneNumber(String phoneNumber) {
     String sql = """
-        select name from users where phone_number = ?
+        select user_id, name, surname, phone_number, email_address, role, status, date_created, date_modified, password_hash
+        from users
+        where phone_number = ?
         """;
 
     Connection connection = null;
@@ -77,7 +79,9 @@ public class UserDaoImpl implements UserDao{
   @Override
   public Optional<User> getUserByEmailAddress(String emailAddress) {
     String sql = """
-        select name from users where email_address = ?
+        select user_id, name, surname, phone_number, email_address, role, status, date_created, date_modified, password_hash
+        from users
+        where email_address = ?
         """;
 
     Connection connection = null;
@@ -206,7 +210,9 @@ public class UserDaoImpl implements UserDao{
     user.setEmailAddress(resultSet.getString("email_address"));
     user.setRole(resultSet.getString("role"));
     user.setStatus(resultSet.getString("status"));
-    user.setDateCreated(resultSet.getDate("user_id").toLocalDate());
+    user.setDateCreated(resultSet.getDate("date_created").toLocalDate());
+    Date dateModified = resultSet.getDate("date_modified");
+    user.setDateModified(dateModified == null ? null : dateModified.toLocalDate());
     user.setPassword_hash(resultSet.getString("password_hash"));
 
     return user;
