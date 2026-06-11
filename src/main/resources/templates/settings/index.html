@@ -18,48 +18,90 @@
             <h2>Язык интерфейса</h2>
             <p>Выберите язык, на котором будет отображаться приложение.</p>
 
+            <form class="settings-form" method="post" th:action="@{/settings/language}">
             <div class="language-options">
                 <label>
-                    <input type="radio" name="language" checked>
+                    <input type="radio" name="language" value="ru" th:checked="${selectedLanguage == null || selectedLanguage == 'ru'}">
                     <span>Русский</span>
                 </label>
                 <label>
-                    <input type="radio" name="language">
+                    <input type="radio" name="language" value="kk" th:checked="${selectedLanguage == 'kk'}">
                     <span>Қазақша</span>
                 </label>
                 <label>
-                    <input type="radio" name="language">
+                    <input type="radio" name="language" value="en" th:checked="${selectedLanguage == 'en'}">
                     <span>English</span>
                 </label>
             </div>
+            <button type="submit" class="save-settings-button">Сохранить язык</button>
+            </form>
         </section>
 
-        <section class="settings-card">
+        <section class="settings-card" th:if="${loggedIn}">
             <h2>Контактные данные</h2>
             <p>Обновите номер телефона и почту для уведомлений банка.</p>
 
-            <form class="settings-form">
+            <form class="settings-form" method="post" th:action="@{/settings/contact}">
+                <div class="settings-message settings-message-success" th:if="${contactSuccess}" th:text="${contactSuccess}">
+                    Контактные данные обновлены.
+                </div>
+
+                <div class="settings-message settings-message-error" th:if="${contactErrors}">
+                    <p th:each="error : ${contactErrors}" th:text="${error}">Ошибка</p>
+                </div>
+
                 <div class="settings-field">
                     <label for="phone">Номер телефона</label>
-                    <input id="phone" type="tel" value="+7 777 123 45 67">
+                    <input id="phone" name="phone" type="tel" th:placeholder="${phonePlaceholder ?: '+7 700 000 00 00'}">
                 </div>
 
                 <div class="settings-field">
                     <label for="email">Почта</label>
-                    <input id="email" type="email" value="client@bank.kz">
+                    <input id="email" name="email" type="email" th:placeholder="${emailPlaceholder ?: 'mail@example.com'}">
                 </div>
 
-                <button type="button" class="save-settings-button">Сохранить изменения</button>
+                <button type="submit" class="save-settings-button">Сохранить изменения</button>
             </form>
         </section>
 
-        <section class="settings-card account-actions-card">
+        <section class="settings-card account-actions-card" th:if="${loggedIn}">
             <h2>Аккаунт</h2>
             <p>Управление текущей сессией и аккаунтом пользователя.</p>
 
+            <form class="settings-form" method="post" th:action="@{/settings/password}">
+                <div class="settings-message settings-message-success" th:if="${passwordSuccess}" th:text="${passwordSuccess}">
+                    Пароль обновлен.
+                </div>
+
+                <div class="settings-message settings-message-error" th:if="${passwordErrors}">
+                    <p th:each="error : ${passwordErrors}" th:text="${error}">Ошибка</p>
+                </div>
+
+                <div class="settings-field">
+                    <label for="currentPassword">Текущий пароль</label>
+                    <input id="currentPassword" name="currentPassword" type="password" required>
+                </div>
+
+                <div class="settings-field">
+                    <label for="newPassword">Новый пароль</label>
+                    <input id="newPassword" name="newPassword" type="password" required>
+                </div>
+
+                <div class="settings-field">
+                    <label for="confirmPassword">Повторите новый пароль</label>
+                    <input id="confirmPassword" name="confirmPassword" type="password" required>
+                </div>
+
+                <button type="submit" class="save-settings-button">Изменить пароль</button>
+            </form>
+
             <div class="settings-actions">
-                <button type="button" class="logout-button">Выйти с аккаунта</button>
-                <button type="button" class="delete-account-button">Удалить аккаунт</button>
+                <form method="post" th:action="@{/logout}">
+                    <button type="submit" class="logout-button">Выйти с аккаунта</button>
+                </form>
+                <form method="post" th:action="@{/settings/deactivate}">
+                    <button type="submit" class="delete-account-button">Деактивировать аккаунт</button>
+                </form>
             </div>
         </section>
     </div>

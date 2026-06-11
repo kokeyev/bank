@@ -21,75 +21,112 @@
     </div>
 
     <div class="loan-cards">
-        <a class="loan-card" href="purpose.html" th:href="@{/loans/purpose}">
+        <a class="loan-card" href="purpose.html" th:each="loanType : ${loanTypes}" th:href="@{'/loans/' + ${loanType.slug}}">
             <div class="loan-card-header">
-                <h2>На любые цели</h2>
-                <span>быстро</span>
+                <h2 th:text="${loanType.name}">На любые цели</h2>
+                <span th:text="${loanType.tag}">быстро</span>
             </div>
-            <p>Для покупок, ремонта, учебы или других личных планов.</p>
+            <p th:text="${loanType.description}">Для покупок, ремонта, учебы или других личных планов.</p>
 
             <div class="loan-info">
                 <div>
                     <span>Сумма</span>
-                    <strong>от 50 000 до 5 000 000 ₸</strong>
+                    <strong th:text="${loanType.amountRange}">от 50 000 до 5 000 000 ₸</strong>
                 </div>
                 <div>
                     <span>Срок</span>
-                    <strong>от 3 до 60 месяцев</strong>
+                    <strong th:text="${loanType.duration}">до 5 лет</strong>
                 </div>
                 <div>
                     <span>Ставка</span>
-                    <strong>от 21%</strong>
-                </div>
-            </div>
-        </a>
-
-        <a class="loan-card" href="auto.html" th:href="@{/loans/auto}">
-            <div class="loan-card-header">
-                <h2>Автокредит</h2>
-                <span>транспорт</span>
-            </div>
-            <p>Для покупки нового или поддержанного автомобиля с удобным графиком платежей.</p>
-
-            <div class="loan-info">
-                <div>
-                    <span>Сумма</span>
-                    <strong>от 500 000 до 20 000 000 ₸</strong>
-                </div>
-                <div>
-                    <span>Срок</span>
-                    <strong>от 12 до 84 месяцев</strong>
-                </div>
-                <div>
-                    <span>Ставка</span>
-                    <strong>от 18%</strong>
-                </div>
-            </div>
-        </a>
-
-        <a class="loan-card" href="mortgage.html" th:href="@{/loans/mortgage}">
-            <div class="loan-card-header">
-                <h2>Ипотека</h2>
-                <span>жилье</span>
-            </div>
-            <p>Для покупки квартиры или дома с первоначальным взносом.</p>
-
-            <div class="loan-info">
-                <div>
-                    <span>Сумма</span>
-                    <strong>от 3 000 000 до 80 000 000 ₸</strong>
-                </div>
-                <div>
-                    <span>Срок</span>
-                    <strong>от 3 до 20 лет</strong>
-                </div>
-                <div>
-                    <span>Ставка</span>
-                    <strong>от 16%</strong>
+                    <strong th:text="${loanType.rate}">от 21%</strong>
                 </div>
             </div>
         </a>
     </div>
+
+    <div class="loan-message loan-message-success" th:if="${loanSuccess}" th:text="${loanSuccess}">Предложение принято.</div>
+    <div class="loan-message loan-message-error" th:if="${loanError}" th:text="${loanError}">Не удалось выполнить действие.</div>
+
+    <section class="client-loans-section">
+        <h2>Мои кредиты</h2>
+
+        <div class="accounts-empty-state" th:if="${loans == null || loans.isEmpty()}">
+            <p th:if="${loggedIn}">У вас пока нет заявок и активных кредитов.</p>
+            <p th:unless="${loggedIn}">Войдите в аккаунт, чтобы увидеть свои кредиты и предложения.</p>
+        </div>
+
+        <div class="client-loans-list" th:if="${loans != null && !loans.isEmpty()}">
+            <div class="client-loan-card" th:each="loan : ${loans}">
+                <div class="client-loan-topline">
+                    <div>
+                        <div class="client-loan-name" th:text="${loan.typeName}">На любые цели</div>
+                        <div class="client-loan-status" th:text="${loan.status}">Предложение</div>
+                    </div>
+                    <div class="client-loan-amount" th:text="${loan.amount}">1 000 000.00 ₸</div>
+                </div>
+
+                <div class="client-loan-details">
+                    <div>
+                        <span>Ставка</span>
+                        <strong th:text="${loan.rate}">21%</strong>
+                    </div>
+                    <div>
+                        <span>Срок</span>
+                        <strong th:text="${loan.duration}">60 мес.</strong>
+                    </div>
+                    <div>
+                        <span>Платеж</span>
+                        <strong th:text="${loan.monthlyPayment}">27 000.00 ₸</strong>
+                    </div>
+                    <div>
+                        <span>Дата начала</span>
+                        <strong th:text="${loan.startDate}">-</strong>
+                    </div>
+                </div>
+
+                <div class="client-loan-details" th:if="${loan.active}">
+                    <div>
+                        <span>Пеня при просрочке</span>
+                        <strong th:text="${loan.penalty}">0.00 ₸</strong>
+                    </div>
+                </div>
+
+                <a class="section-action-link section-action-link-below" th:if="${loan.active}" href="../transfers/loan-payment.html" th:href="@{/transfers/loan-payment}">Оплатить</a>
+
+                <div class="client-loan-actions" th:if="${loan.offered}">
+                    <form method="post" th:action="@{/loans/{loanId}/accept(loanId=${loan.loanId})}">
+                        <button class="loan-submit-button" type="submit">Принять</button>
+                    </form>
+                    <form method="post" th:action="@{/loans/{loanId}/reject(loanId=${loan.loanId})}">
+                        <button class="loan-secondary-button" type="submit">Отклонить</button>
+                    </form>
+                </div>
+
+                <div class="loan-schedule" th:if="${loan.schedule != null && !loan.schedule.isEmpty()}">
+                    <h3>График платежей</h3>
+                    <table class="exchange-table">
+                        <thead>
+                        <tr>
+                            <th>№</th>
+                            <th>Дата</th>
+                            <th>Платеж</th>
+                            <th>Статус</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="item : ${loan.schedule}">
+                            <td th:text="${item.number}">1</td>
+                            <td th:text="${item.dueDate}">11.07.2026</td>
+                            <td th:text="${item.payment}">27 000.00 ₸</td>
+                            <td th:text="${item.status}">Ожидается</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <div class="loan-note">
         <h2>Как это связано с другими разделами</h2>

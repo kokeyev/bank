@@ -20,63 +20,45 @@
             <p>Гибкий депозит с пополнением и возможностью снятия.</p>
         </div>
 
-        <form class="deposit-open-form" method="post" th:action="@{/deposits/kopilka}">
+        <form class="deposit-open-form" method="post" th:action="@{/deposits/kopilka}" th:object="${openDepositRequest}">
+            <div class="deposit-message deposit-message-success" th:if="${depositSuccess}" th:text="${depositSuccess}">Депозит открыт.</div>
+            <div class="deposit-message deposit-message-error" th:if="${depositError}" th:text="${depositError}">Не удалось открыть депозит.</div>
+            <div class="deposit-message" th:if="${accountOptions == null || accountOptions.isEmpty()}">Войдите в аккаунт и откройте счет, чтобы открыть депозит.</div>
+
             <div class="deposit-form-field">
-                <label for="amount">Введите сумму</label>
-                <input id="amount" name="amount" type="number" placeholder="0" required>
+                <label for="sourceAccountId">Со счета</label>
+                <select id="sourceAccountId" name="sourceAccountId" th:field="*{sourceAccountId}" required>
+                    <option value="" disabled selected>Список счетов</option>
+                    <option th:each="account : ${accountOptions}" th:value="${account.accountId}" th:text="${account.label}">Основная - 100 000.00 KZT</option>
+                </select>
             </div>
 
             <div class="deposit-form-field">
-                <label for="term">Выберите срок</label>
-                <select id="term" name="term" required>
-                    <option value="" disabled selected>Срок депозита</option>
-                    <option value="3">3 месяца</option>
-                    <option value="6">6 месяцев</option>
-                    <option value="12">12 месяцев</option>
-                    <option value="24">24 месяца</option>
-                    <option value="36">36 месяцев</option>
+                <label for="amount">Введите сумму</label>
+                <input id="amount" name="amount" th:field="*{amount}" type="number" min="0.01" step="0.01" placeholder="0" required>
+            </div>
+
+            <div class="deposit-form-field">
+                <label for="depositTypeId">Условия депозита</label>
+                <select id="depositTypeId" name="depositTypeId" th:field="*{depositTypeId}" required>
+                    <option value="" disabled selected>Срок, валюта и ставка</option>
+                    <option th:each="type : ${depositTypeOptions}" th:value="${type.depositTypeId}" th:text="${type.label}">12 мес. / KZT / 11.5%</option>
                 </select>
             </div>
 
             <div class="deposit-switches">
                 <label class="switch-row">
                     <span>Автопродление</span>
-                    <input type="checkbox" name="autoRenewal">
+                    <input type="checkbox" name="autoRenewal" th:field="*{autoRenewal}">
                     <span class="switch-control"></span>
                 </label>
 
                 <label class="switch-row">
                     <span>Вознаграждение оставлять на депозите</span>
-                    <input type="checkbox" name="capitalizeReward">
+                    <input type="checkbox" name="reinvestInterest" th:field="*{reinvestInterest}">
                     <span class="switch-control"></span>
                 </label>
             </div>
-
-            <fieldset class="rate-preview">
-                <legend>Выбор валюты и ставка</legend>
-
-                <div>
-                    <label class="rate-option">
-                        <input type="radio" name="currency" value="kzt" checked>
-                        <span class="rate-option-card">₸ 17%</span>
-                    </label>
-
-                    <label class="rate-option">
-                        <input type="radio" name="currency" value="usd">
-                        <span class="rate-option-card">$ 1%</span>
-                    </label>
-
-                    <label class="rate-option">
-                        <input type="radio" name="currency" value="eur">
-                        <span class="rate-option-card">€ 0.8%</span>
-                    </label>
-
-                    <label class="rate-option">
-                        <input type="radio" name="currency" value="rub">
-                        <span class="rate-option-card">₽ 1%</span>
-                    </label>
-                </div>
-            </fieldset>
 
             <button class="open-deposit-submit-button" type="submit">Открыть депозит</button>
         </form>

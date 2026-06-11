@@ -2,6 +2,7 @@ package org.author.demo.dao.loan;
 
 import org.author.demo.db.ConnectionPool;
 import org.author.demo.model.Loan;
+import org.author.demo.model.status.LoanStatus;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
@@ -26,9 +27,10 @@ public class LoanDaoImpl implements LoanDao {
     List<Loan> loans = new ArrayList<>();
 
     String sql = """
-        select loan_id, user_id, loan_type_id, remaining_amount, status, start_date, monthly_payment
+        select loan_id, user_id, loan_type_id, parent_loan_id, remaining_amount, rate, duration, status, start_date, monthly_payment
         from loans
         where status = ?
+        order by loan_id desc
         """;
 
     Connection connection = null;
@@ -36,7 +38,7 @@ public class LoanDaoImpl implements LoanDao {
     try {
       connection = connectionPool.getConnection();
       try (PreparedStatement statement = connection.prepareStatement(sql)) {
-        statement.setString(1, "Pending");
+        statement.setString(1, LoanStatus.PENDING.name());
         try (ResultSet resultSet = statement.executeQuery()) {
           while (resultSet.next()) {
             loans.add(map(resultSet));
@@ -53,10 +55,104 @@ public class LoanDaoImpl implements LoanDao {
   }
 
   @Override
-  public boolean createOffer(Long userId, Long loanTypeId, BigDecimal remainingAmount, String status, LocalDate startDate, BigDecimal monthlyPayment) {
+  public Optional<Loan> getLoanById(Long loanId) {
     String sql = """
-        insert into loans (user_id, loan_type_id, remaining_amount, status, start_date, monthly_payment)
-        values (?, ?, ?, ?, ?, ?)
+        select loan_id, user_id, loan_type_id, parent_loan_id, remaining_amount, rate, duration, status, start_date, monthly_payment
+        from loans
+        where loan_id = ?
+        """;
+
+    Connection connection = null;
+
+    try {
+      connection = connectionPool.getConnection();
+      try (PreparedStatement statement = connection.prepareStatement(sql)) {
+        statement.setLong(1, loanId);
+        try (ResultSet resultSet = statement.executeQuery()) {
+          if (resultSet.next()) {
+            return Optional.of(map(resultSet));
+          }
+        }
+
+        return Optional.empty();
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException("Не удалось получить кредит", e);
+    } finally {
+      connectionPool.releaseConnection(connection);
+    }
+  }
+
+  @Override
+  public List<Loan> getLoansByUserId(Long userId) {
+    List<Loan> loans = new ArrayList<>();
+
+    String sql = """
+        select loan_id, user_id, loan_type_id, parent_loan_id, remaining_amount, rate, duration, status, start_date, monthly_payment
+        from loans
+        where user_id = ?
+        order by loan_id desc
+        """;
+
+    Connection connection = null;
+
+    try {
+      connection = connectionPool.getConnection();
+      try (PreparedStatement statement = connection.prepareStatement(sql)) {
+        statement.setLong(1, userId);
+        try (ResultSet resultSet = statement.executeQuery()) {
+          while (resultSet.next()) {
+            loans.add(map(resultSet));
+          }
+        }
+
+        return loans;
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException("Не удалось получить кредиты пользователя", e);
+    } finally {
+      connectionPool.releaseConnection(connection);
+    }
+  }
+
+  @Override
+  public List<Loan> getActiveLoansByUserId(Long userId) {
+    List<Loan> loans = new ArrayList<>();
+
+    String sql = """
+        select loan_id, user_id, loan_type_id, parent_loan_id, remaining_amount, rate, duration, status, start_date, monthly_payment
+        from loans
+        where user_id = ? and status = ?
+        order by loan_id desc
+        """;
+
+    Connection connection = null;
+
+    try {
+      connection = connectionPool.getConnection();
+      try (PreparedStatement statement = connection.prepareStatement(sql)) {
+        statement.setLong(1, userId);
+        statement.setString(2, LoanStatus.ACTIVE.name());
+        try (ResultSet resultSet = statement.executeQuery()) {
+          while (resultSet.next()) {
+            loans.add(map(resultSet));
+          }
+        }
+
+        return loans;
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException("Не удалось получить активные кредиты", e);
+    } finally {
+      connectionPool.releaseConnection(connection);
+    }
+  }
+
+  @Override
+  public boolean createPendingLoan(Long userId, Long loanTypeId, BigDecimal requestedAmount) {
+    String sql = """
+        insert into loans (user_id, loan_type_id, parent_loan_id, remaining_amount, rate, duration, status, start_date, monthly_payment)
+        values (?, ?, null, ?, null, null, ?, null, null)
         """;
 
     Connection connection = null;
@@ -66,10 +162,39 @@ public class LoanDaoImpl implements LoanDao {
       try (PreparedStatement statement = connection.prepareStatement(sql)) {
         statement.setLong(1, userId);
         statement.setLong(2, loanTypeId);
-        statement.setBigDecimal(3, remainingAmount);
-        statement.setString(4, status);
-        statement.setDate(5, Date.valueOf(startDate));
-        statement.setBigDecimal(6, monthlyPayment);
+        statement.setBigDecimal(3, requestedAmount);
+        statement.setString(4, LoanStatus.PENDING.name());
+
+        int rowsAffected = statement.executeUpdate();
+        return rowsAffected > 0;
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException("Не удалось создать заявку на кредит", e);
+    } finally {
+      connectionPool.releaseConnection(connection);
+    }
+  }
+
+  @Override
+  public boolean createOffer(Long parentLoanId, Long userId, Long loanTypeId, BigDecimal amount, BigDecimal rate, Integer duration, BigDecimal monthlyPayment) {
+    String sql = """
+        insert into loans (user_id, loan_type_id, parent_loan_id, remaining_amount, rate, duration, status, start_date, monthly_payment)
+        values (?, ?, ?, ?, ?, ?, ?, null, ?)
+        """;
+
+    Connection connection = null;
+
+    try {
+      connection = connectionPool.getConnection();
+      try (PreparedStatement statement = connection.prepareStatement(sql)) {
+        statement.setLong(1, userId);
+        statement.setLong(2, loanTypeId);
+        statement.setLong(3, parentLoanId);
+        statement.setBigDecimal(4, amount);
+        statement.setBigDecimal(5, rate);
+        statement.setInt(6, duration);
+        statement.setString(7, LoanStatus.OFFERED.name());
+        statement.setBigDecimal(8, monthlyPayment);
 
         int rowsAffected = statement.executeUpdate();
         return rowsAffected > 0;
@@ -82,13 +207,14 @@ public class LoanDaoImpl implements LoanDao {
   }
 
   @Override
-  public Optional<List<Loan>> getOffers(Long userId) {
+  public List<Loan> getOffers(Long userId) {
     List<Loan> loans = new ArrayList<>();
 
     String sql = """
-        select loan_id, user_id, loan_type_id, remaining_amount, status, start_date, monthly_payment
+        select loan_id, user_id, loan_type_id, parent_loan_id, remaining_amount, rate, duration, status, start_date, monthly_payment
         from loans
         where user_id = ? and status = ?
+        order by loan_id desc
         """;
 
     Connection connection = null;
@@ -97,14 +223,14 @@ public class LoanDaoImpl implements LoanDao {
       connection = connectionPool.getConnection();
       try (PreparedStatement statement = connection.prepareStatement(sql)) {
         statement.setLong(1, userId);
-        statement.setString(2, "Offer");
+        statement.setString(2, LoanStatus.OFFERED.name());
         try (ResultSet resultSet = statement.executeQuery()) {
           while (resultSet.next()) {
             loans.add(map(resultSet));
           }
         }
 
-        return loans.isEmpty() ? Optional.empty() : Optional.of(loans);
+        return loans;
       }
     } catch (SQLException e) {
       throw new RuntimeException("Не удалось получить предложения по кредиту", e);
@@ -114,8 +240,27 @@ public class LoanDaoImpl implements LoanDao {
   }
 
   @Override
-  public boolean acceptOffer(Long loanId) {
-    String sql = """
+  public boolean acceptOffer(Long userId, Long loanId) {
+    String selectSql = """
+        select loan_id, user_id, loan_type_id, parent_loan_id, remaining_amount, rate, duration, status, start_date, monthly_payment
+        from loans
+        where loan_id = ? and user_id = ? and status = ?
+        for update
+        """;
+
+    String activateSql = """
+        update loans
+        set status = ?, start_date = ?
+        where loan_id = ?
+        """;
+
+    String rejectSiblingsSql = """
+        update loans
+        set status = ?
+        where parent_loan_id = ? and loan_id <> ? and status = ?
+        """;
+
+    String closeParentSql = """
         update loans
         set status = ?
         where loan_id = ?
@@ -125,26 +270,62 @@ public class LoanDaoImpl implements LoanDao {
 
     try {
       connection = connectionPool.getConnection();
-      try (PreparedStatement statement = connection.prepareStatement(sql)) {
-        statement.setString(1, "Accepted");
-        statement.setLong(2, loanId);
+      connection.setAutoCommit(false);
 
-        int rowsAffected = statement.executeUpdate();
-        return rowsAffected > 0;
+      Loan offer;
+      try (PreparedStatement statement = connection.prepareStatement(selectSql)) {
+        statement.setLong(1, loanId);
+        statement.setLong(2, userId);
+        statement.setString(3, LoanStatus.OFFERED.name());
+        try (ResultSet resultSet = statement.executeQuery()) {
+          if (!resultSet.next()) {
+            connection.rollback();
+            return false;
+          }
+          offer = map(resultSet);
+        }
       }
+
+      try (PreparedStatement statement = connection.prepareStatement(activateSql)) {
+        statement.setString(1, LoanStatus.ACTIVE.name());
+        statement.setDate(2, Date.valueOf(LocalDate.now()));
+        statement.setLong(3, loanId);
+        statement.executeUpdate();
+      }
+
+      if (offer.getParentLoanId() != null) {
+        try (PreparedStatement statement = connection.prepareStatement(rejectSiblingsSql)) {
+          statement.setString(1, LoanStatus.REFUSED.name());
+          statement.setLong(2, offer.getParentLoanId());
+          statement.setLong(3, loanId);
+          statement.setString(4, LoanStatus.OFFERED.name());
+          statement.executeUpdate();
+        }
+
+        try (PreparedStatement statement = connection.prepareStatement(closeParentSql)) {
+          statement.setString(1, LoanStatus.CLOSED.name());
+          statement.setLong(2, offer.getParentLoanId());
+          statement.executeUpdate();
+        }
+      }
+
+      connection.commit();
+      return true;
     } catch (SQLException e) {
+      rollback(connection);
       throw new RuntimeException("Не удалось принять предложение по кредиту", e);
     } finally {
+      resetAutoCommit(connection);
       connectionPool.releaseConnection(connection);
     }
   }
 
   @Override
-  public void refuseOffer(Long loanId) {
+  public boolean refuseOffer(Long userId, Long loanId) {
     String sql = """
         update loans
         set status = ?
-        where loan_id = ?
+        where loan_id = ? and user_id = ? and status = ?
         """;
 
     Connection connection = null;
@@ -152,10 +333,13 @@ public class LoanDaoImpl implements LoanDao {
     try {
       connection = connectionPool.getConnection();
       try (PreparedStatement statement = connection.prepareStatement(sql)) {
-        statement.setString(1, "Refused");
+        statement.setString(1, LoanStatus.REFUSED.name());
         statement.setLong(2, loanId);
+        statement.setLong(3, userId);
+        statement.setString(4, LoanStatus.OFFERED.name());
 
-        statement.executeUpdate();
+        int rowsAffected = statement.executeUpdate();
+        return rowsAffected > 0;
       }
     } catch (SQLException e) {
       throw new RuntimeException("Не удалось отклонить предложение по кредиту", e);
@@ -164,18 +348,105 @@ public class LoanDaoImpl implements LoanDao {
     }
   }
 
+  @Override
+  public boolean rejectPendingLoan(Long loanId) {
+    String sql = """
+        update loans
+        set status = ?
+        where loan_id = ? and status = ?
+        """;
+
+    Connection connection = null;
+
+    try {
+      connection = connectionPool.getConnection();
+      try (PreparedStatement statement = connection.prepareStatement(sql)) {
+        statement.setString(1, LoanStatus.REJECTED.name());
+        statement.setLong(2, loanId);
+        statement.setString(3, LoanStatus.PENDING.name());
+
+        return statement.executeUpdate() > 0;
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException("Не удалось отклонить заявку на кредит", e);
+    } finally {
+      connectionPool.releaseConnection(connection);
+    }
+  }
+
+  @Override
+  public boolean payLoan(Long loanId, BigDecimal amount) {
+    String sql = """
+        update loans
+        set remaining_amount = greatest(remaining_amount - ?, 0),
+            status = case when remaining_amount - ? <= 0 then ? else status end
+        where loan_id = ? and status = ?
+        """;
+
+    Connection connection = null;
+
+    try {
+      connection = connectionPool.getConnection();
+      try (PreparedStatement statement = connection.prepareStatement(sql)) {
+        statement.setBigDecimal(1, amount);
+        statement.setBigDecimal(2, amount);
+        statement.setString(3, LoanStatus.CLOSED.name());
+        statement.setLong(4, loanId);
+        statement.setString(5, LoanStatus.ACTIVE.name());
+
+        int rowsAffected = statement.executeUpdate();
+        return rowsAffected > 0;
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException("Не удалось погасить кредит", e);
+    } finally {
+      connectionPool.releaseConnection(connection);
+    }
+  }
+
   private Loan map(ResultSet resultSet) throws SQLException {
     Date startDate = resultSet.getDate("start_date");
+    Long parentLoanId = resultSet.getLong("parent_loan_id");
+    if (resultSet.wasNull()) {
+      parentLoanId = null;
+    }
 
     return new Loan(
         resultSet.getLong("loan_id"),
         resultSet.getLong("user_id"),
         resultSet.getLong("loan_type_id"),
+        parentLoanId,
         resultSet.getBigDecimal("remaining_amount"),
+        resultSet.getBigDecimal("rate"),
+        (Integer) resultSet.getObject("duration"),
         resultSet.getString("status"),
         startDate == null ? null : startDate.toLocalDate(),
         resultSet.getBigDecimal("monthly_payment")
     );
+  }
+
+  private void rollback(Connection connection) {
+    if (connection == null) {
+      return;
+    }
+
+    try {
+      connection.rollback();
+    } catch (SQLException e) {
+      throw new RuntimeException("Не удалось откатить изменения по кредиту", e);
+    }
+  }
+
+  private void resetAutoCommit(Connection connection) {
+    if (connection == null) {
+      return;
+    }
+
+    try {
+      connection.setAutoCommit(true);
+    } catch (SQLException e) {
+      throw new RuntimeException("Не удалось вернуть настройки соединения", e);
+    }
   }
 
 }

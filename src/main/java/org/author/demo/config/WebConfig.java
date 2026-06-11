@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.ViewResolver;
 import org.springframework.web.servlet.config.annotation.DefaultServletHandlerConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -17,13 +18,15 @@ import org.thymeleaf.spring6.view.ThymeleafViewResolver;
 
 @Configuration
 @EnableWebMvc
-@ComponentScan(basePackages = "org.author.demo.controller")
+@ComponentScan(basePackages = "org.author.demo.controllers")
 public class WebConfig implements WebMvcConfigurer {
 
   private final ApplicationContext applicationContext;
+  private final LoginRequiredInterceptor loginRequiredInterceptor;
 
-  public WebConfig(ApplicationContext applicationContext) {
+  public WebConfig(ApplicationContext applicationContext, LoginRequiredInterceptor loginRequiredInterceptor) {
     this.applicationContext = applicationContext;
+    this.loginRequiredInterceptor = loginRequiredInterceptor;
   }
 
   @Bean
@@ -35,6 +38,7 @@ public class WebConfig implements WebMvcConfigurer {
     resolver.setPrefix("classpath:/templates/");
     resolver.setSuffix(".html");
     resolver.setCharacterEncoding("UTF-8");
+    resolver.setCacheable(false);
 
     return resolver;
   }
@@ -69,6 +73,11 @@ public class WebConfig implements WebMvcConfigurer {
     registry.addResourceHandler("/js/**").addResourceLocations("classpath:/static/js/");
 
     registry.addResourceHandler("/images/**").addResourceLocations("classpath:/static/images/");
+  }
+
+  @Override
+  public void addInterceptors(InterceptorRegistry registry) {
+    registry.addInterceptor(loginRequiredInterceptor);
   }
 
   @Override

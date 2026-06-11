@@ -9,23 +9,27 @@ public class Account {
   private Long accountId;
   private Long userId;
   private String cardNumber;
+  private String cvv;
   private LocalDate expiryDate;
   private BigDecimal balance;
   private Long currencyId;
   private String status;
   private BigDecimal transactionLimit;
   private String name;
+  private Boolean main;
 
-  public Account(Long accountId, Long userId, String cardNumber, LocalDate expiryDate, BigDecimal balance, Long currencyId, String status, BigDecimal transactionLimit, String name) {
+  public Account(Long accountId, Long userId, String cardNumber, String cvv, LocalDate expiryDate, BigDecimal balance, Long currencyId, String status, BigDecimal transactionLimit, String name, Boolean main) {
     this.accountId = accountId;
     this.userId = userId;
     this.cardNumber = cardNumber;
+    this.cvv = cvv;
     this.expiryDate = expiryDate;
     this.balance = balance;
     this.currencyId = currencyId;
     this.status = status;
     this.transactionLimit = transactionLimit;
     this.name = name;
+    this.main = main;
   }
 
   public Long getAccountId() {
@@ -50,6 +54,14 @@ public class Account {
 
   public void setCardNumber(String cardNumber) {
     this.cardNumber = cardNumber;
+  }
+
+  public String getCvv() {
+    return cvv;
+  }
+
+  public void setCvv(String cvv) {
+    this.cvv = cvv;
   }
 
   public LocalDate getExpiryDate() {
@@ -100,6 +112,14 @@ public class Account {
     this.name = name;
   }
 
+  public Boolean getMain() {
+    return main;
+  }
+
+  public void setMain(Boolean main) {
+    this.main = main;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (!(o instanceof Account account)) return false;
@@ -117,12 +137,14 @@ public class Account {
         "accountId=" + accountId +
         ", userId=" + userId +
         ", cardNumber='" + cardNumber + '\'' +
+        ", cvv='" + cvv + '\'' +
         ", expiryDate=" + expiryDate +
         ", balance=" + balance +
         ", currencyId=" + currencyId +
         ", status='" + status + '\'' +
         ", transactionLimit=" + transactionLimit +
         ", name='" + name + '\'' +
+        ", main=" + main +
         '}';
   }
 }

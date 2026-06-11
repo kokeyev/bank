@@ -10,15 +10,17 @@ public class Deposit {
   private Long userId;
   private Long depositTypeId;
   private Boolean reinvestInterest;
+  private Boolean autoRenewal;
   private String status;
   private LocalDate startDate;
   private BigDecimal currentAmount;
 
-  public Deposit(Long depositId, Long userId, Long depositTypeId, Boolean reinvestInterest, String status, LocalDate startDate, BigDecimal currentAmount) {
+  public Deposit(Long depositId, Long userId, Long depositTypeId, Boolean reinvestInterest, Boolean autoRenewal, String status, LocalDate startDate, BigDecimal currentAmount) {
     this.depositId = depositId;
     this.userId = userId;
     this.depositTypeId = depositTypeId;
     this.reinvestInterest = reinvestInterest;
+    this.autoRenewal = autoRenewal;
     this.status = status;
     this.startDate = startDate;
     this.currentAmount = currentAmount;
@@ -54,6 +56,14 @@ public class Deposit {
 
   public void setReinvestInterest(Boolean reinvestInterest) {
     this.reinvestInterest = reinvestInterest;
+  }
+
+  public Boolean getAutoRenewal() {
+    return autoRenewal;
+  }
+
+  public void setAutoRenewal(Boolean autoRenewal) {
+    this.autoRenewal = autoRenewal;
   }
 
   public String getStatus() {
@@ -98,6 +108,7 @@ public class Deposit {
         ", userId=" + userId +
         ", depositTypeId=" + depositTypeId +
         ", reinvestInterest=" + reinvestInterest +
+        ", autoRenewal=" + autoRenewal +
         ", status='" + status + '\'' +
         ", startDate=" + startDate +
         ", currentAmount=" + currentAmount +

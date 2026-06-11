@@ -14,12 +14,19 @@
     </div>
 
     <ul class="nav-links">
-      <li><a href="accounts.html" th:href="@{/accounts}">Мои счета</a></li>
+      <li><a href="accounts.html" th:href="@{/accounts}">Мой Банк</a></li>
       <li><a href="#" th:href="@{/transfers}">Операции</a></li>
       <li><a href="#" th:href="@{/deposits}">Депозиты</a></li>
       <li><a href="#" th:href="@{/loans}">Кредиты</a></li>
       <li><a href="#" th:href="@{/exchange}">Обменник</a></li>
       <li><a href="#" th:href="@{/settings}">Настройки</a></li>
+      <li th:if="${!loggedIn}"><a class="header-auth-link" href="#" th:href="@{/login}">Войти</a></li>
+      <li th:if="${!loggedIn}"><a class="header-auth-link" href="#" th:href="@{/register}">Зарегистрироваться</a></li>
+      <li th:if="${loggedIn}">
+        <form class="header-logout-form" method="post" th:action="@{/logout}">
+          <button class="header-auth-link" type="submit">Выйти</button>
+        </form>
+      </li>
     </ul>
   </nav>
 </header>

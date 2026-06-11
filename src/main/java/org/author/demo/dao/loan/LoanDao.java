@@ -1,8 +1,6 @@
 package org.author.demo.dao.loan;
 
 import org.author.demo.model.Loan;
-import org.author.demo.model.LoanType;
-import org.author.demo.model.User;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -13,12 +11,24 @@ public interface LoanDao {
 
   List<Loan> getPendingLoans();
 
-  boolean createOffer(Long userId, Long loanTypeId, BigDecimal remainingAmount, String status, LocalDate startDate, BigDecimal monthlyPayment);
+  Optional<Loan> getLoanById(Long loanId);
 
-  Optional<List<Loan>> getOffers(Long userId);
+  List<Loan> getLoansByUserId(Long userId);
 
-  boolean acceptOffer(Long loanId);
+  List<Loan> getActiveLoansByUserId(Long userId);
 
-  void refuseOffer(Long loanId);
+  boolean createPendingLoan(Long userId, Long loanTypeId, BigDecimal requestedAmount);
+
+  boolean createOffer(Long parentLoanId, Long userId, Long loanTypeId, BigDecimal amount, BigDecimal rate, Integer duration, BigDecimal monthlyPayment);
+
+  List<Loan> getOffers(Long userId);
+
+  boolean acceptOffer(Long userId, Long loanId);
+
+  boolean refuseOffer(Long userId, Long loanId);
+
+  boolean rejectPendingLoan(Long loanId);
+
+  boolean payLoan(Long loanId, BigDecimal amount);
 
 }

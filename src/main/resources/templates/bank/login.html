@@ -16,6 +16,10 @@
         </div>
 
         <form class="auth-form" method="post" th:action="@{/login}">
+            <div class="auth-errors" th:if="${loginError}">
+                <p th:text="${loginError}">Неверный логин или пароль.</p>
+            </div>
+
             <fieldset class="login-method">
                 <legend>Войти через</legend>
 
@@ -34,7 +38,7 @@
 
             <div class="auth-field">
                 <label for="login">Номер телефона или почта</label>
-                <input id="login" name="login" type="text" placeholder="+7 700 000 00 00 или mail@example.com" required>
+                <input id="login" name="login" type="text" th:value="${login}" placeholder="+7 700 000 00 00 или mail@example.com" required>
             </div>
 
             <div class="auth-field">

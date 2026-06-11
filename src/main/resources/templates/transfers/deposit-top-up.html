@@ -16,30 +16,42 @@
     <section class="transfer-form-card">
         <h1>Пополнить депозит</h1>
 
-        <form class="transfer-form" method="post" th:action="@{/transfers/deposit-top-up}">
+        <form class="transfer-form" method="post" th:action="@{/transfers/deposit-top-up}" th:object="${depositTopUpRequest}">
+            <div class="transfer-message transfer-message-success" th:if="${depositTopUpSuccess}" th:text="${depositTopUpSuccess}">
+                Депозит пополнен.
+            </div>
+
+            <div class="transfer-message transfer-message-error" th:if="${depositTopUpError}" th:text="${depositTopUpError}">
+                Не удалось пополнить депозит.
+            </div>
+
+            <div class="transfer-message" th:if="${accountOptions == null || accountOptions.isEmpty() || depositOptions == null || depositOptions.isEmpty()}">
+                Для пополнения нужен счет и открытый депозит.
+            </div>
+
             <div class="transfer-field">
                 <label for="fromAccount">Со счета</label>
-                <select id="fromAccount" name="fromAccount" required>
+                <select id="fromAccount" name="sourceAccountId" th:field="*{sourceAccountId}" required>
                     <option value="" disabled selected>Список счетов</option>
-                    <option value="main">Основная - 125 430.50 ₸</option>
-                    <option value="usd">Долларовый счет - 820.00 $</option>
-                    <option value="eur">Евро счет - 540.00 €</option>
+                    <option th:each="account : ${accountOptions}" th:value="${account.accountId}" th:text="${account.label}">
+                        Основная - 125 430.50 KZT
+                    </option>
                 </select>
             </div>
 
             <div class="transfer-field">
                 <label for="toDeposit">На депозит</label>
-                <select id="toDeposit" name="toDeposit" required>
+                <select id="toDeposit" name="depositId" th:field="*{depositId}" required>
                     <option value="" disabled selected>Список депозитов</option>
-                    <option value="kopilka">Копилка - 350 000 ₸</option>
-                    <option value="strategy">Стратегия - 1 200 000 ₸</option>
-                    <option value="capital">Капитал - 2 500 $</option>
+                    <option th:each="deposit : ${depositOptions}" th:value="${deposit.depositId}" th:text="${deposit.label}">
+                        Копилка - 350 000 KZT
+                    </option>
                 </select>
             </div>
 
             <div class="transfer-field">
                 <label for="amount">Сумма перевода</label>
-                <input id="amount" name="amount" type="number" placeholder="0" required>
+                <input id="amount" name="amount" th:field="*{amount}" type="number" min="0.01" step="0.01" placeholder="0" required>
             </div>
 
             <div class="commission-row">
@@ -47,7 +59,7 @@
                 <strong>0 ₸</strong>
             </div>
 
-            <button class="transfer-submit-button" type="submit">Пополнить депозит</button>
+            <button class="transfer-submit-button" type="submit" th:disabled="${accountOptions == null || accountOptions.isEmpty() || depositOptions == null || depositOptions.isEmpty()}">Пополнить депозит</button>
         </form>
     </section>
 

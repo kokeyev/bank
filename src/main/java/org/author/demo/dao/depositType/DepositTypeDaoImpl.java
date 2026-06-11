@@ -1,12 +1,17 @@
 package org.author.demo.dao.depositType;
 
 import org.author.demo.db.ConnectionPool;
+import org.author.demo.model.DepositType;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class DepositTypeDaoImpl implements DepositTypeDao {
@@ -47,6 +52,65 @@ public class DepositTypeDaoImpl implements DepositTypeDao {
   }
 
   @Override
+  public Optional<DepositType> getDepositTypeById(Long depositTypeId) {
+    String sql = """
+        select deposit_type_id, name, rate, duration, withdrawal, minimum_amount, currency_id
+        from deposit_types
+        where deposit_type_id = ?
+        """;
+
+    Connection connection = null;
+
+    try {
+      connection = connectionPool.getConnection();
+      try (PreparedStatement statement = connection.prepareStatement(sql)) {
+        statement.setLong(1, depositTypeId);
+        try (ResultSet resultSet = statement.executeQuery()) {
+          if (resultSet.next()) {
+            return Optional.of(map(resultSet));
+          }
+        }
+
+        return Optional.empty();
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException("Не удалось получить тип депозита", e);
+    } finally {
+      connectionPool.releaseConnection(connection);
+    }
+  }
+
+  @Override
+  public List<DepositType> getAllDepositTypes() {
+    List<DepositType> depositTypes = new ArrayList<>();
+
+    String sql = """
+        select deposit_type_id, name, rate, duration, withdrawal, minimum_amount, currency_id
+        from deposit_types
+        order by name
+        """;
+
+    Connection connection = null;
+
+    try {
+      connection = connectionPool.getConnection();
+      try (PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (ResultSet resultSet = statement.executeQuery()) {
+          while (resultSet.next()) {
+            depositTypes.add(map(resultSet));
+          }
+        }
+
+        return depositTypes;
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException("Не удалось получить типы депозитов", e);
+    } finally {
+      connectionPool.releaseConnection(connection);
+    }
+  }
+
+  @Override
   public boolean changeRateOfDepositType(Long depositTypeId, BigDecimal newRate) {
     String sql = """
         update deposit_types
@@ -70,5 +134,17 @@ public class DepositTypeDaoImpl implements DepositTypeDao {
     } finally {
       connectionPool.releaseConnection(connection);
     }
+  }
+
+  private DepositType map(ResultSet resultSet) throws SQLException {
+    return new DepositType(
+        resultSet.getLong("deposit_type_id"),
+        resultSet.getString("name"),
+        resultSet.getBigDecimal("rate"),
+        resultSet.getInt("duration"),
+        resultSet.getBoolean("withdrawal"),
+        resultSet.getBigDecimal("minimum_amount"),
+        resultSet.getLong("currency_id")
+    );
   }
 }

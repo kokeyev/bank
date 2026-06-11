@@ -5,6 +5,8 @@ import org.author.demo.model.User;
 import org.springframework.stereotype.Repository;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -43,6 +45,34 @@ public class UserDaoImpl implements UserDao{
       }
     } catch (SQLException e) {
       throw new RuntimeException("Не удалось добавить пользователя", e);
+    } finally {
+      connectionPool.releaseConnection(connection);
+    }
+  }
+
+  @Override
+  public Optional<User> getUserById(Long userId) {
+    String sql = """
+        select user_id, name, surname, phone_number, email_address, role, status, date_created, date_modified, password_hash
+        from users
+        where user_id = ?
+        """;
+
+    Connection connection = null;
+
+    try {
+      connection = connectionPool.getConnection();
+      try (PreparedStatement statement = connection.prepareStatement(sql)) {
+        statement.setLong(1, userId);
+        try (ResultSet resultSet = statement.executeQuery()) {
+          if (resultSet.next()) {
+            return Optional.of(map(resultSet));
+          }
+        }
+        return Optional.empty();
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException("Не удалось найти пользователя по id", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -99,6 +129,88 @@ public class UserDaoImpl implements UserDao{
       }
     } catch (SQLException e) {
       throw new RuntimeException("Не удалось найти пользователя по почте", e);
+    } finally {
+      connectionPool.releaseConnection(connection);
+    }
+  }
+
+  @Override
+  public List<User> getUsersByRoleAndStatus(String role, String status) {
+    List<User> users = new ArrayList<>();
+
+    String sql = """
+        select user_id, name, surname, phone_number, email_address, role, status, date_created, date_modified, password_hash
+        from users
+        where role = ? and status = ?
+        order by user_id desc
+        """;
+
+    Connection connection = null;
+
+    try {
+      connection = connectionPool.getConnection();
+      try (PreparedStatement statement = connection.prepareStatement(sql)) {
+        statement.setString(1, role);
+        statement.setString(2, status);
+        try (ResultSet resultSet = statement.executeQuery()) {
+          while (resultSet.next()) {
+            users.add(map(resultSet));
+          }
+        }
+      }
+      return users;
+    } catch (SQLException e) {
+      throw new RuntimeException("Не удалось получить пользователей по роли", e);
+    } finally {
+      connectionPool.releaseConnection(connection);
+    }
+  }
+
+  @Override
+  public boolean existsByPhoneNumber(String phoneNumber) {
+    String sql = """
+        select 1
+        from users
+        where phone_number = ?
+        """;
+
+    Connection connection = null;
+
+    try {
+      connection = connectionPool.getConnection();
+      try (PreparedStatement statement = connection.prepareStatement(sql)) {
+        statement.setString(1, phoneNumber);
+        try (ResultSet resultSet = statement.executeQuery()) {
+          return resultSet.next();
+        }
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException("Не удалось проверить номер телефона", e);
+    } finally {
+      connectionPool.releaseConnection(connection);
+    }
+  }
+
+  @Override
+  public boolean existsByEmailAddress(String emailAddress) {
+    String sql = """
+        select 1
+        from users
+        where email_address = ?
+        """;
+
+    Connection connection = null;
+
+    try {
+      connection = connectionPool.getConnection();
+      try (PreparedStatement statement = connection.prepareStatement(sql)) {
+        statement.setString(1, emailAddress);
+        try (ResultSet resultSet = statement.executeQuery()) {
+          return resultSet.next();
+        }
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException("Не удалось проверить почту", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -177,9 +289,32 @@ public class UserDaoImpl implements UserDao{
   }
 
   @Override
+  public boolean changeStatusOfUserById(Long user_id, String status) {
+    String sql = """
+        update users set status = ?, date_modified = current_date where user_id = ?
+        """;
+
+    Connection connection = null;
+
+    try {
+      connection = connectionPool.getConnection();
+      try (PreparedStatement statement = connection.prepareStatement(sql)) {
+        statement.setString(1, status);
+        statement.setLong(2, user_id);
+
+        return statement.executeUpdate() > 0;
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException("Не удалось изменить статус пользователя", e);
+    } finally {
+      connectionPool.releaseConnection(connection);
+    }
+  }
+
+  @Override
   public boolean deleteUserById(Long user_id) {
     String sql = """
-        delete from users where used_id = ?
+        delete from users where user_id = ?
         """;
 
     Connection connection = null;

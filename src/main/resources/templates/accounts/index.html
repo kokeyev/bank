@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Мои счета</title>
+    <title>Мой Банк</title>
     <link rel="stylesheet" href="../static/css/styles.css" th:href="@{/css/styles.css}">
     <meta charset="UTF-8">
 </head>
@@ -11,50 +11,223 @@
 
 <main class="accounts-page">
 
-    <h1>Мои счета</h1>
+    <header class="accounts-title">
+        <p class="accounts-greeting" th:if="${clientName}">Здравствуйте, <span th:text="${clientName}">Name</span></p>
+        <p class="accounts-greeting" th:unless="${clientName}">Здравствуйте</p>
+    </header>
 
-    <div class="account-card">
-
-        <div class="account-info">
-
-            <div class="account-name">Основная</div>
-
-            <div class="account-header">
-                <div class="balance">125 430.50</div>
-                <div class="currency-icon">₸</div>
-            </div>
-
-            <div class="card-number">
-                4400 1234 5678 9012
-            </div>
-
-            <div class="card-details">
-                <span>12/29</span>
-                <span>CVV: 123</span>
-            </div>
-
+    <section class="dashboard-section">
+        <div class="dashboard-section-header">
+            <h2>Мои счета</h2>
         </div>
 
-        <div class="account-actions">
-
-            <div class="action-block">
-                <label>Лимит на транзакцию</label>
-                <input type="number" placeholder="100000">
-            </div>
-
-            <div class="action-block">
-                <button>Сделать основной</button>
-            </div>
-
-            <div class="action-block">
-                <button class="deactivate-account-button">Деактивировать</button>
-            </div>
-
+        <div class="account-message account-message-success" th:if="${param.accountRequested}">
+            Заявка на открытие счета отправлена менеджеру.
+        </div>
+        <div class="account-message account-message-success" th:if="${accountSuccess}" th:text="${accountSuccess}">
+            Готово.
+        </div>
+        <div class="account-message account-message-error" th:if="${accountError}" th:text="${accountError}">
+            Не удалось выполнить действие.
         </div>
 
-    </div>
+        <div class="accounts-empty-state" th:if="${accounts == null || accounts.isEmpty()}">
+            <p th:if="${loggedIn}">У вас пока нет открытых счетов.</p>
+            <p th:unless="${loggedIn}">Войдите в аккаунт, чтобы увидеть свои счета.</p>
+        </div>
 
-    <a class="open-account-button" href="open.html" th:href="@{/accounts/open}">Открыть счет</a>
+        <div class="accounts-list" th:if="${accounts != null && !accounts.isEmpty()}">
+            <div class="account-card" th:each="account : ${accounts}">
+
+                <div class="account-info">
+
+                    <div class="account-name" th:text="${account.name}">Основная</div>
+                    <div class="account-status-row">
+                        <span class="account-status-badge" th:text="${account.statusLabel}">Активен</span>
+                        <span class="account-status-badge account-status-main" th:if="${account.main}">Основной</span>
+                    </div>
+
+                    <div class="account-header">
+                        <div class="balance" th:text="${account.balance}">125 430.50</div>
+                        <div class="currency-icon" th:text="${account.currency}">KZT</div>
+                    </div>
+
+                    <div class="card-number" th:text="${account.cardNumber}">
+                        4400 1234 5678 9012
+                    </div>
+
+                    <div class="card-details">
+                        <span th:text="${account.expiryDate}">12/29</span>
+                        <span>CVV: <span th:text="${account.cvv}">123</span></span>
+                    </div>
+
+                </div>
+
+                <div class="account-actions">
+
+                    <form class="action-block" method="post" th:action="@{/accounts/{accountId}/limit(accountId=${account.accountId})}">
+                        <label>Лимит на транзакцию</label>
+                        <input type="number" name="transactionLimit" min="0" step="0.01" th:value="${account.transactionLimitValue}" th:placeholder="${account.transactionLimit}" th:disabled="${!account.active}">
+                        <button type="submit" th:disabled="${!account.active}">Сохранить лимит</button>
+                    </form>
+
+                    <form class="action-block" method="post" th:action="@{/accounts/{accountId}/main(accountId=${account.accountId})}">
+                        <button type="submit" th:disabled="${!account.active || account.main}">Сделать основной</button>
+                    </form>
+
+                    <form class="action-block" method="post" th:action="@{/accounts/{accountId}/deactivate(accountId=${account.accountId})}">
+                        <button class="deactivate-account-button" type="submit" th:disabled="${!account.active}">Деактивировать</button>
+                    </form>
+
+                </div>
+
+            </div>
+        </div>
+
+        <a class="section-action-link section-action-link-below" href="open.html" th:href="@{/accounts/open}">Открыть счет</a>
+    </section>
+
+    <section class="dashboard-section">
+        <div class="dashboard-section-header">
+            <h2>Мои депозиты</h2>
+        </div>
+
+        <div class="account-message account-message-success" th:if="${depositSuccess}" th:text="${depositSuccess}">
+            Готово.
+        </div>
+        <div class="account-message account-message-error" th:if="${depositError}" th:text="${depositError}">
+            Не удалось выполнить действие.
+        </div>
+
+        <div class="accounts-empty-state" th:if="${deposits == null || deposits.isEmpty()}">
+            <p th:if="${loggedIn}">У вас пока нет открытых депозитов.</p>
+            <p th:unless="${loggedIn}">Войдите в аккаунт, чтобы увидеть свои депозиты.</p>
+        </div>
+
+        <div class="client-deposits-list" th:if="${deposits != null && !deposits.isEmpty()}">
+            <div class="client-deposit-card" th:each="deposit : ${deposits}">
+                <div class="client-deposit-topline">
+                    <div>
+                        <div class="client-deposit-name" th:text="${deposit.name}">Копилка</div>
+                        <div class="client-deposit-status" th:text="${deposit.status}">Активен</div>
+                    </div>
+                    <div class="client-deposit-amount">
+                        <span th:text="${deposit.amount}">100 000.00</span>
+                        <span th:text="${deposit.currency}">KZT</span>
+                    </div>
+                </div>
+
+                <div class="client-deposit-details">
+                    <div>
+                        <span>Ставка</span>
+                        <strong th:text="${deposit.rate}">11.5%</strong>
+                    </div>
+                    <div>
+                        <span>Срок</span>
+                        <strong th:text="${deposit.duration}">12 мес.</strong>
+                    </div>
+                    <div>
+                        <span>Дата открытия</span>
+                        <strong th:text="${deposit.startDate}">11.06.2026</strong>
+                    </div>
+                    <div>
+                        <span>Автопродление</span>
+                        <strong th:text="${deposit.autoRenewal}">Да</strong>
+                    </div>
+                    <div>
+                        <span>Капитализация</span>
+                        <strong th:text="${deposit.reinvestInterest}">Да</strong>
+                    </div>
+                </div>
+
+                <form class="deposit-withdraw-form" method="post" th:if="${deposit.active && deposit.withdrawalAllowed}" th:action="@{/deposits/{depositId}/withdraw(depositId=${deposit.depositId})}">
+                    <div class="settings-field">
+                        <label th:for="'deposit-target-' + ${deposit.depositId}">Куда зачислить</label>
+                        <select th:id="'deposit-target-' + ${deposit.depositId}" name="targetAccountId" required>
+                            <option value="" disabled selected>Выберите счет</option>
+                            <option th:each="account : ${accountOptions}" th:value="${account.accountId}" th:text="${account.label}">Основной счет</option>
+                        </select>
+                    </div>
+                    <div class="settings-field">
+                        <label th:for="'deposit-amount-' + ${deposit.depositId}">Сумма снятия</label>
+                        <input th:id="'deposit-amount-' + ${deposit.depositId}" name="amount" type="number" min="0.01" step="0.01" th:max="${deposit.amountValue}" placeholder="0" required>
+                    </div>
+                    <button class="section-action-link" type="submit">Снять часть</button>
+                </form>
+            </div>
+        </div>
+
+        <a class="section-action-link section-action-link-below" href="../deposits/index.html" th:href="@{/deposits}">Открыть депозит</a>
+    </section>
+
+    <section class="dashboard-section">
+        <div class="dashboard-section-header">
+            <h2>Мои кредиты</h2>
+        </div>
+
+        <div class="accounts-empty-state" th:if="${loans == null || loans.isEmpty()}">
+            <p th:if="${loggedIn}">У вас пока нет заявок и активных кредитов.</p>
+            <p th:unless="${loggedIn}">Войдите в аккаунт, чтобы увидеть свои кредиты.</p>
+        </div>
+
+        <div class="client-loans-list" th:if="${loans != null && !loans.isEmpty()}">
+            <div class="client-loan-card" th:each="loan : ${loans}">
+                <div class="client-loan-topline">
+                    <div>
+                        <div class="client-loan-name" th:text="${loan.typeName}">На любые цели</div>
+                        <div class="client-loan-status" th:text="${loan.status}">Активен</div>
+                    </div>
+                    <div class="client-loan-amount" th:text="${loan.amount}">1 000 000.00 ₸</div>
+                </div>
+
+                <div class="client-loan-details">
+                    <div>
+                        <span>Ставка</span>
+                        <strong th:text="${loan.rate}">21%</strong>
+                    </div>
+                    <div>
+                        <span>Срок</span>
+                        <strong th:text="${loan.duration}">60 мес.</strong>
+                    </div>
+                    <div>
+                        <span>Платеж</span>
+                        <strong th:text="${loan.monthlyPayment}">27 000.00 ₸</strong>
+                    </div>
+                    <div>
+                        <span>Дата начала</span>
+                        <strong th:text="${loan.startDate}">11.06.2026</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <a class="section-action-link section-action-link-below" href="../loans/index.html" th:href="@{/loans}">Открыть кредит</a>
+        <a class="section-action-link section-action-link-below" href="../transfers/loan-payment.html" th:href="@{/transfers/loan-payment}">Оплатить кредит</a>
+    </section>
+
+    <section class="dashboard-section">
+        <div class="dashboard-section-header">
+            <h2>Последние операции</h2>
+        </div>
+
+        <div class="accounts-empty-state" th:if="${transactions == null || transactions.isEmpty()}">
+            <p th:if="${loggedIn}">Операций пока нет.</p>
+            <p th:unless="${loggedIn}">Войдите в аккаунт, чтобы увидеть операции.</p>
+        </div>
+
+        <div class="transaction-history-list" th:if="${transactions != null && !transactions.isEmpty()}">
+            <div class="transaction-history-item" th:each="transaction : ${transactions}">
+                <div>
+                    <strong th:text="${transaction.type}">Перевод</strong>
+                    <span th:text="${transaction.message}">Описание</span>
+                </div>
+                <div>
+                    <strong th:text="${transaction.amount}">10 000.00 KZT</strong>
+                    <span th:text="${transaction.date}">11.06.2026</span>
+                </div>
+            </div>
+        </div>
+    </section>
 
 </main>
 

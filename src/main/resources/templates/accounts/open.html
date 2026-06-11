@@ -16,21 +16,31 @@
     <section class="open-account-card">
         <h1>Открыть счет</h1>
 
-        <form class="open-account-form" method="post" th:action="@{/accounts/open}">
+        <form class="open-account-form" method="post" th:action="@{/accounts/open}" th:object="${openAccountRequest}">
+            <div class="open-account-message open-account-message-error" th:if="${accountOpenError}" th:text="${accountOpenError}">
+                Не удалось открыть счет.
+            </div>
+
             <div class="open-account-field">
                 <label for="accountName">Название счета</label>
-                <input id="accountName" name="accountName" type="text" placeholder="Например, Основной счет" required>
+                <input id="accountName" name="accountName" th:field="*{accountName}" type="text" placeholder="Например, Основной счет" required>
             </div>
 
             <div class="open-account-field">
                 <label for="currency">Выберите валюту</label>
-                <select id="currency" name="currency" required>
+                <select id="currency" name="currency" th:field="*{currency}" required>
                     <option value="" disabled selected>Выберите валюту</option>
-                    <option value="KZT">KZT - Казахстанский тенге</option>
-                    <option value="USD">USD - Доллар США</option>
-                    <option value="EUR">EUR - Евро</option>
-                    <option value="RUB">RUB - Российский рубль</option>
+                    <option th:each="currencyItem : ${currencies}"
+                            th:value="${currencyItem.name}"
+                            th:text="${currencyItem.name}">
+                        KZT
+                    </option>
                 </select>
+            </div>
+
+            <div class="open-account-field">
+                <label for="transactionLimit">Лимит на транзакцию</label>
+                <input id="transactionLimit" name="transactionLimit" th:field="*{transactionLimit}" type="number" min="0" step="0.01" placeholder="100000" required>
             </div>
 
             <button class="create-account-button" type="submit">Открыть счет</button>

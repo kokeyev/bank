@@ -15,37 +15,41 @@
             <h1>Регистрация</h1>
         </div>
 
-        <form class="auth-form" method="post" th:action="@{/register}">
+        <form class="auth-form" method="post" th:action="@{/register}" th:object="${createUserRequest}">
+            <div class="auth-errors" th:if="${errors}">
+                <p th:each="error : ${errors}" th:text="${error}">Ошибка регистрации</p>
+            </div>
+
             <div class="auth-fields-grid">
                 <div class="auth-field">
-                    <label for="firstName">Имя</label>
-                    <input id="firstName" name="firstName" type="text" placeholder="Введите имя" required>
+                    <label for="name">Имя</label>
+                    <input id="name" name="name" th:field="*{name}" type="text" placeholder="Введите имя" required>
                 </div>
 
                 <div class="auth-field">
-                    <label for="lastName">Фамилия</label>
-                    <input id="lastName" name="lastName" type="text" placeholder="Введите фамилию" required>
+                    <label for="surname">Фамилия</label>
+                    <input id="surname" name="surname" th:field="*{surname}" type="text" placeholder="Введите фамилию" required>
                 </div>
             </div>
 
             <div class="auth-field">
                 <label for="phone">Номер телефона</label>
-                <input id="phone" name="phone" type="tel" placeholder="+7 700 000 00 00" required>
+                <input id="phone" name="phone" th:field="*{phone}" type="tel" placeholder="+7 700 000 00 00" required>
             </div>
 
             <div class="auth-field">
                 <label for="email">Почта</label>
-                <input id="email" name="email" type="email" placeholder="mail@example.com" required>
+                <input id="email" name="email" th:field="*{email}" type="email" placeholder="mail@example.com" required>
             </div>
 
             <div class="auth-field">
                 <label for="password">Пароль</label>
-                <input id="password" name="password" type="password" placeholder="Введите пароль" required>
+                <input id="password" name="password" th:field="*{password}" type="password" placeholder="Введите пароль" required>
             </div>
 
             <div class="auth-field">
                 <label for="confirmPassword">Введите пароль снова</label>
-                <input id="confirmPassword" name="confirmPassword" type="password" placeholder="Повторите пароль" required>
+                <input id="confirmPassword" name="confirmPassword" th:field="*{confirmPassword}" type="password" placeholder="Повторите пароль" required>
             </div>
 
             <button class="auth-submit-button" type="submit">Зарегистрироваться</button>

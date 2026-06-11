@@ -5,9 +5,9 @@ receiver_account_id BIGINT,
 transaction_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 amount NUMERIC(18, 2) NOT NULL,
 currency_id BIGINT NOT NULL,
-fee NUMERIC(18, 2) DEFAULT 0,
+fee NUMERIC(18, 2) NOT NULL DEFAULT 0,
 message VARCHAR(255),
-transaction_type VARCHAR(50),
+transaction_type VARCHAR(50) NOT NULL,
 CONSTRAINT fk_transactions_sender_account
 FOREIGN KEY (sender_account_id)
 REFERENCES accounts(account_id),
