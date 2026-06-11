@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Заявки на счета</title>
+    <link rel="stylesheet" href="../../static/css/styles.css" th:href="@{/css/styles.css}">
+    <meta charset="UTF-8">
+</head>
+<body>
+
+<div th:replace="~{fragments/manager-header :: header}"></div>
+
+<main class="accounts-page">
+
+    <header class="accounts-title">
+        <p class="accounts-greeting">Заявки на счета</p>
+    </header>
+
+    <div class="account-message account-message-success" th:if="${managerAccountSuccess}" th:text="${managerAccountSuccess}">
+        Готово.
+    </div>
+    <div class="account-message account-message-error" th:if="${managerAccountError}" th:text="${managerAccountError}">
+        Ошибка.
+    </div>
+
+    <div class="accounts-empty-state" th:if="${pendingAccounts == null || pendingAccounts.isEmpty()}">
+        <p>Нет заявок на открытие счета.</p>
+    </div>
+
+    <div class="accounts-list" th:if="${pendingAccounts != null && !pendingAccounts.isEmpty()}">
+        <div class="account-card" th:each="account : ${pendingAccounts}">
+            <div class="account-info">
+                <div class="account-name" th:text="${account.name}">Основной счет</div>
+                <div class="account-status-row">
+                    <span class="account-status-badge" th:text="${account.statusLabel}">На рассмотрении</span>
+                </div>
+
+                <div class="account-header">
+                    <div class="balance" th:text="${account.balance}">0.00</div>
+                    <div class="currency-icon" th:text="${account.currency}">KZT</div>
+                </div>
+
+                <div class="card-number" th:text="${account.cardNumber}">
+                    4400 1234 5678 9012
+                </div>
+
+                <div class="card-details">
+                    <span th:text="${account.expiryDate}">12/29</span>
+                    <span>CVV: <span th:text="${account.cvv}">123</span></span>
+                </div>
+            </div>
+
+            <div class="account-actions">
+                <form class="action-block" method="post" th:action="@{/manager/accounts/{accountId}/approve(accountId=${account.accountId})}">
+                    <button type="submit">Одобрить</button>
+                </form>
+
+                <form class="action-block" method="post" th:action="@{/manager/accounts/{accountId}/reject(accountId=${account.accountId})}">
+                    <button class="deactivate-account-button" type="submit">Отклонить</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+</body>
+</html>

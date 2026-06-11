@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Заявки на депозиты</title>
+    <link rel="stylesheet" href="../../static/css/styles.css" th:href="@{/css/styles.css}">
+    <meta charset="UTF-8">
+</head>
+<body>
+
+<div th:replace="~{fragments/manager-header :: header}"></div>
+
+<main class="loans-page">
+
+    <h1>Заявки на депозиты</h1>
+
+    <div class="loan-message loan-message-success" th:if="${depositManagerSuccess}" th:text="${depositManagerSuccess}">Готово.</div>
+    <div class="loan-message loan-message-error" th:if="${depositManagerError}" th:text="${depositManagerError}">Ошибка.</div>
+
+    <div class="manager-batch-actions">
+        <form method="post" th:action="@{/manager/deposits/accrue-interest}">
+            <button class="loan-submit-button" type="submit">Начислить вознаграждение</button>
+        </form>
+        <form method="post" th:action="@{/manager/deposits/process-expiration}">
+            <button class="loan-secondary-button" type="submit">Обработать сроки</button>
+        </form>
+    </div>
+
+    <div class="accounts-empty-state" th:if="${pendingDeposits == null || pendingDeposits.isEmpty()}">
+        <p>Нет заявок на депозиты.</p>
+    </div>
+
+    <div class="client-deposits-list" th:if="${pendingDeposits != null && !pendingDeposits.isEmpty()}">
+        <section class="client-deposit-card" th:each="deposit : ${pendingDeposits}">
+            <div class="client-deposit-topline">
+                <div>
+                    <div class="client-deposit-name" th:text="${deposit.name}">Копилка</div>
+                    <div class="client-deposit-status" th:text="${deposit.status}">На рассмотрении</div>
+                </div>
+                <div class="client-deposit-amount">
+                    <span th:text="${deposit.amount}">100 000.00</span>
+                    <span th:text="${deposit.currency}">KZT</span>
+                </div>
+            </div>
+
+            <div class="client-deposit-details">
+                <div>
+                    <span>Ставка</span>
+                    <strong th:text="${deposit.rate}">11.5%</strong>
+                </div>
+                <div>
+                    <span>Срок</span>
+                    <strong th:text="${deposit.duration}">12 мес.</strong>
+                </div>
+                <div>
+                    <span>Автопродление</span>
+                    <strong th:text="${deposit.autoRenewal}">Да</strong>
+                </div>
+                <div>
+                    <span>Капитализация</span>
+                    <strong th:text="${deposit.reinvestInterest}">Да</strong>
+                </div>
+            </div>
+
+            <div class="client-loan-actions">
+                <form method="post" th:action="@{/manager/deposits/{depositId}/approve(depositId=${deposit.depositId})}">
+                    <button class="loan-submit-button" type="submit">Одобрить</button>
+                </form>
+                <form method="post" th:action="@{/manager/deposits/{depositId}/reject(depositId=${deposit.depositId})}">
+                    <button class="loan-secondary-button" type="submit">Отклонить</button>
+                </form>
+            </div>
+        </section>
+    </div>
+
+</main>
+
+</body>
+</html>

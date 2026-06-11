@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Заявки на кредиты</title>
+    <link rel="stylesheet" href="../../static/css/styles.css" th:href="@{/css/styles.css}">
+    <meta charset="UTF-8">
+</head>
+<body>
+
+<div th:replace="~{fragments/manager-header :: header}"></div>
+
+<main class="loans-page">
+
+    <h1>Заявки на кредиты</h1>
+
+    <div class="loan-message loan-message-success" th:if="${managerLoanSuccess}" th:text="${managerLoanSuccess}">Предложение создано.</div>
+    <div class="loan-message loan-message-error" th:if="${managerLoanError}" th:text="${managerLoanError}">Ошибка.</div>
+
+    <div class="accounts-empty-state" th:if="${pendingLoans == null || pendingLoans.isEmpty()}">
+        <p>Нет заявок в статусе PENDING.</p>
+    </div>
+
+    <div class="manager-loans-list" th:if="${pendingLoans != null && !pendingLoans.isEmpty()}">
+        <section class="manager-loan-card" th:each="loan : ${pendingLoans}">
+            <div class="client-loan-topline">
+                <div>
+                    <div class="client-loan-name" th:text="${loan.typeName}">На любые цели</div>
+                    <div class="client-loan-status" th:text="${loan.status}">На рассмотрении</div>
+                </div>
+                <div class="client-loan-amount" th:text="${loan.amount}">1 000 000.00 ₸</div>
+            </div>
+
+            <form class="manager-offer-form" method="post" th:action="@{/manager/loans/{loanId}/offers(loanId=${loan.loanId})}">
+                <div class="loan-form-field">
+                    <label th:for="'amount-' + ${loan.loanId}">Сумма предложения</label>
+                    <input th:id="'amount-' + ${loan.loanId}" name="amount" type="number" min="0.01" step="0.01" placeholder="0" required>
+                </div>
+
+                <div class="loan-form-field">
+                    <label th:for="'rate-' + ${loan.loanId}">Ставка</label>
+                    <input th:id="'rate-' + ${loan.loanId}" name="rate" type="number" min="0.01" step="0.01" placeholder="18" required>
+                </div>
+
+                <div class="loan-form-field">
+                    <label th:for="'duration-' + ${loan.loanId}">Срок, месяцев</label>
+                    <input th:id="'duration-' + ${loan.loanId}" name="duration" type="number" min="1" step="1" placeholder="60" required>
+                </div>
+
+                <div class="loan-form-field">
+                    <label th:for="'payment-' + ${loan.loanId}">Ежемесячный платеж</label>
+                    <input th:id="'payment-' + ${loan.loanId}" name="monthlyPayment" type="number" min="0.01" step="0.01" placeholder="Рассчитать автоматически">
+                </div>
+
+                <button class="loan-submit-button" type="submit">Создать предложение</button>
+            </form>
+
+            <form class="manager-offer-form" method="post" th:action="@{/manager/loans/{loanId}/reject(loanId=${loan.loanId})}">
+                <button class="loan-secondary-button" type="submit">Отклонить заявку</button>
+            </form>
+        </section>
+    </div>
+
+</main>
+
+</body>
+</html>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8">
+</head>
+
+<body>
+
+<header th:fragment="header">
+  <nav class="navbar">
+    <div class="logo">
+      <a href="#" th:href="@{/manager/accounts}">Bank Manager</a>
+    </div>
+
+    <ul class="nav-links">
+      <li><a href="#" th:href="@{/manager/accounts}">Счета</a></li>
+      <li><a href="#" th:href="@{/manager/deposits}">Депозиты</a></li>
+      <li><a href="#" th:href="@{/manager/loans}">Кредиты</a></li>
+      <li>
+        <form class="header-logout-form" method="post" th:action="@{/manager/logout}">
+          <button class="header-auth-link" type="submit">Выйти</button>
+        </form>
+      </li>
+    </ul>
+  </nav>
+</header>
+
+</body>
+</html>

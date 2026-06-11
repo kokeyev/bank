@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Перевод по номеру карты</title>
+    <link rel="stylesheet" href="../../static/css/styles.css" th:href="@{/css/styles.css}">
+    <meta charset="UTF-8">
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<main class="transfer-form-page">
+
+    <a class="back-link" href="index.html" th:href="@{/transfers}">Назад к операциям</a>
+
+    <section class="transfer-form-card">
+        <h1>Перевод по номеру карты</h1>
+
+        <form class="transfer-form" method="post" th:action="@{/transfers/by-card}" th:object="${cardTransferRequest}">
+            <div class="transfer-message transfer-message-success" th:if="${cardTransferSuccess}" th:text="${cardTransferSuccess}">
+                Перевод выполнен.
+            </div>
+
+            <div class="transfer-message transfer-message-error" th:if="${cardTransferError}" th:text="${cardTransferError}">
+                Не удалось выполнить перевод.
+            </div>
+
+            <div class="transfer-field">
+                <label for="fromAccount">Откуда</label>
+                <select id="fromAccount" name="senderAccountId" th:field="*{senderAccountId}" required>
+                    <option value="" disabled selected>Список счетов</option>
+                    <option th:each="account : ${accountOptions}" th:value="${account.accountId}" th:text="${account.label}">
+                        Основная - 125 430.50 KZT
+                    </option>
+                </select>
+            </div>
+
+            <div class="transfer-field">
+                <label for="receiverCardNumber">Номер карты</label>
+                <input id="receiverCardNumber" name="receiverCardNumber" th:field="*{receiverCardNumber}" type="text" placeholder="0000 0000 0000 0000" required>
+            </div>
+
+            <div class="transfer-field">
+                <label for="amount">Сумма перевода</label>
+                <input id="amount" name="amount" th:field="*{amount}" type="number" min="0.01" step="0.01" placeholder="0" required>
+            </div>
+
+            <div class="transfer-field">
+                <label for="message">Сообщение</label>
+                <input id="message" name="message" th:field="*{message}" type="text" placeholder="Назначение перевода">
+            </div>
+
+            <div class="commission-row">
+                <span>Комиссия</span>
+                <strong>0 ₸</strong>
+            </div>
+
+            <button class="transfer-submit-button" type="submit" th:disabled="${accountOptions == null || accountOptions.isEmpty()}">Перевести</button>
+        </form>
+    </section>
+
+</main>
+
+</body>
+</html>
