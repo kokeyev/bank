@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Между своими счетами</title>
+    <title th:text="#{transfers.between}">Между своими счетами</title>
     <link rel="stylesheet" href="../../static/css/styles.css" th:href="@{/css/styles.css}">
     <meta charset="UTF-8">
 </head>
@@ -11,28 +11,28 @@
 
 <main class="transfer-form-page">
 
-    <a class="back-link" href="index.html" th:href="@{/transfers}">Назад к операциям</a>
+    <a class="back-link" href="index.html" th:href="@{/transfers}" th:text="#{transfers.back}">Назад к операциям</a>
 
     <section class="transfer-form-card">
-        <h1>Между своими счетами</h1>
+        <h1 th:text="#{transfers.between}">Между своими счетами</h1>
 
         <form class="transfer-form" method="post" th:action="@{/transfers/between-accounts}" th:object="${transferRequest}">
             <div class="transfer-message transfer-message-success" th:if="${transferSuccess}" th:text="${transferSuccess}">
-                Перевод выполнен.
+                <span th:text="#{transfers.success}">Перевод выполнен.</span>
             </div>
 
             <div class="transfer-message transfer-message-error" th:if="${transferError}" th:text="${transferError}">
-                Не удалось выполнить перевод.
+                <span th:text="#{transfers.error}">Не удалось выполнить перевод.</span>
             </div>
 
-            <div class="transfer-message" th:if="${accountOptions == null || accountOptions.size() < 2}">
+            <div class="transfer-message" th:if="${accountOptions == null || accountOptions.size() < 2}" th:text="#{transfers.needTwoAccounts}">
                 Для перевода между своими счетами нужно минимум два счета.
             </div>
 
             <div class="transfer-field">
-                <label for="fromAccount">Со счета</label>
+                <label for="fromAccount" th:text="#{transfers.from}">Со счета</label>
                 <select id="fromAccount" name="senderAccountId" th:field="*{senderAccountId}" required>
-                    <option value="" disabled selected>Список счетов</option>
+                    <option value="" disabled selected th:text="#{transfers.accountList}">Список счетов</option>
                     <option th:each="account : ${accountOptions}"
                             th:value="${account.accountId}"
                             th:text="${account.label}">
@@ -42,9 +42,9 @@
             </div>
 
             <div class="transfer-field">
-                <label for="toAccount">На счет</label>
+                <label for="toAccount" th:text="#{transfers.to}">На счет</label>
                 <select id="toAccount" name="receiverAccountId" th:field="*{receiverAccountId}" required>
-                    <option value="" disabled selected>Список счетов</option>
+                    <option value="" disabled selected th:text="#{transfers.accountList}">Список счетов</option>
                     <option th:each="account : ${accountOptions}"
                             th:value="${account.accountId}"
                             th:text="${account.label}">
@@ -54,21 +54,21 @@
             </div>
 
             <div class="transfer-field">
-                <label for="amount">Сумма перевода</label>
+                <label for="amount" th:text="#{transfers.amount}">Сумма перевода</label>
                 <input id="amount" name="amount" th:field="*{amount}" type="number" min="0.01" step="0.01" placeholder="0" required>
             </div>
 
             <div class="transfer-field">
-                <label for="message">Сообщение</label>
-                <input id="message" name="message" th:field="*{message}" type="text" placeholder="Назначение перевода">
+                <label for="message" th:text="#{transfers.message}">Сообщение</label>
+                <input id="message" name="message" th:field="*{message}" type="text" th:placeholder="#{transfers.message.placeholder}">
             </div>
 
             <div class="commission-row">
-                <span>Комиссия</span>
+                <span th:text="#{transfers.commission}">Комиссия</span>
                 <strong>0 ₸</strong>
             </div>
 
-            <button class="transfer-submit-button" type="submit" th:disabled="${accountOptions == null || accountOptions.size() < 2}">Перевести</button>
+            <button class="transfer-submit-button" type="submit" th:disabled="${accountOptions == null || accountOptions.size() < 2}" th:text="#{transfers.submit}">Перевести</button>
         </form>
     </section>
 

@@ -2084,6 +2084,31 @@ body {
     background: #1f2937;
 }
 
+.field-error {
+    margin: 6px 0 0;
+    color: #b42318;
+    font-size: 13px;
+    line-height: 1.35;
+}
+
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.pagination a {
+    color: #111827;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.pagination a:hover {
+    text-decoration: underline;
+}
+
 .auth-switch-link {
     color: #6b7280;
     font-size: 14px;

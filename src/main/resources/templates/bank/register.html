@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Регистрация в Bank</title>
+    <title th:text="#{auth.register.title}">Регистрация в Bank</title>
     <link rel="stylesheet" href="../static/css/styles.css" th:href="@{/css/styles.css}">
     <meta charset="UTF-8">
 </head>
@@ -11,8 +11,8 @@
     <section class="auth-card auth-card-wide">
         <div class="auth-header">
             <a href="../accounts/index.html" th:href="@{/}" class="auth-logo">Bank</a>
-            <span>Новый аккаунт</span>
-            <h1>Регистрация</h1>
+            <span th:text="#{auth.register.subtitle}">Новый аккаунт</span>
+            <h1 th:text="#{auth.register.heading}">Регистрация</h1>
         </div>
 
         <form class="auth-form" method="post" th:action="@{/register}" th:object="${createUserRequest}">
@@ -22,41 +22,47 @@
 
             <div class="auth-fields-grid">
                 <div class="auth-field">
-                    <label for="name">Имя</label>
-                    <input id="name" name="name" th:field="*{name}" type="text" placeholder="Введите имя" required>
+                    <label for="name" th:text="#{auth.register.name}">Имя</label>
+                    <input id="name" name="name" th:field="*{name}" type="text" th:placeholder="#{auth.register.name.placeholder}" required>
+                    <p class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">Ошибка</p>
                 </div>
 
                 <div class="auth-field">
-                    <label for="surname">Фамилия</label>
-                    <input id="surname" name="surname" th:field="*{surname}" type="text" placeholder="Введите фамилию" required>
+                    <label for="surname" th:text="#{auth.register.surname}">Фамилия</label>
+                    <input id="surname" name="surname" th:field="*{surname}" type="text" th:placeholder="#{auth.register.surname.placeholder}" required>
+                    <p class="field-error" th:if="${#fields.hasErrors('surname')}" th:errors="*{surname}">Ошибка</p>
                 </div>
             </div>
 
             <div class="auth-field">
-                <label for="phone">Номер телефона</label>
+                <label for="phone" th:text="#{auth.register.phone}">Номер телефона</label>
                 <input id="phone" name="phone" th:field="*{phone}" type="tel" placeholder="+7 700 000 00 00" required>
+                <p class="field-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}">Ошибка</p>
             </div>
 
             <div class="auth-field">
-                <label for="email">Почта</label>
+                <label for="email" th:text="#{auth.register.email}">Почта</label>
                 <input id="email" name="email" th:field="*{email}" type="email" placeholder="mail@example.com" required>
+                <p class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">Ошибка</p>
             </div>
 
             <div class="auth-field">
-                <label for="password">Пароль</label>
-                <input id="password" name="password" th:field="*{password}" type="password" placeholder="Введите пароль" required>
+                <label for="password" th:text="#{auth.password}">Пароль</label>
+                <input id="password" name="password" th:field="*{password}" type="password" th:placeholder="#{auth.password.placeholder}" required>
+                <p class="field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">Ошибка</p>
             </div>
 
             <div class="auth-field">
-                <label for="confirmPassword">Введите пароль снова</label>
-                <input id="confirmPassword" name="confirmPassword" th:field="*{confirmPassword}" type="password" placeholder="Повторите пароль" required>
+                <label for="confirmPassword" th:text="#{auth.register.confirmPassword}">Введите пароль снова</label>
+                <input id="confirmPassword" name="confirmPassword" th:field="*{confirmPassword}" type="password" th:placeholder="#{auth.register.confirmPassword.placeholder}" required>
+                <p class="field-error" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}">Ошибка</p>
             </div>
 
-            <button class="auth-submit-button" type="submit">Зарегистрироваться</button>
+            <button class="auth-submit-button" type="submit" th:text="#{auth.register.submit}">Зарегистрироваться</button>
 
             <p class="auth-switch-link">
-                Уже есть аккаунт?
-                <a href="login.html" th:href="@{/login}">Войти</a>
+                <span th:text="#{auth.register.hasAccount}">Уже есть аккаунт?</span>
+                <a href="login.html" th:href="@{/login}" th:text="#{nav.login}">Войти</a>
             </p>
         </form>
     </section>

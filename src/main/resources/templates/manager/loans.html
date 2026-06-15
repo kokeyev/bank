@@ -15,6 +15,9 @@
 
     <div class="loan-message loan-message-success" th:if="${managerLoanSuccess}" th:text="${managerLoanSuccess}">Предложение создано.</div>
     <div class="loan-message loan-message-error" th:if="${managerLoanError}" th:text="${managerLoanError}">Ошибка.</div>
+    <div class="loan-message loan-message-error" th:if="${managerLoanErrors}">
+        <p th:each="error : ${managerLoanErrors}" th:text="${error}">Ошибка.</p>
+    </div>
 
     <div class="accounts-empty-state" th:if="${pendingLoans == null || pendingLoans.isEmpty()}">
         <p>Нет заявок в статусе PENDING.</p>

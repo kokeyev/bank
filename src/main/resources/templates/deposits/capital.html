@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Открыть депозит Капитал</title>
+    <title th:text="#{deposits.capital.name}">Открыть депозит Капитал</title>
     <link rel="stylesheet" href="../static/css/styles.css" th:href="@{/css/styles.css}">
     <meta charset="UTF-8">
 </head>
@@ -11,56 +11,56 @@
 
 <main class="deposit-form-page">
 
-    <a class="back-link" href="index.html" th:href="@{/deposits}">Назад к депозитам</a>
+    <a class="back-link" href="index.html" th:href="@{/deposits}" th:text="#{deposits.back}">Назад к депозитам</a>
 
     <section class="deposit-open-card">
         <div class="deposit-form-header">
-            <span>Открыть депозит</span>
-            <h1>Капитал</h1>
-            <p>Депозит для долгого хранения средств с максимальной ставкой.</p>
+            <span th:text="#{deposits.open}">Открыть депозит</span>
+            <h1 th:text="#{deposits.capital.name}">Капитал</h1>
+            <p th:text="#{deposits.capital.formDescription}">Депозит для долгого хранения средств с максимальной ставкой.</p>
         </div>
 
         <form class="deposit-open-form" method="post" th:action="@{/deposits/capital}" th:object="${openDepositRequest}">
             <div class="deposit-message deposit-message-success" th:if="${depositSuccess}" th:text="${depositSuccess}">Депозит открыт.</div>
             <div class="deposit-message deposit-message-error" th:if="${depositError}" th:text="${depositError}">Не удалось открыть депозит.</div>
-            <div class="deposit-message" th:if="${accountOptions == null || accountOptions.isEmpty()}">Войдите в аккаунт и откройте счет, чтобы открыть депозит.</div>
+            <div class="deposit-message" th:if="${accountOptions == null || accountOptions.isEmpty()}" th:text="#{deposits.needAccount}">Войдите в аккаунт и откройте счет, чтобы открыть депозит.</div>
 
             <div class="deposit-form-field">
-                <label for="sourceAccountId">Со счета</label>
+                <label for="sourceAccountId" th:text="#{deposits.fromAccount}">Со счета</label>
                 <select id="sourceAccountId" name="sourceAccountId" th:field="*{sourceAccountId}" required>
-                    <option value="" disabled selected>Список счетов</option>
+                    <option value="" disabled selected th:text="#{deposits.accountList}">Список счетов</option>
                     <option th:each="account : ${accountOptions}" th:value="${account.accountId}" th:text="${account.label}">Основная - 100 000.00 KZT</option>
                 </select>
             </div>
 
             <div class="deposit-form-field">
-                <label for="amount">Введите сумму</label>
+                <label for="amount" th:text="#{deposits.enterAmount}">Введите сумму</label>
                 <input id="amount" name="amount" th:field="*{amount}" type="number" min="0.01" step="0.01" placeholder="0" required>
             </div>
 
             <div class="deposit-form-field">
-                <label for="depositTypeId">Условия депозита</label>
+                <label for="depositTypeId" th:text="#{deposits.conditions}">Условия депозита</label>
                 <select id="depositTypeId" name="depositTypeId" th:field="*{depositTypeId}" required>
-                    <option value="" disabled selected>Срок, валюта и ставка</option>
+                    <option value="" disabled selected th:text="#{deposits.conditions.placeholder}">Срок, валюта и ставка</option>
                     <option th:each="type : ${depositTypeOptions}" th:value="${type.depositTypeId}" th:text="${type.label}">12 мес. / KZT / 16%</option>
                 </select>
             </div>
 
             <div class="deposit-switches">
                 <label class="switch-row switch-row-disabled">
-                    <span>Автопродление</span>
+                    <span th:text="#{deposits.autoRenewal}">Автопродление</span>
                     <input type="checkbox" name="autoRenewal" th:field="*{autoRenewal}" disabled>
                     <span class="switch-control"></span>
                 </label>
 
                 <label class="switch-row switch-row-disabled">
-                    <span>Вознаграждение оставлять на депозите</span>
+                    <span th:text="#{deposits.reinvest}">Вознаграждение оставлять на депозите</span>
                     <input type="checkbox" name="reinvestInterest" th:field="*{reinvestInterest}" checked disabled>
                     <span class="switch-control"></span>
                 </label>
             </div>
 
-            <button class="open-deposit-submit-button" type="submit">Открыть депозит</button>
+            <button class="open-deposit-submit-button" type="submit" th:text="#{deposits.open}">Открыть депозит</button>
         </form>
     </section>
 

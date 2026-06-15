@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Депозиты</title>
+    <title th:text="#{deposits.title}">Депозиты</title>
     <link rel="stylesheet" href="../static/css/styles.css" th:href="@{/css/styles.css}">
     <meta charset="UTF-8">
 </head>
@@ -11,26 +11,26 @@
 
 <main class="deposits-page">
 
-    <h1>Депозиты</h1>
+    <h1 th:text="#{deposits.title}">Депозиты</h1>
 
     <div class="deposit-cards">
         <a class="deposit-card" href="#" th:href="@{/deposits/kopilka}">
-            <h2>Копилка</h2>
-            <p>С пополнением и выводом</p>
+            <h2 th:text="#{deposits.kopilka.name}">Копилка</h2>
+            <p th:text="#{deposits.kopilka.description}">С пополнением и выводом</p>
 
             <div class="deposit-detail">
-                <span>Сумма</span>
-                <strong>от 10 долларов (или эквивалент)</strong>
+                <span th:text="#{deposits.amount}">Сумма</span>
+                <strong th:text="#{deposits.min10}">от 10 долларов (или эквивалент)</strong>
             </div>
 
             <div class="deposit-detail">
-                <span>Срок</span>
-                <strong>от 6 до 36 месяцев</strong>
+                <span th:text="#{deposits.duration}">Срок</span>
+                <strong th:text="#{deposits.term6to36}">от 6 до 36 месяцев</strong>
             </div>
 
             <div class="deposit-detail">
-                <span>Автопродление</span>
-                <strong>можно включить</strong>
+                <span th:text="#{deposits.autoRenewal}">Автопродление</span>
+                <strong th:text="#{deposits.autoRenewal.available}">можно включить</strong>
             </div>
 
             <div class="deposit-rates">
@@ -42,22 +42,22 @@
         </a>
 
         <a class="deposit-card" href="#" th:href="@{/deposits/strategy}">
-            <h2>Стратегия</h2>
-            <p>С пополнением, но без снятия</p>
+            <h2 th:text="#{deposits.strategy.name}">Стратегия</h2>
+            <p th:text="#{deposits.strategy.description}">С пополнением, но без снятия</p>
 
             <div class="deposit-detail">
-                <span>Сумма</span>
-                <strong>от 100 долларов (или эквивалент)</strong>
+                <span th:text="#{deposits.amount}">Сумма</span>
+                <strong th:text="#{deposits.min100}">от 100 долларов (или эквивалент)</strong>
             </div>
 
             <div class="deposit-detail">
-                <span>Срок</span>
-                <strong>от 3 до 24 месяцев</strong>
+                <span th:text="#{deposits.duration}">Срок</span>
+                <strong th:text="#{deposits.term3to24}">от 3 до 24 месяцев</strong>
             </div>
 
             <div class="deposit-detail">
-                <span>Автопродление</span>
-                <strong>можно включить</strong>
+                <span th:text="#{deposits.autoRenewal}">Автопродление</span>
+                <strong th:text="#{deposits.autoRenewal.available}">можно включить</strong>
             </div>
 
             <div class="deposit-rates">
@@ -69,22 +69,22 @@
         </a>
 
         <a class="deposit-card" href="#" th:href="@{/deposits/capital}">
-            <h2>Капитал</h2>
-            <p>Без пополнения и без снятия</p>
+            <h2 th:text="#{deposits.capital.name}">Капитал</h2>
+            <p th:text="#{deposits.capital.description}">Без пополнения и без снятия</p>
 
             <div class="deposit-detail">
-                <span>Сумма</span>
-                <strong>от 1000 долларов (или эквивалент)</strong>
+                <span th:text="#{deposits.amount}">Сумма</span>
+                <strong th:text="#{deposits.min1000}">от 1000 долларов (или эквивалент)</strong>
             </div>
 
             <div class="deposit-detail">
-                <span>Срок</span>
-                <strong>от 3 до 36 месяцев</strong>
+                <span th:text="#{deposits.duration}">Срок</span>
+                <strong th:text="#{deposits.term3to36}">от 3 до 36 месяцев</strong>
             </div>
 
             <div class="deposit-detail">
-                <span>Автопродление</span>
-                <strong>недоступно</strong>
+                <span th:text="#{deposits.autoRenewal}">Автопродление</span>
+                <strong th:text="#{deposits.autoRenewal.unavailable}">недоступно</strong>
             </div>
 
             <div class="deposit-rates">
@@ -97,8 +97,8 @@
     </div>
 
     <div class="loan-note">
-        <h2>Как это связано с другими разделами</h2>
-        <p>Депозит можно открыть в выбранной валюте, пополнять через операции банка, а начисленное вознаграждение оставлять на депозите для дальнейшего накопления.</p>
+        <h2 th:text="#{deposits.related.title}">Как это связано с другими разделами</h2>
+        <p th:text="#{deposits.related.text}">Депозит можно открыть в выбранной валюте, пополнять через операции банка, а начисленное вознаграждение оставлять на депозите для дальнейшего накопления.</p>
     </div>
 
 </main>

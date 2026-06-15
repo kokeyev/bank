@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Обменник</title>
+    <title th:text="#{exchange.title}">Обменник</title>
     <link rel="stylesheet" href="../static/css/styles.css" th:href="@{/css/styles.css}">
     <meta charset="UTF-8">
 </head>
@@ -11,7 +11,7 @@
 
 <main class="exchange-page">
 
-    <h1>Обменник</h1>
+    <h1 th:text="#{exchange.title}">Обменник</h1>
 
     <div class="loan-message loan-message-success" th:if="${exchangeSuccess}" th:text="${exchangeSuccess}">Готово.</div>
     <div class="loan-message loan-message-error" th:if="${exchangeError}" th:text="${exchangeError}">Ошибка.</div>
@@ -20,17 +20,17 @@
         <section class="exchange-rates-card">
             <div class="exchange-card-header">
                 <div>
-                    <h2>Курсы валют</h2>
-                    <p>Курс указан относительно тенге.</p>
+                    <h2 th:text="#{exchange.rates}">Курсы валют</h2>
+                    <p th:text="#{exchange.rates.description}">Курс указан относительно тенге.</p>
                 </div>
-                <span>Сегодня</span>
+                <span th:text="#{exchange.today}">Сегодня</span>
             </div>
 
             <table class="exchange-table">
                 <thead>
                 <tr>
-                    <th>Валюта</th>
-                    <th>Курс к KZT</th>
+                    <th th:text="#{exchange.currency}">Валюта</th>
+                    <th th:text="#{exchange.rateToKzt}">Курс к KZT</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -45,11 +45,11 @@
         </section>
 
         <section class="exchange-converter-card">
-            <h2>Быстрый расчет</h2>
+            <h2 th:text="#{exchange.quick}">Быстрый расчет</h2>
 
             <form method="post" th:action="@{/exchange/calculate}">
                 <div class="converter-field">
-                    <label for="amount">Отдаете</label>
+                    <label for="amount" th:text="#{exchange.give}">Отдаете</label>
                     <div class="converter-input">
                         <input id="amount" name="amount" type="number" min="0.01" step="0.01" placeholder="0" required>
                         <select name="fromCurrencyId" required>
@@ -59,7 +59,7 @@
                 </div>
 
                 <div class="converter-field">
-                    <label for="toCurrencyId">Получаете</label>
+                    <label for="toCurrencyId" th:text="#{exchange.receive}">Получаете</label>
                     <div class="converter-input">
                         <input id="calculationResult" th:value="${calculationResult}" placeholder="0" readonly>
                         <select id="toCurrencyId" name="toCurrencyId" required>
@@ -68,58 +68,58 @@
                     </div>
                 </div>
 
-                <button class="exchange-button" type="submit">Рассчитать</button>
+                <button class="exchange-button" type="submit" th:text="#{exchange.calculate}">Рассчитать</button>
             </form>
 
             <form class="exchange-operation-form" method="post" th:action="@{/exchange}">
-                <h2>Обменять между счетами</h2>
+                <h2 th:text="#{exchange.betweenAccounts}">Обменять между счетами</h2>
 
                 <div class="settings-field">
-                    <label for="senderAccountId">Со счета</label>
+                    <label for="senderAccountId" th:text="#{exchange.fromAccount}">Со счета</label>
                     <select id="senderAccountId" name="senderAccountId" required>
-                        <option value="" disabled selected>Выберите счет</option>
+                        <option value="" disabled selected th:text="#{exchange.selectAccount}">Выберите счет</option>
                         <option th:each="account : ${accountOptions}" th:value="${account.accountId}" th:text="${account.label}">KZT счет</option>
                     </select>
                 </div>
 
                 <div class="settings-field">
-                    <label for="receiverAccountId">На счет</label>
+                    <label for="receiverAccountId" th:text="#{exchange.toAccount}">На счет</label>
                     <select id="receiverAccountId" name="receiverAccountId" required>
-                        <option value="" disabled selected>Выберите счет</option>
+                        <option value="" disabled selected th:text="#{exchange.selectAccount}">Выберите счет</option>
                         <option th:each="account : ${accountOptions}" th:value="${account.accountId}" th:text="${account.label}">USD счет</option>
                     </select>
                 </div>
 
                 <div class="settings-field">
-                    <label for="exchangeAmount">Сумма списания</label>
+                    <label for="exchangeAmount" th:text="#{exchange.amount}">Сумма списания</label>
                     <input id="exchangeAmount" name="amount" type="number" min="0.01" step="0.01" placeholder="0" required>
                 </div>
 
-                <button class="exchange-button" type="submit">Обменять</button>
+                <button class="exchange-button" type="submit" th:text="#{exchange.submit}">Обменять</button>
             </form>
 
             <p class="exchange-hint" th:if="${missingCurrencies != null && !missingCurrencies.isEmpty()}">
-                Для обмена может понадобиться счет в валюте:
+                <span th:text="#{exchange.missingCurrencies}">Для обмена может понадобиться счет в валюте:</span>
                 <span th:text="${#strings.listJoin(missingCurrencies, ', ')}">USD</span>.
-                Откройте новый счет в разделе «Мой Банк».
+                <span th:text="#{exchange.openAccountHint}">Откройте новый счет в разделе «Мой Банк».</span>
             </p>
         </section>
     </div>
 
     <section class="exchange-rates-card manager-rate-card" th:if="${adminLoggedIn}">
-        <h2>Обновить курс</h2>
+        <h2 th:text="#{exchange.updateRate}">Обновить курс</h2>
         <form class="settings-form" method="post" th:action="@{/admin/settings/currency-rate}">
             <div class="settings-field">
-                <label for="rateCurrencyId">Валюта</label>
+                <label for="rateCurrencyId" th:text="#{exchange.currency}">Валюта</label>
                 <select id="rateCurrencyId" name="currencyId" required>
                     <option th:each="currency : ${currencies}" th:value="${currency.currencyId}" th:text="${currency.name}">USD</option>
                 </select>
             </div>
             <div class="settings-field">
-                <label for="rateToKzt">Новый курс к KZT</label>
+                <label for="rateToKzt" th:text="#{exchange.newRate}">Новый курс к KZT</label>
                 <input id="rateToKzt" name="rateToKzt" type="number" min="0.0001" step="0.0001" placeholder="450.00" required>
             </div>
-            <button class="save-settings-button" type="submit">Сохранить курс</button>
+            <button class="save-settings-button" type="submit" th:text="#{exchange.saveRate}">Сохранить курс</button>
         </form>
     </section>
 

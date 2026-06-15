@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Войти в Bank</title>
+    <title th:text="#{auth.login.title}">Войти в Bank</title>
     <link rel="stylesheet" href="../static/css/styles.css" th:href="@{/css/styles.css}">
     <meta charset="UTF-8">
 </head>
@@ -11,8 +11,8 @@
     <section class="auth-card">
         <div class="auth-header">
             <a href="../accounts/index.html" th:href="@{/}" class="auth-logo">Bank</a>
-            <span>Вход в аккаунт</span>
-            <h1>Войти</h1>
+            <span th:text="#{auth.login.subtitle}">Вход в аккаунт</span>
+            <h1 th:text="#{auth.login.heading}">Войти</h1>
         </div>
 
         <form class="auth-form" method="post" th:action="@{/login}">
@@ -21,36 +21,36 @@
             </div>
 
             <fieldset class="login-method">
-                <legend>Войти через</legend>
+                <legend th:text="#{auth.login.method}">Войти через</legend>
 
                 <div>
                     <label class="login-method-option">
                         <input type="radio" name="loginType" value="phone" checked>
-                        <span>Номер телефона</span>
+                        <span th:text="#{auth.login.phone}">Номер телефона</span>
                     </label>
 
                     <label class="login-method-option">
                         <input type="radio" name="loginType" value="email">
-                        <span>Почта</span>
+                        <span th:text="#{auth.login.email}">Почта</span>
                     </label>
                 </div>
             </fieldset>
 
             <div class="auth-field">
-                <label for="login">Номер телефона или почта</label>
-                <input id="login" name="login" type="text" th:value="${login}" placeholder="+7 700 000 00 00 или mail@example.com" required>
+                <label for="login" th:text="#{auth.login.label}">Номер телефона или почта</label>
+                <input id="login" name="login" type="text" th:value="${login}" th:placeholder="#{auth.login.placeholder}" required>
             </div>
 
             <div class="auth-field">
-                <label for="password">Пароль</label>
-                <input id="password" name="password" type="password" placeholder="Введите пароль" required>
+                <label for="password" th:text="#{auth.password}">Пароль</label>
+                <input id="password" name="password" type="password" th:placeholder="#{auth.password.placeholder}" required>
             </div>
 
-            <button class="auth-submit-button" type="submit">Войти</button>
+            <button class="auth-submit-button" type="submit" th:text="#{auth.login.submit}">Войти</button>
 
             <p class="auth-switch-link">
-                Нет аккаунта?
-                <a href="register.html" th:href="@{/register}">Зарегистрироваться</a>
+                <span th:text="#{auth.login.noAccount}">Нет аккаунта?</span>
+                <a href="register.html" th:href="@{/register}" th:text="#{nav.register}">Зарегистрироваться</a>
             </p>
         </form>
     </section>

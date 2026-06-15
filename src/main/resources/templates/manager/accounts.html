@@ -22,12 +22,12 @@
         Ошибка.
     </div>
 
-    <div class="accounts-empty-state" th:if="${pendingAccounts == null || pendingAccounts.isEmpty()}">
+    <div class="accounts-empty-state" th:if="${pendingAccountsPage == null || pendingAccountsPage.items.isEmpty()}">
         <p>Нет заявок на открытие счета.</p>
     </div>
 
-    <div class="accounts-list" th:if="${pendingAccounts != null && !pendingAccounts.isEmpty()}">
-        <div class="account-card" th:each="account : ${pendingAccounts}">
+    <div class="accounts-list" th:if="${pendingAccountsPage != null && !pendingAccountsPage.items.isEmpty()}">
+        <div class="account-card" th:each="account : ${pendingAccountsPage.items}">
             <div class="account-info">
                 <div class="account-name" th:text="${account.name}">Основной счет</div>
                 <div class="account-status-row">
@@ -60,6 +60,11 @@
             </div>
         </div>
     </div>
+    <nav class="pagination" th:if="${pendingAccountsPage != null && pendingAccountsPage.totalPages > 1}">
+        <a th:if="${pendingAccountsPage.hasPrevious}" th:href="@{/manager/accounts(page=${pendingAccountsPage.currentPage - 1})}">Previous</a>
+        <span th:text="${pendingAccountsPage.currentPage + ' / ' + pendingAccountsPage.totalPages}">1 / 1</span>
+        <a th:if="${pendingAccountsPage.hasNext}" th:href="@{/manager/accounts(page=${pendingAccountsPage.currentPage + 1})}">Next</a>
+    </nav>
 
 </main>
 

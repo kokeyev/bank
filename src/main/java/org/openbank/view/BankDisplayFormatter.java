@@ -1,0 +1,143 @@
+package org.openbank.view;
+
+import org.openbank.model.status.AccountStatus;
+import org.openbank.model.status.DepositStatus;
+import org.openbank.model.status.LoanStatus;
+import org.springframework.stereotype.Component;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
+
+@Component
+public class BankDisplayFormatter {
+
+  private static final DateTimeFormatter EXPIRY_DATE_FORMATTER = DateTimeFormatter.ofPattern("MM/yy");
+  private static final DateTimeFormatter DISPLAY_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+
+  public String money(BigDecimal amount) {
+    if (amount == null) {
+      return "0.00";
+    }
+
+    DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
+    symbols.setGroupingSeparator(' ');
+    return new DecimalFormat("#,##0.00", symbols).format(amount);
+  }
+
+  public String decimalValue(BigDecimal amount) {
+    return amount == null ? "0.00" : amount.stripTrailingZeros().toPlainString();
+  }
+
+  public String cardNumber(String cardNumber) {
+    if (cardNumber == null || cardNumber.isBlank()) {
+      return "";
+    }
+
+    return cardNumber.replaceAll("(.{4})(?!$)", "$1 ");
+  }
+
+  public String expiryDate(LocalDate expiryDate) {
+    return expiryDate == null ? "" : expiryDate.format(EXPIRY_DATE_FORMATTER);
+  }
+
+  public String displayDate(LocalDate date) {
+    return date == null ? "" : date.format(DISPLAY_DATE_FORMATTER);
+  }
+
+  public String displayDateOrDash(LocalDate date) {
+    return date == null ? "-" : date.format(DISPLAY_DATE_FORMATTER);
+  }
+
+  public String rate(BigDecimal rate) {
+    if (rate == null) {
+      return "0%";
+    }
+
+    return rate.setScale(2, RoundingMode.HALF_UP).stripTrailingZeros().toPlainString() + "%";
+  }
+
+  public String duration(Integer duration) {
+    if (duration == null) {
+      return "";
+    }
+
+    if (duration >= 12 && duration % 12 == 0) {
+      int years = duration / 12;
+      return years + " " + (years == 1 ? "год" : "лет");
+    }
+
+    return duration + " мес.";
+  }
+
+  public String yesNo(Boolean value) {
+    return Boolean.TRUE.equals(value) ? "Да" : "Нет";
+  }
+
+  public String accountStatus(String status) {
+    if (AccountStatus.PENDING.name().equals(status)) {
+      return "На рассмотрении";
+    }
+    if (AccountStatus.ACTIVE.name().equals(status)) {
+      return "Активен";
+    }
+    if (AccountStatus.DEACTIVATED.name().equals(status)) {
+      return "Деактивирован";
+    }
+    if (AccountStatus.EXPIRED.name().equals(status)) {
+      return "Истек";
+    }
+    if (AccountStatus.DELETED.name().equals(status)) {
+      return "Удален";
+    }
+    if (AccountStatus.REJECTED.name().equals(status)) {
+      return "Отклонен";
+    }
+    return status == null ? "" : status;
+  }
+
+  public String depositStatus(String status) {
+    if (DepositStatus.PENDING.name().equals(status)) {
+      return "На рассмотрении";
+    }
+    if (DepositStatus.ACTIVE.name().equals(status)) {
+      return "Активен";
+    }
+    if (DepositStatus.EXPIRED.name().equals(status)) {
+      return "Срок истек";
+    }
+    if (DepositStatus.REJECTED.name().equals(status)) {
+      return "Отклонен";
+    }
+    if (DepositStatus.CLOSED.name().equals(status)) {
+      return "Закрыт";
+    }
+    return status == null ? "" : status;
+  }
+
+  public String loanStatus(String status) {
+    if (LoanStatus.PENDING.name().equals(status)) {
+      return "На рассмотрении";
+    }
+    if (LoanStatus.OFFERED.name().equals(status)) {
+      return "Предложение";
+    }
+    if (LoanStatus.ACTIVE.name().equals(status)) {
+      return "Активен";
+    }
+    if (LoanStatus.REFUSED.name().equals(status)) {
+      return "Отклонен клиентом";
+    }
+    if (LoanStatus.REJECTED.name().equals(status)) {
+      return "Отклонен менеджером";
+    }
+    if (LoanStatus.CLOSED.name().equals(status)) {
+      return "Закрыт";
+    }
+    return status == null ? "" : status;
+  }
+}

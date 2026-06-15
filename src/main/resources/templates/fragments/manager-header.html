@@ -14,12 +14,12 @@
     </div>
 
     <ul class="nav-links">
-      <li><a href="#" th:href="@{/manager/accounts}">Счета</a></li>
-      <li><a href="#" th:href="@{/manager/deposits}">Депозиты</a></li>
-      <li><a href="#" th:href="@{/manager/loans}">Кредиты</a></li>
+      <li><a href="#" th:href="@{/manager/accounts}" th:text="#{nav.accounts}">Счета</a></li>
+      <li><a href="#" th:href="@{/manager/deposits}" th:text="#{nav.deposits}">Депозиты</a></li>
+      <li><a href="#" th:href="@{/manager/loans}" th:text="#{nav.loans}">Кредиты</a></li>
       <li>
         <form class="header-logout-form" method="post" th:action="@{/manager/logout}">
-          <button class="header-auth-link" type="submit">Выйти</button>
+          <button class="header-auth-link" type="submit" th:text="#{nav.logout}">Выйти</button>
         </form>
       </li>
     </ul>

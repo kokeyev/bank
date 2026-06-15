@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Открыть счет</title>
+    <title th:text="#{accounts.open}">Открыть счет</title>
     <link rel="stylesheet" href="../../static/css/styles.css" th:href="@{/css/styles.css}">
     <meta charset="UTF-8">
 </head>
@@ -11,39 +11,45 @@
 
 <main class="open-account-page">
 
-    <a class="back-link" href="index.html" th:href="@{/accounts}">Назад к счетам</a>
+    <a class="back-link" href="index.html" th:href="@{/accounts}" th:text="#{accounts.back}">Назад к счетам</a>
 
     <section class="open-account-card">
-        <h1>Открыть счет</h1>
+        <h1 th:text="#{accounts.open}">Открыть счет</h1>
 
         <form class="open-account-form" method="post" th:action="@{/accounts/open}" th:object="${openAccountRequest}">
             <div class="open-account-message open-account-message-error" th:if="${accountOpenError}" th:text="${accountOpenError}">
                 Не удалось открыть счет.
             </div>
-
-            <div class="open-account-field">
-                <label for="accountName">Название счета</label>
-                <input id="accountName" name="accountName" th:field="*{accountName}" type="text" placeholder="Например, Основной счет" required>
+            <div class="open-account-message open-account-message-error" th:if="${accountOpenErrors}">
+                <p th:each="error : ${accountOpenErrors}" th:text="${error}">Ошибка</p>
             </div>
 
             <div class="open-account-field">
-                <label for="currency">Выберите валюту</label>
+                <label for="accountName" th:text="#{accounts.name}">Название счета</label>
+                <input id="accountName" name="accountName" th:field="*{accountName}" type="text" th:placeholder="#{accounts.name.placeholder}" required>
+                <p class="field-error" th:if="${#fields.hasErrors('accountName')}" th:errors="*{accountName}">Ошибка</p>
+            </div>
+
+            <div class="open-account-field">
+                <label for="currency" th:text="#{accounts.currency}">Выберите валюту</label>
                 <select id="currency" name="currency" th:field="*{currency}" required>
-                    <option value="" disabled selected>Выберите валюту</option>
+                    <option value="" disabled selected th:text="#{accounts.currency}">Выберите валюту</option>
                     <option th:each="currencyItem : ${currencies}"
                             th:value="${currencyItem.name}"
                             th:text="${currencyItem.name}">
                         KZT
                     </option>
                 </select>
+                <p class="field-error" th:if="${#fields.hasErrors('currency')}" th:errors="*{currency}">Ошибка</p>
             </div>
 
             <div class="open-account-field">
-                <label for="transactionLimit">Лимит на транзакцию</label>
+                <label for="transactionLimit" th:text="#{accounts.transactionLimit}">Лимит на транзакцию</label>
                 <input id="transactionLimit" name="transactionLimit" th:field="*{transactionLimit}" type="number" min="0" step="0.01" placeholder="100000" required>
+                <p class="field-error" th:if="${#fields.hasErrors('transactionLimit')}" th:errors="*{transactionLimit}">Ошибка</p>
             </div>
 
-            <button class="create-account-button" type="submit">Открыть счет</button>
+            <button class="create-account-button" type="submit" th:text="#{accounts.open}">Открыть счет</button>
         </form>
     </section>
 

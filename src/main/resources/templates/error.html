@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${errorTitle} ?: #{error.defaultTitle}">Ошибка</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<main class="page-shell">
+    <section class="panel">
+        <h1 th:text="${errorTitle} ?: #{error.defaultTitle}">Ошибка</h1>
+        <p th:text="${errorMessage} ?: #{error.defaultMessage}">
+            Произошла ошибка. Попробуйте еще раз позже.
+        </p>
+        <a class="button-primary" th:href="@{/}" th:text="#{common.home}">На главную</a>
+    </section>
+</main>
+</body>
+</html>

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Переводы</title>
+    <title th:text="#{transfers.title}">Переводы</title>
     <link rel="stylesheet" href="../static/css/styles.css" th:href="@{/css/styles.css}">
     <meta charset="UTF-8">
 </head>
@@ -11,23 +11,23 @@
 
 <main class="transfers-page">
 
-    <h1>Операции</h1>
+    <h1 th:text="#{transfers.title}">Операции</h1>
 
     <div class="transfer-list">
-        <a class="transfer-option" href="between-accounts.html" th:href="@{/transfers/between-accounts}">Перевод между своими счетами</a>
-        <a class="transfer-option" href="by-phone.html" th:href="@{/transfers/by-phone}">Перевод по номеру телефона</a>
-        <a class="transfer-option" href="by-card.html" th:href="@{/transfers/by-card}">Перевод по номеру карты</a>
-        <a class="transfer-option" href="deposit-top-up.html" th:href="@{/transfers/deposit-top-up}">Пополнить депозит</a>
-        <a class="transfer-option" href="loan-payment.html" th:href="@{/transfers/loan-payment}">Погасить кредит</a>
-        <a class="transfer-option" href="currency-exchange.html" th:href="@{/transfers/currency-exchange}">Обмен валют</a>
+        <a class="transfer-option" href="between-accounts.html" th:href="@{/transfers/between-accounts}" th:text="#{transfers.between}">Перевод между своими счетами</a>
+        <a class="transfer-option" href="by-phone.html" th:href="@{/transfers/by-phone}" th:text="#{transfers.phone}">Перевод по номеру телефона</a>
+        <a class="transfer-option" href="by-card.html" th:href="@{/transfers/by-card}" th:text="#{transfers.card}">Перевод по номеру карты</a>
+        <a class="transfer-option" href="deposit-top-up.html" th:href="@{/transfers/deposit-top-up}" th:text="#{transfers.depositTopUp}">Пополнить депозит</a>
+        <a class="transfer-option" href="loan-payment.html" th:href="@{/transfers/loan-payment}" th:text="#{transfers.loanPayment}">Погасить кредит</a>
+        <a class="transfer-option" href="currency-exchange.html" th:href="@{/transfers/currency-exchange}" th:text="#{transfers.exchange}">Обмен валют</a>
     </div>
 
     <section class="transaction-history-section">
-        <h2>История операций</h2>
+        <h2 th:text="#{transfers.history}">История операций</h2>
 
         <div class="accounts-empty-state" th:if="${transactions == null || transactions.isEmpty()}">
-            <p th:if="${loggedIn}">Операций пока нет.</p>
-            <p th:unless="${loggedIn}">Войдите в аккаунт, чтобы увидеть историю операций.</p>
+            <p th:if="${loggedIn}" th:text="#{transfers.empty}">Операций пока нет.</p>
+            <p th:unless="${loggedIn}" th:text="#{transfers.loginToView}">Войдите в аккаунт, чтобы увидеть историю операций.</p>
         </div>
 
         <div class="transaction-history-list" th:if="${transactions != null && !transactions.isEmpty()}">

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Перевод по номеру телефона</title>
+    <title th:text="#{transfers.phone}">Перевод по номеру телефона</title>
     <link rel="stylesheet" href="../../static/css/styles.css" th:href="@{/css/styles.css}">
     <meta charset="UTF-8">
 </head>
@@ -11,10 +11,10 @@
 
 <main class="transfer-form-page">
 
-    <a class="back-link" href="index.html" th:href="@{/transfers}">Назад к операциям</a>
+    <a class="back-link" href="index.html" th:href="@{/transfers}" th:text="#{transfers.back}">Назад к операциям</a>
 
     <section class="transfer-form-card">
-        <h1>Перевод по номеру телефона</h1>
+        <h1 th:text="#{transfers.phone}">Перевод по номеру телефона</h1>
 
         <form class="transfer-form" method="post" th:action="@{/transfers/by-phone}" th:object="${phoneTransferRequest}">
             <div class="transfer-message transfer-message-success" th:if="${phoneTransferSuccess}" th:text="${phoneTransferSuccess}">
@@ -26,9 +26,9 @@
             </div>
 
             <div class="transfer-field">
-                <label for="fromAccount">Откуда</label>
+                <label for="fromAccount" th:text="#{transfers.whereFrom}">Откуда</label>
                 <select id="fromAccount" name="senderAccountId" th:field="*{senderAccountId}" required>
-                    <option value="" disabled selected>Список счетов</option>
+                    <option value="" disabled selected th:text="#{transfers.accountList}">Список счетов</option>
                     <option th:each="account : ${accountOptions}" th:value="${account.accountId}" th:text="${account.label}">
                         Основная - 125 430.50 KZT
                     </option>
@@ -36,8 +36,8 @@
             </div>
 
             <div class="transfer-field">
-                <label for="recipientPhone">Куда</label>
-                <span class="transfer-field-caption">Номер получателя</span>
+                <label for="recipientPhone" th:text="#{transfers.whereTo}">Куда</label>
+                <span class="transfer-field-caption" th:text="#{transfers.recipientPhone}">Номер получателя</span>
                 <div class="phone-input">
                     <span>+7</span>
                     <input id="recipientPhone" name="receiverPhoneNumber" th:field="*{receiverPhoneNumber}" type="tel" placeholder="700 000 00 00" required>
@@ -45,21 +45,21 @@
             </div>
 
             <div class="transfer-field">
-                <label for="amount">Сумма перевода</label>
+                <label for="amount" th:text="#{transfers.amount}">Сумма перевода</label>
                 <input id="amount" name="amount" th:field="*{amount}" type="number" min="0.01" step="0.01" placeholder="0" required>
             </div>
 
             <div class="transfer-field">
-                <label for="message">Сообщение</label>
-                <input id="message" name="message" th:field="*{message}" type="text" placeholder="Назначение перевода">
+                <label for="message" th:text="#{transfers.message}">Сообщение</label>
+                <input id="message" name="message" th:field="*{message}" type="text" th:placeholder="#{transfers.message.placeholder}">
             </div>
 
             <div class="commission-row">
-                <span>Комиссия</span>
+                <span th:text="#{transfers.commission}">Комиссия</span>
                 <strong>0 ₸</strong>
             </div>
 
-            <button class="transfer-submit-button" type="submit" th:disabled="${accountOptions == null || accountOptions.isEmpty()}">Перевести</button>
+            <button class="transfer-submit-button" type="submit" th:disabled="${accountOptions == null || accountOptions.isEmpty()}" th:text="#{transfers.submit}">Перевести</button>
         </form>
     </section>
 

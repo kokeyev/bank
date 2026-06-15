@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Кредиты</title>
+    <title th:text="#{loans.title}">Кредиты</title>
     <link rel="stylesheet" href="../static/css/styles.css" th:href="@{/css/styles.css}">
     <meta charset="UTF-8">
 </head>
@@ -11,12 +11,12 @@
 
 <main class="loans-page">
 
-    <h1>Кредиты</h1>
+    <h1 th:text="#{loans.title}">Кредиты</h1>
 
     <div class="loan-summary">
         <div>
-            <h2>Подберите кредит под свою цель</h2>
-            <p>Можно оформить заявку, выбрать счет для зачисления и погашать платежи через операции банка.</p>
+            <h2 th:text="#{loans.summary.title}">Подберите кредит под свою цель</h2>
+            <p th:text="#{loans.summary.text}">Можно оформить заявку, выбрать счет для зачисления и погашать платежи через операции банка.</p>
         </div>
     </div>
 
@@ -30,15 +30,15 @@
 
             <div class="loan-info">
                 <div>
-                    <span>Сумма</span>
+                    <span th:text="#{loans.amount}">Сумма</span>
                     <strong th:text="${loanType.amountRange}">от 50 000 до 5 000 000 ₸</strong>
                 </div>
                 <div>
-                    <span>Срок</span>
+                    <span th:text="#{loans.duration}">Срок</span>
                     <strong th:text="${loanType.duration}">до 5 лет</strong>
                 </div>
                 <div>
-                    <span>Ставка</span>
+                    <span th:text="#{loans.rate}">Ставка</span>
                     <strong th:text="${loanType.rate}">от 21%</strong>
                 </div>
             </div>
@@ -49,11 +49,11 @@
     <div class="loan-message loan-message-error" th:if="${loanError}" th:text="${loanError}">Не удалось выполнить действие.</div>
 
     <section class="client-loans-section">
-        <h2>Мои кредиты</h2>
+        <h2 th:text="#{loans.myLoans}">Мои кредиты</h2>
 
         <div class="accounts-empty-state" th:if="${loans == null || loans.isEmpty()}">
-            <p th:if="${loggedIn}">У вас пока нет заявок и активных кредитов.</p>
-            <p th:unless="${loggedIn}">Войдите в аккаунт, чтобы увидеть свои кредиты и предложения.</p>
+            <p th:if="${loggedIn}" th:text="#{loans.empty}">У вас пока нет заявок и активных кредитов.</p>
+            <p th:unless="${loggedIn}" th:text="#{loans.loginToView}">Войдите в аккаунт, чтобы увидеть свои кредиты и предложения.</p>
         </div>
 
         <div class="client-loans-list" th:if="${loans != null && !loans.isEmpty()}">
@@ -68,50 +68,50 @@
 
                 <div class="client-loan-details">
                     <div>
-                        <span>Ставка</span>
+                        <span th:text="#{loans.rate}">Ставка</span>
                         <strong th:text="${loan.rate}">21%</strong>
                     </div>
                     <div>
-                        <span>Срок</span>
+                        <span th:text="#{loans.duration}">Срок</span>
                         <strong th:text="${loan.duration}">60 мес.</strong>
                     </div>
                     <div>
-                        <span>Платеж</span>
+                        <span th:text="#{loans.payment}">Платеж</span>
                         <strong th:text="${loan.monthlyPayment}">27 000.00 ₸</strong>
                     </div>
                     <div>
-                        <span>Дата начала</span>
+                        <span th:text="#{loans.startDate}">Дата начала</span>
                         <strong th:text="${loan.startDate}">-</strong>
                     </div>
                 </div>
 
                 <div class="client-loan-details" th:if="${loan.active}">
                     <div>
-                        <span>Пеня при просрочке</span>
+                        <span th:text="#{loans.penalty}">Пеня при просрочке</span>
                         <strong th:text="${loan.penalty}">0.00 ₸</strong>
                     </div>
                 </div>
 
-                <a class="section-action-link section-action-link-below" th:if="${loan.active}" href="../transfers/loan-payment.html" th:href="@{/transfers/loan-payment}">Оплатить</a>
+                <a class="section-action-link section-action-link-below" th:if="${loan.active}" href="../transfers/loan-payment.html" th:href="@{/transfers/loan-payment}" th:text="#{loans.pay}">Оплатить</a>
 
                 <div class="client-loan-actions" th:if="${loan.offered}">
                     <form method="post" th:action="@{/loans/{loanId}/accept(loanId=${loan.loanId})}">
-                        <button class="loan-submit-button" type="submit">Принять</button>
+                        <button class="loan-submit-button" type="submit" th:text="#{loans.accept}">Принять</button>
                     </form>
                     <form method="post" th:action="@{/loans/{loanId}/reject(loanId=${loan.loanId})}">
-                        <button class="loan-secondary-button" type="submit">Отклонить</button>
+                        <button class="loan-secondary-button" type="submit" th:text="#{loans.reject}">Отклонить</button>
                     </form>
                 </div>
 
                 <div class="loan-schedule" th:if="${loan.schedule != null && !loan.schedule.isEmpty()}">
-                    <h3>График платежей</h3>
+                    <h3 th:text="#{loans.schedule}">График платежей</h3>
                     <table class="exchange-table">
                         <thead>
                         <tr>
-                            <th>№</th>
-                            <th>Дата</th>
-                            <th>Платеж</th>
-                            <th>Статус</th>
+                            <th th:text="#{loans.number}">№</th>
+                            <th th:text="#{loans.date}">Дата</th>
+                            <th th:text="#{loans.payment}">Платеж</th>
+                            <th th:text="#{loans.status}">Статус</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -129,8 +129,8 @@
     </section>
 
     <div class="loan-note">
-        <h2>Как это связано с другими разделами</h2>
-        <p>После одобрения деньги можно получить на счет, платежи проводить через операции, а свободные средства хранить в депозитах.</p>
+        <h2 th:text="#{loans.related.title}">Как это связано с другими разделами</h2>
+        <p th:text="#{loans.related.text}">После одобрения деньги можно получить на счет, платежи проводить через операции, а свободные средства хранить в депозитах.</p>
     </div>
 
 </main>

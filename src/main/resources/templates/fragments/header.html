@@ -10,21 +10,21 @@
 <header th:fragment="header">
   <nav class="navbar">
     <div class="logo">
-      <a href="accounts.html" th:href="@{/}">Bank</a>
+      <a href="accounts.html" th:href="@{/}" th:text="#{app.name}">Bank</a>
     </div>
 
     <ul class="nav-links">
-      <li><a href="accounts.html" th:href="@{/accounts}">Мой Банк</a></li>
-      <li><a href="#" th:href="@{/transfers}">Операции</a></li>
-      <li><a href="#" th:href="@{/deposits}">Депозиты</a></li>
-      <li><a href="#" th:href="@{/loans}">Кредиты</a></li>
-      <li><a href="#" th:href="@{/exchange}">Обменник</a></li>
-      <li><a href="#" th:href="@{/settings}">Настройки</a></li>
-      <li th:if="${!loggedIn}"><a class="header-auth-link" href="#" th:href="@{/login}">Войти</a></li>
-      <li th:if="${!loggedIn}"><a class="header-auth-link" href="#" th:href="@{/register}">Зарегистрироваться</a></li>
+      <li><a href="accounts.html" th:href="@{/accounts}" th:text="#{nav.myBank}">Мой Банк</a></li>
+      <li><a href="#" th:href="@{/transfers}" th:text="#{nav.operations}">Операции</a></li>
+      <li><a href="#" th:href="@{/deposits}" th:text="#{nav.deposits}">Депозиты</a></li>
+      <li><a href="#" th:href="@{/loans}" th:text="#{nav.loans}">Кредиты</a></li>
+      <li><a href="#" th:href="@{/exchange}" th:text="#{nav.exchange}">Обменник</a></li>
+      <li><a href="#" th:href="@{/settings}" th:text="#{nav.settings}">Настройки</a></li>
+      <li th:if="${!loggedIn}"><a class="header-auth-link" href="#" th:href="@{/login}" th:text="#{nav.login}">Войти</a></li>
+      <li th:if="${!loggedIn}"><a class="header-auth-link" href="#" th:href="@{/register}" th:text="#{nav.register}">Зарегистрироваться</a></li>
       <li th:if="${loggedIn}">
         <form class="header-logout-form" method="post" th:action="@{/logout}">
-          <button class="header-auth-link" type="submit">Выйти</button>
+          <button class="header-auth-link" type="submit" th:text="#{nav.logout}">Выйти</button>
         </form>
       </li>
     </ul>
