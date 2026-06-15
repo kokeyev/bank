@@ -1,4 +1,4 @@
-package org.author.demo.model;
+package org.openbank.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
