@@ -14,12 +14,12 @@
     <h1 th:text="#{transfers.title}">Операции</h1>
 
     <div class="transfer-list">
-        <a class="transfer-option" href="between-accounts.html" th:href="@{/transfers/between-accounts}" th:text="#{transfers.between}">Перевод между своими счетами</a>
-        <a class="transfer-option" href="by-phone.html" th:href="@{/transfers/by-phone}" th:text="#{transfers.phone}">Перевод по номеру телефона</a>
-        <a class="transfer-option" href="by-card.html" th:href="@{/transfers/by-card}" th:text="#{transfers.card}">Перевод по номеру карты</a>
-        <a class="transfer-option" href="deposit-top-up.html" th:href="@{/transfers/deposit-top-up}" th:text="#{transfers.depositTopUp}">Пополнить депозит</a>
-        <a class="transfer-option" href="loan-payment.html" th:href="@{/transfers/loan-payment}" th:text="#{transfers.loanPayment}">Погасить кредит</a>
-        <a class="transfer-option" href="currency-exchange.html" th:href="@{/transfers/currency-exchange}" th:text="#{transfers.exchange}">Обмен валют</a>
+        <a class="transfer-option" href="between-accounts.html" th:href="${loggedIn} ? @{/transfers/between-accounts} : null" th:classappend="${!loggedIn} ? ' disabled-link' : ''" th:attr="aria-disabled=${!loggedIn}" th:text="#{transfers.between}">Перевод между своими счетами</a>
+        <a class="transfer-option" href="by-phone.html" th:href="${loggedIn} ? @{/transfers/by-phone} : null" th:classappend="${!loggedIn} ? ' disabled-link' : ''" th:attr="aria-disabled=${!loggedIn}" th:text="#{transfers.phone}">Перевод по номеру телефона</a>
+        <a class="transfer-option" href="by-card.html" th:href="${loggedIn} ? @{/transfers/by-card} : null" th:classappend="${!loggedIn} ? ' disabled-link' : ''" th:attr="aria-disabled=${!loggedIn}" th:text="#{transfers.card}">Перевод по номеру карты</a>
+        <a class="transfer-option" href="deposit-top-up.html" th:href="${loggedIn} ? @{/transfers/deposit-top-up} : null" th:classappend="${!loggedIn} ? ' disabled-link' : ''" th:attr="aria-disabled=${!loggedIn}" th:text="#{transfers.depositTopUp}">Пополнить депозит</a>
+        <a class="transfer-option" href="loan-payment.html" th:href="${loggedIn} ? @{/transfers/loan-payment} : null" th:classappend="${!loggedIn} ? ' disabled-link' : ''" th:attr="aria-disabled=${!loggedIn}" th:text="#{transfers.loanPayment}">Погасить кредит</a>
+        <a class="transfer-option" href="currency-exchange.html" th:href="${loggedIn} ? @{/transfers/currency-exchange} : null" th:classappend="${!loggedIn} ? ' disabled-link' : ''" th:attr="aria-disabled=${!loggedIn}" th:text="#{transfers.exchange}">Обмен валют</a>
     </div>
 
     <section class="transaction-history-section">

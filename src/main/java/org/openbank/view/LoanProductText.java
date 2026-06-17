@@ -1,12 +1,22 @@
 package org.openbank.view;
 
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
+
+import java.util.Locale;
 
 @Component
 public class LoanProductText {
 
   private static final String AUTO = "Автокредит";
   private static final String MORTGAGE = "Ипотека";
+
+  private final MessageSource messageSource;
+
+  public LoanProductText(MessageSource messageSource) {
+    this.messageSource = messageSource;
+  }
 
   public String slug(String loanTypeName) {
     if (AUTO.equals(loanTypeName)) {
@@ -18,23 +28,40 @@ public class LoanProductText {
     return "purpose";
   }
 
+  public String name(String loanTypeName) {
+    return message(keyPrefix(loanTypeName) + ".name");
+  }
+
   public String tag(String loanTypeName) {
-    if (AUTO.equals(loanTypeName)) {
-      return "транспорт";
-    }
-    if (MORTGAGE.equals(loanTypeName)) {
-      return "жилье";
-    }
-    return "быстро";
+    return message(keyPrefix(loanTypeName) + ".tag");
   }
 
   public String description(String loanTypeName) {
-    if (AUTO.equals(loanTypeName)) {
-      return "Для покупки нового или поддержанного автомобиля с удобным графиком платежей.";
-    }
-    if (MORTGAGE.equals(loanTypeName)) {
-      return "Для покупки квартиры или дома с первоначальным взносом.";
-    }
-    return "Для покупок, ремонта, учебы или других личных планов.";
+    return message(keyPrefix(loanTypeName) + ".description");
+  }
+
+  public String amountRange(String minimumAmount, String maximumAmount) {
+    return message("loans.amount.range", minimumAmount, maximumAmount);
+  }
+
+  public String durationUpTo(Integer durationMonths) {
+    return message("loans.duration.upTo", durationMonths);
+  }
+
+  public String rateFrom(String rate) {
+    return message("loans.rate.from", rate);
+  }
+
+  public String remainingAmount(String loanTypeName, String remainingAmount) {
+    return message("loans.remaining", name(loanTypeName), remainingAmount);
+  }
+
+  private String keyPrefix(String loanTypeName) {
+    return "loans." + slug(loanTypeName);
+  }
+
+  private String message(String code, Object... args) {
+    Locale locale = LocaleContextHolder.getLocale();
+    return messageSource.getMessage(code, args, locale);
   }
 }

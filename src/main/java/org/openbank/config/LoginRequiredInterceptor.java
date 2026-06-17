@@ -18,7 +18,8 @@ public class LoginRequiredInterceptor implements HandlerInterceptor {
       "/register",
       "/admin/login",
       "/manager/login",
-      "/manager/register"
+      "/manager/register",
+      "/settings/language"
   );
 
   private final CurrentUserService currentUserService;

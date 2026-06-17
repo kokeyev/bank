@@ -143,11 +143,21 @@ public class TransactionService {
    */
   public boolean makeTransactionByPhoneNumber(Long senderAccountId, String receiverPhoneNumber, BigDecimal amount) {
     validateText(receiverPhoneNumber, "Введите номер телефона получателя");
-    User receiver = userDao.getUserByPhoneNumber(cleanPhone(receiverPhoneNumber))
-        .orElseThrow(() -> new IllegalArgumentException("Получатель не найден"));
-    Account receiverAccount = accountDao.getMainActiveAccountByUserId(receiver.getUserId())
-        .or(() -> accountDao.getFirstActiveAccountByUserId(receiver.getUserId()))
-        .orElseThrow(() -> new IllegalArgumentException("У получателя нет активного счета"));
+
+    Optional<User> userOptional = userDao.getUserByPhoneNumber(cleanPhone(receiverPhoneNumber));
+    if (!userOptional.isPresent()) {
+      throw new IllegalArgumentException("Получатель не найден");
+    }
+    User receiver = userOptional.get();
+
+    Optional<Account> accountOptional = accountDao.getMainActiveAccountByUserId(receiver.getUserId());
+    if (!accountOptional.isPresent()) {
+      accountOptional = accountDao.getFirstActiveAccountByUserId(receiver.getUserId());
+    }
+    if (!accountOptional.isPresent()) {
+      throw new IllegalArgumentException("У получателя нет активного счета");
+    }
+    Account receiverAccount = accountOptional.get();
 
     return transferToAccount(senderAccountId, receiverAccount.getAccountId(), amount, "Перевод по телефону " + receiverPhoneNumber, PHONE_TRANSFER);
   }

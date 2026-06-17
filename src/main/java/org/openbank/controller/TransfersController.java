@@ -1,6 +1,7 @@
 package org.openbank.controller;
 
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import org.openbank.dto.CardTransferRequest;
 import org.openbank.dto.DepositTopUpRequest;
 import org.openbank.dto.LoanPaymentRequest;
@@ -13,6 +14,7 @@ import org.openbank.service.DepositService;
 import org.openbank.service.TransactionService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -100,10 +102,15 @@ public class TransfersController {
   }
 
   @PostMapping("/transfers/by-card")
-  public String createTransferByCard(@ModelAttribute CardTransferRequest request, HttpSession session, Model model) {
+  public String createTransferByCard(@Valid @ModelAttribute CardTransferRequest request, BindingResult bindingResult, HttpSession session, Model model) {
     Optional<User> currentUser = currentUserService.getCurrentUser(session);
     if (currentUser.isEmpty()) {
       return "redirect:/login?loginRequired=true";
+    }
+
+    if (bindingResult.hasErrors()) {
+      addCardTransferModelAttributes(session, model, request);
+      return "transfers/by-card";
     }
 
     try {
@@ -212,20 +219,38 @@ public class TransfersController {
   private void addDepositTopUpModelAttributes(HttpSession session, Model model, DepositTopUpRequest request) {
     model.addAttribute("depositTopUpRequest", request);
     model.addAttribute("accountOptions", getAccountOptions(session));
-    model.addAttribute("depositOptions", currentUserId(session).map(bankViewService::getDepositOptions).orElse(List.of()));
+    Optional<Long> userId = currentUserId(session);
+    if (userId.isPresent()) {
+      model.addAttribute("depositOptions", bankViewService.getDepositOptions(userId.get()));
+    } else {
+      model.addAttribute("depositOptions", List.of());
+    }
   }
 
   private void addLoanPaymentModelAttributes(HttpSession session, Model model, LoanPaymentRequest request) {
     model.addAttribute("loanPaymentRequest", request);
     model.addAttribute("accountOptions", getAccountOptions(session));
-    model.addAttribute("loanOptions", currentUserId(session).map(bankViewService::getLoanOptions).orElse(List.of()));
+    Optional<Long> userId = currentUserId(session);
+    if (userId.isPresent()) {
+      model.addAttribute("loanOptions", bankViewService.getLoanOptions(userId.get()));
+    } else {
+      model.addAttribute("loanOptions", List.of());
+    }
   }
 
   private List<?> getAccountOptions(HttpSession session) {
-    return currentUserId(session).map(bankViewService::getTransferAccountOptions).orElse(List.of());
+    Optional<Long> userId = currentUserId(session);
+    if (userId.isPresent()) {
+      return bankViewService.getTransferAccountOptions(userId.get());
+    }
+    return List.of();
   }
 
   private Optional<Long> currentUserId(HttpSession session) {
-    return currentUserService.getCurrentUser(session).map(User::getUserId);
+    Optional<User> currentUser = currentUserService.getCurrentUser(session);
+    if (currentUser.isPresent()) {
+      return Optional.of(currentUser.get().getUserId());
+    }
+    return Optional.empty();
   }
 }

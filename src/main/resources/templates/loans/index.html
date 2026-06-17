@@ -21,7 +21,7 @@
     </div>
 
     <div class="loan-cards">
-        <a class="loan-card" href="purpose.html" th:each="loanType : ${loanTypes}" th:href="@{'/loans/' + ${loanType.slug}}">
+        <a class="loan-card" href="purpose.html" th:each="loanType : ${loanTypes}" th:href="${loggedIn} ? @{'/loans/' + ${loanType.slug}} : null" th:classappend="${!loggedIn} ? ' disabled-link' : ''" th:attr="aria-disabled=${!loggedIn}">
             <div class="loan-card-header">
                 <h2 th:text="${loanType.name}">На любые цели</h2>
                 <span th:text="${loanType.tag}">быстро</span>

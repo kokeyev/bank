@@ -2109,6 +2109,19 @@ body {
     text-decoration: underline;
 }
 
+.disabled-link,
+.disabled-link:hover,
+.deposit-card.disabled-link:hover,
+.loan-card.disabled-link:hover,
+.transfer-option.disabled-link:hover,
+.section-action-link.disabled-link:hover {
+    color: #9ca3af;
+    cursor: default;
+    pointer-events: none;
+    box-shadow: none;
+    transform: none;
+}
+
 .auth-switch-link {
     color: #6b7280;
     font-size: 14px;

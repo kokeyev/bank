@@ -102,9 +102,7 @@ public class UserService {
         ? userDao.getUserByEmailAddress(cleanedLogin.toLowerCase(Locale.ROOT))
         : userDao.getUserByPhoneNumber(cleanedLogin);
 
-    if (user.isEmpty()
-        || !UserStatus.ACTIVE.name().equals(user.get().getStatus())
-        || !passwordHasher.matches(password, user.get().getPasswordHash())) {
+    if (user.isEmpty() || !UserStatus.ACTIVE.name().equals(user.get().getStatus()) || !passwordHasher.matches(password, user.get().getPasswordHash())) {
       return Optional.empty();
     }
 
@@ -117,9 +115,7 @@ public class UserService {
   public Optional<User> authenticateManager(String login, String password) {
     Optional<User> user = authenticateStaff(login, password);
 
-    if (user.isEmpty()
-        || !MANAGER_ROLE.equals(user.get().getRole())
-        || !UserStatus.ACTIVE.name().equals(user.get().getStatus())) {
+    if (user.isEmpty() || !MANAGER_ROLE.equals(user.get().getRole()) || !UserStatus.ACTIVE.name().equals(user.get().getStatus())) {
       return Optional.empty();
     }
 
@@ -261,9 +257,12 @@ public class UserService {
     }
 
     String cleanedLogin = clean(login);
-    Optional<User> user = cleanedLogin.contains("@")
-        ? userDao.getUserByEmailAddress(cleanedLogin.toLowerCase(Locale.ROOT))
-        : userDao.getUserByPhoneNumber(cleanedLogin);
+    Optional<User> user;
+    if (cleanedLogin.contains("@")) {
+      user = userDao.getUserByEmailAddress(cleanedLogin.toLowerCase(Locale.ROOT));
+    } else {
+      user = userDao.getUserByPhoneNumber(cleanedLogin);
+    }
 
     if (user.isEmpty() || !passwordHasher.matches(password, user.get().getPasswordHash())) {
       return Optional.empty();
@@ -280,15 +279,11 @@ public class UserService {
       return errors;
     }
 
-    if (!newPhone.isEmpty()
-        && !newPhone.equals(currentUser.getPhoneNumber())
-        && userDao.existsByPhoneNumber(newPhone)) {
+    if (!newPhone.isEmpty() && !newPhone.equals(currentUser.getPhoneNumber()) && userDao.existsByPhoneNumber(newPhone)) {
       errors.add("Пользователь с таким номером телефона уже существует.");
     }
 
-    if (!newEmail.isEmpty()
-        && !newEmail.equals(currentUser.getEmailAddress())
-        && userDao.existsByEmailAddress(newEmail)) {
+    if (!newEmail.isEmpty() && !newEmail.equals(currentUser.getEmailAddress()) && userDao.existsByEmailAddress(newEmail)) {
       errors.add("Пользователь с такой почтой уже существует.");
     }
 

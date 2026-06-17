@@ -17,6 +17,7 @@ import java.math.RoundingMode;
 import java.sql.Connection;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -57,10 +58,13 @@ public class DepositService {
    * Handles get deposit types by product.
    */
   public List<DepositType> getDepositTypesByProduct(String productName) {
-    return depositTypeDao.getAllDepositTypes()
-        .stream()
-        .filter(type -> type.getName().equals(productName))
-        .toList();
+    List<DepositType> result = new ArrayList<>();
+    for (DepositType type : depositTypeDao.getAllDepositTypes()) {
+      if (type.getName().equals(productName)) {
+        result.add(type);
+      }
+    }
+    return result;
   }
 
   /**

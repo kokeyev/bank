@@ -37,7 +37,8 @@
 
             <div class="transfer-field">
                 <label for="receiverCardNumber" th:text="#{transfers.cardNumber}">Номер карты</label>
-                <input id="receiverCardNumber" name="receiverCardNumber" th:field="*{receiverCardNumber}" type="text" placeholder="0000 0000 0000 0000" required>
+                <input id="receiverCardNumber" name="receiverCardNumber" th:field="*{receiverCardNumber}" type="text" inputmode="numeric" pattern="[0-9]{16}" maxlength="16" placeholder="0000000000000000" required>
+                <p class="field-error" th:if="${#fields.hasErrors('receiverCardNumber')}" th:errors="*{receiverCardNumber}">Ошибка</p>
             </div>
 
             <div class="transfer-field">

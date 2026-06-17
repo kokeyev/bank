@@ -30,8 +30,9 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.IntStream;
+import java.util.Optional;
 
 @Service
 public class BankViewService {
@@ -58,17 +59,19 @@ public class BankViewService {
   }
 
   public List<AccountView> getAccountViews(Long userId) {
-    return accountService.getAccountsByUserId(userId)
-        .stream()
-        .map(this::toAccountView)
-        .toList();
+    List<AccountView> result = new ArrayList<>();
+    for (Account account : accountService.getAccountsByUserId(userId)) {
+      result.add(toAccountView(account));
+    }
+    return result;
   }
 
   public List<AccountView> getPendingAccountViews() {
-    return accountService.getPendingAccounts()
-        .stream()
-        .map(this::toAccountView)
-        .toList();
+    List<AccountView> result = new ArrayList<>();
+    for (Account account : accountService.getPendingAccounts()) {
+      result.add(toAccountView(account));
+    }
+    return result;
   }
 
   public Page<AccountView> getPendingAccountViewsPage(int page, int size) {
@@ -76,99 +79,119 @@ public class BankViewService {
   }
 
   public List<DepositView> getDepositViews(Long userId) {
-    return depositService.getDepositsByUserId(userId)
-        .stream()
-        .map(this::toDepositView)
-        .toList();
+    List<DepositView> result = new ArrayList<>();
+    for (Deposit deposit : depositService.getDepositsByUserId(userId)) {
+      result.add(toDepositView(deposit));
+    }
+    return result;
   }
 
   public List<DepositView> getPendingDepositViews() {
-    return depositService.getPendingDeposits()
-        .stream()
-        .map(this::toDepositView)
-        .toList();
+    List<DepositView> result = new ArrayList<>();
+    for (Deposit deposit : depositService.getPendingDeposits()) {
+      result.add(toDepositView(deposit));
+    }
+    return result;
   }
 
   public List<LoanView> getLoanViews(Long userId) {
-    return loanService.getLoansByUserId(userId)
-        .stream()
-        .map(this::toLoanView)
-        .toList();
+    List<LoanView> result = new ArrayList<>();
+    for (Loan loan : loanService.getLoansByUserId(userId)) {
+      result.add(toLoanView(loan));
+    }
+    return result;
   }
 
   public List<LoanView> getPendingLoanViews() {
-    return loanService.getPendingLoans()
-        .stream()
-        .map(this::toPendingLoanView)
-        .toList();
+    List<LoanView> result = new ArrayList<>();
+    for (Loan loan : loanService.getPendingLoans()) {
+      result.add(toPendingLoanView(loan));
+    }
+    return result;
   }
 
   public List<LoanTypeView> getLoanTypeViews() {
-    return loanService.getAllLoanTypes()
-        .stream()
-        .map(this::toLoanTypeView)
-        .toList();
+    List<LoanTypeView> result = new ArrayList<>();
+    for (LoanType loanType : loanService.getAllLoanTypes()) {
+      result.add(toLoanTypeView(loanType));
+    }
+    return result;
   }
 
   public LoanTypeView getLoanTypeView(String loanTypeName) {
-    return loanService.getLoanTypeByName(loanTypeName)
-        .map(this::toLoanTypeView)
-        .orElseThrow(() -> new IllegalStateException("Тип кредита не найден"));
+    Optional<LoanType> loanTypeOptional = loanService.getLoanTypeByName(loanTypeName);
+    if (!loanTypeOptional.isPresent()) {
+      throw new IllegalStateException("Тип кредита не найден");
+    }
+    return toLoanTypeView(loanTypeOptional.get());
   }
 
   public List<TransactionView> getTransactionViews(Long userId, int limit) {
-    return transactionService.getRecentTransactionsByUserId(userId, limit)
-        .stream()
-        .map(this::toTransactionView)
-        .toList();
+    List<TransactionView> result = new ArrayList<>();
+    for (Transaction transaction : transactionService.getRecentTransactionsByUserId(userId, limit)) {
+      result.add(toTransactionView(transaction));
+    }
+    return result;
   }
 
   public Page<TransactionView> getTransactionViewsPage(Long userId, int page, int size) {
     int safeSize = Math.max(size, 1);
     int total = transactionService.countTransactionsByUserId(userId);
-    int currentPage = Math.min(Math.max(page, 1), Math.max(1, (int) Math.ceil((double) total / safeSize)));
+    int totalPages = Math.max(1, (int) Math.ceil((double) total / safeSize));
+    int currentPage = Math.min(Math.max(page, 1), totalPages);
     int offset = (currentPage - 1) * safeSize;
-    List<TransactionView> items = transactionService.getTransactionsByUserId(userId, safeSize, offset)
-        .stream()
-        .map(this::toTransactionView)
-        .toList();
+
+    List<TransactionView> items = new ArrayList<>();
+    for (Transaction transaction : transactionService.getTransactionsByUserId(userId, safeSize, offset)) {
+      items.add(toTransactionView(transaction));
+    }
+
     return new Page<>(items, currentPage, safeSize, total);
   }
 
   public List<TransferAccountOption> getTransferAccountOptions(Long userId) {
-    return accountService.getAccountsByUserId(userId)
-        .stream()
-        .filter(account -> AccountStatus.ACTIVE.name().equals(account.getStatus()))
-        .map(this::toTransferAccountOption)
-        .toList();
+    List<TransferAccountOption> result = new ArrayList<>();
+    for (Account account : accountService.getAccountsByUserId(userId)) {
+      if (AccountStatus.ACTIVE.name().equals(account.getStatus())) {
+        result.add(toTransferAccountOption(account));
+      }
+    }
+    return result;
   }
 
   public List<TransferAccountOption> getAllAccountOptions(Long userId) {
-    return accountService.getAccountsByUserId(userId)
-        .stream()
-        .map(this::toTransferAccountOption)
-        .toList();
+    List<TransferAccountOption> result = new ArrayList<>();
+    for (Account account : accountService.getAccountsByUserId(userId)) {
+      result.add(toTransferAccountOption(account));
+    }
+    return result;
   }
 
   public List<DepositTypeOption> getDepositTypeOptions(String productName) {
-    return depositService.getDepositTypesByProduct(productName)
-        .stream()
-        .map(this::toDepositTypeOption)
-        .toList();
+    List<DepositTypeOption> result = new ArrayList<>();
+    for (DepositType depositType : depositService.getDepositTypesByProduct(productName)) {
+      result.add(toDepositTypeOption(depositType));
+    }
+    return result;
   }
 
   public List<String> getMissingCurrencyNames(Long userId, List<Currency> currencies) {
-    List<Long> userCurrencyIds = accountService.getAccountsByUserId(userId)
-        .stream()
-        .filter(account -> AccountStatus.ACTIVE.name().equals(account.getStatus()))
-        .map(Account::getCurrencyId)
-        .distinct()
-        .toList();
+    List<Long> userCurrencyIds = new ArrayList<>();
+    for (Account account : accountService.getAccountsByUserId(userId)) {
+      if (AccountStatus.ACTIVE.name().equals(account.getStatus())) {
+        if (!userCurrencyIds.contains(account.getCurrencyId())) {
+          userCurrencyIds.add(account.getCurrencyId());
+        }
+      }
+    }
 
-    return currencies.stream()
-        .filter(currency -> !userCurrencyIds.contains(currency.getCurrencyId()))
-        .map(Currency::getName)
-        .toList();
+    List<String> result = new ArrayList<>();
+    for (Currency currency : currencies) {
+      if (!userCurrencyIds.contains(currency.getCurrencyId())) {
+        result.add(currency.getName());
+      }
+    }
+    return result;
   }
 
   public String formatMoney(BigDecimal amount) {
@@ -176,18 +199,21 @@ public class BankViewService {
   }
 
   public List<LoanOption> getLoanOptions(Long userId) {
-    return loanService.getActiveLoansByUserId(userId)
-        .stream()
-        .map(this::toLoanOption)
-        .toList();
+    List<LoanOption> result = new ArrayList<>();
+    for (Loan loan : loanService.getActiveLoansByUserId(userId)) {
+      result.add(toLoanOption(loan));
+    }
+    return result;
   }
 
   public List<DepositOption> getDepositOptions(Long userId) {
-    return depositService.getDepositsByUserId(userId)
-        .stream()
-        .filter(this::canTopUpDeposit)
-        .map(this::toDepositOption)
-        .toList();
+    List<DepositOption> result = new ArrayList<>();
+    for (Deposit deposit : depositService.getDepositsByUserId(userId)) {
+      if (canTopUpDeposit(deposit)) {
+        result.add(toDepositOption(deposit));
+      }
+    }
+    return result;
   }
 
   private AccountView toAccountView(Account account) {
@@ -238,7 +264,7 @@ public class BankViewService {
 
     return new LoanView(
         loan.getLoanId(),
-        loanType.getName(),
+        loanProductText.name(loanType.getName()),
         formatter.money(loan.getRemainingAmount()) + " ₸",
         loan.getRate() == null ? "-" : formatter.rate(loan.getRate()),
         loan.getDuration() == null ? "-" : formatter.duration(loan.getDuration()),
@@ -258,7 +284,7 @@ public class BankViewService {
 
     return new LoanView(
         loan.getLoanId(),
-        loanType.getName(),
+        loanProductText.name(loanType.getName()),
         formatter.money(loan.getRemainingAmount()) + " ₸",
         loan.getRate() == null ? "-" : formatter.rate(loan.getRate()),
         loan.getDuration() == null ? "-" : loan.getDuration() + " мес.",
@@ -272,13 +298,13 @@ public class BankViewService {
   private LoanTypeView toLoanTypeView(LoanType loanType) {
     return new LoanTypeView(
         loanType.getLoanTypeId(),
-        loanType.getName(),
+        loanProductText.name(loanType.getName()),
         loanProductText.slug(loanType.getName()),
         loanProductText.tag(loanType.getName()),
         loanProductText.description(loanType.getName()),
-        "от " + formatter.money(loanType.getMinimumAmount()) + " до " + formatter.money(loanType.getMaximumAmount()) + " ₸",
-        "до " + formatter.duration(loanType.getDuration()),
-        "от " + formatter.rate(loanType.getRate())
+        loanProductText.amountRange(formatter.money(loanType.getMinimumAmount()), formatter.money(loanType.getMaximumAmount())),
+        loanProductText.durationUpTo(loanType.getDuration()),
+        loanProductText.rateFrom(formatter.rate(loanType.getRate()))
     );
   }
 
@@ -303,33 +329,21 @@ public class BankViewService {
   private LoanOption toLoanOption(Loan loan) {
     LoanType loanType = loanService.getLoanTypeById(loan.getLoanTypeId())
         .orElseThrow(() -> new IllegalStateException("Тип кредита не найден"));
-    return new LoanOption(loan.getLoanId(), loanType.getName() + " - остаток " + formatter.money(loan.getRemainingAmount()) + " KZT");
+    return new LoanOption(loan.getLoanId(), loanProductText.remainingAmount(loanType.getName(), formatter.money(loan.getRemainingAmount())));
   }
 
   private DepositOption toDepositOption(Deposit deposit) {
     DepositType depositType = depositService.getDepositTypeById(deposit.getDepositTypeId())
         .orElseThrow(() -> new IllegalStateException("Тип депозита не найден"));
     String currency = depositService.getCurrencyNameById(depositType.getCurrencyId());
-    String label = depositType.getName()
-        + " "
-        + depositType.getDuration()
-        + " мес. - "
-        + formatter.money(deposit.getCurrentAmount())
-        + " "
-        + currency;
+    String label = depositType.getName() + " " + depositType.getDuration() + " мес. - " + formatter.money(deposit.getCurrentAmount()) + " " + currency;
 
     return new DepositOption(deposit.getDepositId(), label);
   }
 
   private DepositTypeOption toDepositTypeOption(DepositType depositType) {
     String currency = depositService.getCurrencyNameById(depositType.getCurrencyId());
-    String label = depositType.getDuration()
-        + " мес. / "
-        + currency
-        + " / "
-        + depositType.getRate()
-        + "% / минимум "
-        + formatter.money(depositType.getMinimumAmount());
+    String label = depositType.getDuration() + " мес. / " + currency + " / " + depositType.getRate() + "% / минимум " + formatter.money(depositType.getMinimumAmount());
 
     return new DepositTypeOption(depositType.getDepositTypeId(), label);
   }
@@ -350,14 +364,20 @@ public class BankViewService {
     }
 
     List<LocalDate> dueDates = loanService.getPaymentDueDates(loan);
-    return IntStream.range(0, dueDates.size())
-        .mapToObj(index -> new LoanPaymentScheduleItem(
-            index + 1,
-            formatter.displayDate(dueDates.get(index)),
-            formatter.money(loan.getMonthlyPayment()) + " ₸",
-            dueDates.get(index).isBefore(LocalDate.now()) ? "Проверьте оплату" : "Ожидается"
-        ))
-        .toList();
+    List<LoanPaymentScheduleItem> result = new ArrayList<>();
+
+    for (int i = 0; i < dueDates.size(); i++) {
+      LocalDate dueDate = dueDates.get(i);
+      String status = dueDate.isBefore(LocalDate.now()) ? "Проверьте оплату" : "Ожидается";
+      result.add(new LoanPaymentScheduleItem(
+          i + 1,
+          formatter.displayDate(dueDate),
+          formatter.money(loan.getMonthlyPayment()) + " ₸",
+          status
+      ));
+    }
+
+    return result;
   }
 
 }

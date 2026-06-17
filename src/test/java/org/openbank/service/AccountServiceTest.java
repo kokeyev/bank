@@ -63,6 +63,32 @@ class AccountServiceTest {
   }
 
   @Test
+  void createNewAccountRetriesWhenGeneratedCardAlreadyExists() {
+    Currency kzt = new Currency(1L, "KZT", BigDecimal.ONE);
+    when(currencyDao.getCurrencyByName("KZT")).thenReturn(Optional.of(kzt));
+    when(bankCardGenerator.generateCardNumber()).thenReturn("4000000000000002", "4000000000000010");
+    when(bankCardGenerator.generateCvv()).thenReturn("123");
+    when(bankCardGenerator.generateExpiryDate()).thenReturn(LocalDate.of(2030, 1, 1));
+    when(accountDao.getAccountByCardNumber("4000000000000002")).thenReturn(Optional.of(activeAccount(BigDecimal.TEN, BigDecimal.TEN)));
+    when(accountDao.getAccountByCardNumber("4000000000000010")).thenReturn(Optional.empty());
+
+    service.createNewAccount(7L, "KZT", BigDecimal.TEN, "Main");
+
+    verify(accountDao).createNewAccount(
+        eq(7L),
+        eq("4000000000000010"),
+        eq("123"),
+        eq(LocalDate.of(2030, 1, 1)),
+        eq(BigDecimal.ZERO),
+        eq(1L),
+        eq(AccountStatus.PENDING),
+        eq(BigDecimal.TEN),
+        eq("Main"),
+        eq(false)
+    );
+  }
+
+  @Test
   void withdrawRejectsInsufficientBalance() {
     Account account = activeAccount(new BigDecimal("50"), new BigDecimal("100"));
     when(accountDao.getAccountById(1L)).thenReturn(Optional.of(account));
@@ -93,6 +119,48 @@ class AccountServiceTest {
     assertThrows(IllegalArgumentException.class, () -> service.approveAccount(11L));
 
     verify(accountDao).setStatusToAccount(11L, AccountStatus.PENDING, AccountStatus.REJECTED);
+  }
+
+  @Test
+  void updateTransactionLimitRejectsAccountOwnedByAnotherUser() {
+    when(accountDao.getAccountById(1L)).thenReturn(Optional.of(activeAccount(BigDecimal.TEN, BigDecimal.TEN)));
+
+    assertThrows(IllegalArgumentException.class, () -> service.updateTransactionLimit(99L, 1L, BigDecimal.ONE));
+
+    verify(accountDao, never()).updateTransactionLimit(any(), any());
+  }
+
+  @Test
+  void deactivateMainAccountClearsMainAccount() {
+    Account account = activeAccount(BigDecimal.TEN, BigDecimal.TEN);
+    when(accountDao.getAccountById(1L)).thenReturn(Optional.of(account));
+    when(accountDao.setStatusToAccount(1L, AccountStatus.DEACTIVATED)).thenReturn(true);
+
+    service.deactivateAccount(7L, 1L);
+
+    verify(accountDao).clearMainAccount(7L);
+  }
+
+  @Test
+  void makeMainAccountClearsOldMainAndSetsNewMain() {
+    Account account = activeAccount(BigDecimal.TEN, BigDecimal.TEN);
+    when(accountDao.getAccountById(1L)).thenReturn(Optional.of(account));
+    when(accountDao.setMainAccount(1L)).thenReturn(true);
+
+    service.makeMainAccount(7L, 1L);
+
+    verify(accountDao).clearMainAccount(7L);
+    verify(accountDao).setMainAccount(1L);
+  }
+
+  @Test
+  void topUpRejectsAmountAboveTransactionLimit() {
+    Account account = activeAccount(BigDecimal.TEN, BigDecimal.ONE);
+    when(accountDao.getAccountById(1L)).thenReturn(Optional.of(account));
+
+    assertThrows(IllegalArgumentException.class, () -> service.topUp(1L, BigDecimal.TEN));
+
+    verify(accountDao, never()).topUp(any(), any());
   }
 
   private Account activeAccount(BigDecimal balance, BigDecimal limit) {

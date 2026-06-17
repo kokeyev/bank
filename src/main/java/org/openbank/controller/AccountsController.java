@@ -11,6 +11,7 @@ import org.openbank.service.DepositService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,6 +20,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Controller
@@ -90,9 +93,11 @@ public class AccountsController {
 
     if (bindingResult.hasErrors()) {
       addOpenAccountModelAttributes(model, openAccountRequest);
-      model.addAttribute("accountOpenErrors", bindingResult.getFieldErrors().stream()
-          .map(error -> error.getDefaultMessage())
-          .toList());
+      List<String> errorMessages = new ArrayList<>();
+      for (FieldError error : bindingResult.getFieldErrors()) {
+        errorMessages.add(error.getDefaultMessage());
+      }
+      model.addAttribute("accountOpenErrors", errorMessages);
       return "accounts/open";
     }
 

@@ -7,11 +7,15 @@ import org.openbank.service.LoanService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Controller
 public class ManagerLoansController {
@@ -32,13 +36,17 @@ public class ManagerLoansController {
 
   @PostMapping("/manager/loans/{loanId}/offers")
   public String createOffer(@PathVariable("loanId") Long loanId, @Valid @ModelAttribute LoanOfferRequest request, BindingResult bindingResult, Model model) {
+
     if (bindingResult.hasErrors()) {
-      model.addAttribute("managerLoanErrors", bindingResult.getFieldErrors().stream()
-          .map(error -> error.getDefaultMessage())
-          .toList());
+      List<String> errorMessages = new ArrayList<>();
+      for (FieldError error : bindingResult.getFieldErrors()) {
+        errorMessages.add(error.getDefaultMessage());
+      }
+      model.addAttribute("managerLoanErrors", errorMessages);
       addPendingLoanModel(model, request);
       return "manager/loans";
     }
+
 
     try {
       loanService.createOffer(loanId, request);

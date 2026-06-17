@@ -13,11 +13,14 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Locale;
 
@@ -37,10 +40,11 @@ public class SettingsController {
   @GetMapping("/settings")
   public String settings(HttpSession session, Model model) {
     Optional<User> currentUser = currentUserService.getCurrentUser(session);
-    currentUser.ifPresent(user -> {
+    if (currentUser.isPresent()) {
+      User user = currentUser.get();
       model.addAttribute("phonePlaceholder", user.getPhoneNumber());
       model.addAttribute("emailPlaceholder", user.getEmailAddress());
-    });
+    }
     addSelectedLanguage(model);
 
     return "settings/index";
@@ -56,9 +60,11 @@ public class SettingsController {
 
     if (bindingResult.hasErrors()) {
       addContactPlaceholders(model, currentUser.get());
-      model.addAttribute("contactErrors", bindingResult.getFieldErrors().stream()
-          .map(error -> error.getDefaultMessage())
-          .toList());
+      List<String> errorMessages = new ArrayList<>();
+      for (FieldError error : bindingResult.getFieldErrors()) {
+        errorMessages.add(error.getDefaultMessage());
+      }
+      model.addAttribute("contactErrors", errorMessages);
       addSelectedLanguage(model);
       return "settings/index";
     }
@@ -91,9 +97,11 @@ public class SettingsController {
 
     if (bindingResult.hasErrors()) {
       addContactPlaceholders(model, currentUser.get());
-      model.addAttribute("passwordErrors", bindingResult.getFieldErrors().stream()
-          .map(error -> error.getDefaultMessage())
-          .toList());
+      List<String> errorMessages = new ArrayList<>();
+      for (FieldError error : bindingResult.getFieldErrors()) {
+        errorMessages.add(error.getDefaultMessage());
+      }
+      model.addAttribute("passwordErrors", errorMessages);
       addSelectedLanguage(model);
       return "settings/index";
     }

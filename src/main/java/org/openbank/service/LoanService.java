@@ -47,10 +47,12 @@ public class LoanService {
    * Handles get loan type by name.
    */
   public Optional<LoanType> getLoanTypeByName(String name) {
-    return loanTypeDao.getAllLoanTypes()
-        .stream()
-        .filter(loanType -> loanType.getName().equals(name))
-        .findFirst();
+    for (LoanType loanType : loanTypeDao.getAllLoanTypes()) {
+      if (loanType.getName().equals(name)) {
+        return Optional.of(loanType);
+      }
+    }
+    return Optional.empty();
   }
 
   /**
@@ -87,8 +89,11 @@ public class LoanService {
   public boolean createApplication(Long userId, String loanTypeName, LoanApplicationRequest request) {
     validatePositive(request.getAmount(), "Введите сумму кредита");
 
-    LoanType loanType = getLoanTypeByName(loanTypeName)
-        .orElseThrow(() -> new IllegalArgumentException("Тип кредита не найден"));
+    Optional<LoanType> loanTypeOptional = getLoanTypeByName(loanTypeName);
+    if (!loanTypeOptional.isPresent()) {
+      throw new IllegalArgumentException("Тип кредита не найден");
+    }
+    LoanType loanType = loanTypeOptional.get();
 
     validateAmountRange(loanType, request.getAmount());
 
@@ -106,15 +111,22 @@ public class LoanService {
       throw new IllegalArgumentException("Введите срок кредита");
     }
 
-    Loan parentLoan = loanDao.getLoanById(parentLoanId)
-        .orElseThrow(() -> new IllegalArgumentException("Заявка не найдена"));
+    Optional<Loan> loanOptional = loanDao.getLoanById(parentLoanId);
+    if (!loanOptional.isPresent()) {
+      throw new IllegalArgumentException("Заявка не найдена");
+    }
+    Loan parentLoan = loanOptional.get();
 
     if (!LoanStatus.PENDING.name().equals(parentLoan.getStatus())) {
       throw new IllegalArgumentException("Предложения можно создавать только для заявок в статусе PENDING");
     }
 
-    LoanType loanType = loanTypeDao.getLoanTypeById(parentLoan.getLoanTypeId())
-        .orElseThrow(() -> new IllegalArgumentException("Тип кредита не найден"));
+    Optional<LoanType> loanTypeOptional = loanTypeDao.getLoanTypeById(parentLoan.getLoanTypeId());
+    if (!loanTypeOptional.isPresent()) {
+      throw new IllegalArgumentException("Тип кредита не найден");
+    }
+    LoanType loanType = loanTypeOptional.get();
+
     validateAmountRange(loanType, request.getAmount());
 
     BigDecimal monthlyPayment = request.getMonthlyPayment();
@@ -158,18 +170,13 @@ public class LoanService {
    * Handles calculate late penalty.
    */
   public BigDecimal calculateLatePenalty(Loan loan) {
-    if (loan.getStartDate() == null
-        || loan.getMonthlyPayment() == null
-        || loan.getDuration() == null
-        || !LoanStatus.ACTIVE.name().equals(loan.getStatus())) {
+    if (loan.getStartDate() == null || loan.getMonthlyPayment() == null || loan.getDuration() == null || !LoanStatus.ACTIVE.name().equals(loan.getStatus())) {
       return BigDecimal.ZERO;
     }
 
     long passedMonths = Math.max(0, java.time.temporal.ChronoUnit.MONTHS.between(loan.getStartDate(), LocalDate.now()));
     long expectedPaidMonths = Math.min(passedMonths, loan.getDuration());
-    BigDecimal expectedRemaining = loan.getMonthlyPayment()
-        .multiply(BigDecimal.valueOf(loan.getDuration() - expectedPaidMonths))
-        .max(BigDecimal.ZERO);
+    BigDecimal expectedRemaining = loan.getMonthlyPayment().multiply(BigDecimal.valueOf(loan.getDuration() - expectedPaidMonths)).max(BigDecimal.ZERO);
 
     if (loan.getRemainingAmount() == null || loan.getRemainingAmount().compareTo(expectedRemaining) <= 0) {
       return BigDecimal.ZERO;
@@ -198,9 +205,7 @@ public class LoanService {
    * Handles calculate monthly payment.
    */
   public BigDecimal calculateMonthlyPayment(BigDecimal amount, BigDecimal annualRate, Integer duration) {
-    BigDecimal monthlyRate = annualRate
-        .divide(BigDecimal.valueOf(100), MATH_CONTEXT)
-        .divide(BigDecimal.valueOf(12), MATH_CONTEXT);
+    BigDecimal monthlyRate = annualRate.divide(BigDecimal.valueOf(100), MATH_CONTEXT).divide(BigDecimal.valueOf(12), MATH_CONTEXT);
 
     if (monthlyRate.compareTo(BigDecimal.ZERO) == 0) {
       return amount.divide(BigDecimal.valueOf(duration), 2, RoundingMode.HALF_UP);

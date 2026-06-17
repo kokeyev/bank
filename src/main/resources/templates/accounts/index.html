@@ -86,7 +86,7 @@
             </div>
         </div>
 
-        <a class="section-action-link section-action-link-below" href="open.html" th:href="@{/accounts/open}" th:text="#{accounts.open}">Открыть счет</a>
+        <a class="section-action-link section-action-link-below" href="open.html" th:href="${loggedIn} ? @{/accounts/open} : null" th:classappend="${!loggedIn} ? ' disabled-link' : ''" th:attr="aria-disabled=${!loggedIn}" th:text="#{accounts.open}">Открыть счет</a>
     </section>
 
     <section class="dashboard-section">
@@ -159,7 +159,7 @@
             </div>
         </div>
 
-        <a class="section-action-link section-action-link-below" href="../deposits/index.html" th:href="@{/deposits}" th:text="#{accounts.openDeposit}">Открыть депозит</a>
+        <a class="section-action-link section-action-link-below" href="../deposits/index.html" th:href="${loggedIn} ? @{/deposits} : null" th:classappend="${!loggedIn} ? ' disabled-link' : ''" th:attr="aria-disabled=${!loggedIn}" th:text="#{accounts.openDeposit}">Открыть депозит</a>
     </section>
 
     <section class="dashboard-section">
@@ -203,8 +203,8 @@
             </div>
         </div>
 
-        <a class="section-action-link section-action-link-below" href="../loans/index.html" th:href="@{/loans}" th:text="#{accounts.openLoan}">Открыть кредит</a>
-        <a class="section-action-link section-action-link-below" href="../transfers/loan-payment.html" th:href="@{/transfers/loan-payment}" th:text="#{accounts.payLoan}">Оплатить кредит</a>
+        <a class="section-action-link section-action-link-below" href="../loans/index.html" th:href="${loggedIn} ? @{/loans} : null" th:classappend="${!loggedIn} ? ' disabled-link' : ''" th:attr="aria-disabled=${!loggedIn}" th:text="#{accounts.openLoan}">Открыть кредит</a>
+        <a class="section-action-link section-action-link-below" href="../transfers/loan-payment.html" th:href="${loggedIn} ? @{/transfers/loan-payment} : null" th:classappend="${!loggedIn} ? ' disabled-link' : ''" th:attr="aria-disabled=${!loggedIn}" th:text="#{accounts.payLoan}">Оплатить кредит</a>
     </section>
 
     <section class="dashboard-section">

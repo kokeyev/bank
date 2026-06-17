@@ -14,7 +14,7 @@
     <h1 th:text="#{deposits.title}">Депозиты</h1>
 
     <div class="deposit-cards">
-        <a class="deposit-card" href="#" th:href="@{/deposits/kopilka}">
+        <a class="deposit-card" href="#" th:href="${loggedIn} ? @{/deposits/kopilka} : null" th:classappend="${!loggedIn} ? ' disabled-link' : ''" th:attr="aria-disabled=${!loggedIn}">
             <h2 th:text="#{deposits.kopilka.name}">Копилка</h2>
             <p th:text="#{deposits.kopilka.description}">С пополнением и выводом</p>
 
@@ -41,7 +41,7 @@
             </div>
         </a>
 
-        <a class="deposit-card" href="#" th:href="@{/deposits/strategy}">
+        <a class="deposit-card" href="#" th:href="${loggedIn} ? @{/deposits/strategy} : null" th:classappend="${!loggedIn} ? ' disabled-link' : ''" th:attr="aria-disabled=${!loggedIn}">
             <h2 th:text="#{deposits.strategy.name}">Стратегия</h2>
             <p th:text="#{deposits.strategy.description}">С пополнением, но без снятия</p>
 
@@ -68,7 +68,7 @@
             </div>
         </a>
 
-        <a class="deposit-card" href="#" th:href="@{/deposits/capital}">
+        <a class="deposit-card" href="#" th:href="${loggedIn} ? @{/deposits/capital} : null" th:classappend="${!loggedIn} ? ' disabled-link' : ''" th:attr="aria-disabled=${!loggedIn}">
             <h2 th:text="#{deposits.capital.name}">Капитал</h2>
             <p th:text="#{deposits.capital.description}">Без пополнения и без снятия</p>
 
