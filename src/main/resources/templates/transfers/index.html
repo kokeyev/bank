@@ -25,13 +25,13 @@
     <section class="transaction-history-section">
         <h2 th:text="#{transfers.history}">История операций</h2>
 
-        <div class="accounts-empty-state" th:if="${transactions == null || transactions.isEmpty()}">
+        <div class="accounts-empty-state" th:if="${transactionsPage == null || transactionsPage.items.isEmpty()}">
             <p th:if="${loggedIn}" th:text="#{transfers.empty}">Операций пока нет.</p>
             <p th:unless="${loggedIn}" th:text="#{transfers.loginToView}">Войдите в аккаунт, чтобы увидеть историю операций.</p>
         </div>
 
-        <div class="transaction-history-list" th:if="${transactions != null && !transactions.isEmpty()}">
-            <div class="transaction-history-row" th:each="transaction : ${transactions}">
+        <div class="transaction-history-list" th:if="${transactionsPage != null && !transactionsPage.items.isEmpty()}">
+            <div class="transaction-history-row" th:each="transaction : ${transactionsPage.items}">
                 <div>
                     <strong th:text="${transaction.type}">Между своими счетами</strong>
                     <span th:text="${transaction.date}">11.06.2026 15:00</span>
@@ -42,6 +42,12 @@
                 </div>
             </div>
         </div>
+
+        <nav class="pagination" th:if="${transactionsPage != null && transactionsPage.totalPages > 1}">
+            <a th:if="${transactionsPage.hasPrevious}" th:href="@{/transfers(page=${transactionsPage.currentPage - 1})}" th:text="#{pagination.previous}">Previous</a>
+            <span th:text="${transactionsPage.currentPage + ' / ' + transactionsPage.totalPages}">1 / 1</span>
+            <a th:if="${transactionsPage.hasNext}" th:href="@{/transfers(page=${transactionsPage.currentPage + 1})}" th:text="#{pagination.next}">Next</a>
+        </nav>
     </section>
 
 </main>

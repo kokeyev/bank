@@ -1,10 +1,7 @@
 package org.openbank.view;
 
-import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
+import org.openbank.service.MessageService;
 import org.springframework.stereotype.Component;
-
-import java.util.Locale;
 
 @Component
 public class LoanProductText {
@@ -12,10 +9,10 @@ public class LoanProductText {
   private static final String AUTO = "Автокредит";
   private static final String MORTGAGE = "Ипотека";
 
-  private final MessageSource messageSource;
+  private final MessageService messageService;
 
-  public LoanProductText(MessageSource messageSource) {
-    this.messageSource = messageSource;
+  public LoanProductText(MessageService messageService) {
+    this.messageService = messageService;
   }
 
   public String slug(String loanTypeName) {
@@ -61,7 +58,6 @@ public class LoanProductText {
   }
 
   private String message(String code, Object... args) {
-    Locale locale = LocaleContextHolder.getLocale();
-    return messageSource.getMessage(code, args, locale);
+    return messageService.get(code, args);
   }
 }

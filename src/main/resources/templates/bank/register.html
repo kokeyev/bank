@@ -16,6 +16,7 @@
         </div>
 
         <form class="auth-form" method="post" th:action="@{/register}" th:object="${createUserRequest}">
+            <input type="hidden" name="_csrf" th:value="${csrfToken}">
             <div class="auth-errors" th:if="${errors}">
                 <p th:each="error : ${errors}" th:text="${error}">Ошибка регистрации</p>
             </div>

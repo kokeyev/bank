@@ -24,6 +24,7 @@
       <li th:if="${!loggedIn}"><a class="header-auth-link" href="#" th:href="@{/register}" th:text="#{nav.register}">Зарегистрироваться</a></li>
       <li th:if="${loggedIn}">
         <form class="header-logout-form" method="post" th:action="@{/logout}">
+            <input type="hidden" name="_csrf" th:value="${csrfToken}">
           <button class="header-auth-link" type="submit" th:text="#{nav.logout}">Выйти</button>
         </form>
       </li>

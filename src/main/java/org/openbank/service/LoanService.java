@@ -7,44 +7,48 @@ import org.openbank.dto.LoanOfferRequest;
 import org.openbank.model.Loan;
 import org.openbank.model.LoanType;
 import org.openbank.model.status.LoanStatus;
+import org.openbank.service.strategy.loan.LoanProductStrategy;
+import org.openbank.service.strategy.loan.LoanProductStrategyResolver;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.math.MathContext;
-import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 /**
- * Provides loan service operations.
+ * Applies loan application and offer rules before loan data is persisted.
+ *
+ * <p>Product-specific calculations and constraints are resolved through
+ * {@link LoanProductStrategy}, while this service validates request flow and status transitions.</p>
  */
 @Service
 public class LoanService {
 
-  private static final MathContext MATH_CONTEXT = new MathContext(16, RoundingMode.HALF_UP);
-
   private final LoanDao loanDao;
   private final LoanTypeDao loanTypeDao;
-
-  /**
-   * Handles loan service.
-   */
-  public LoanService(LoanDao loanDao, LoanTypeDao loanTypeDao) {
+  private final LoanProductStrategyResolver strategyResolver;
+  public LoanService(LoanDao loanDao, LoanTypeDao loanTypeDao, LoanProductStrategyResolver strategyResolver) {
     this.loanDao = loanDao;
     this.loanTypeDao = loanTypeDao;
+    this.strategyResolver = strategyResolver;
   }
 
   /**
-   * Handles get all loan types.
+   * Returns all configured loan products.
+   *
+   * @return loan type records available for applications and manager offers
    */
   public List<LoanType> getAllLoanTypes() {
     return loanTypeDao.getAllLoanTypes();
   }
 
   /**
-   * Handles get loan type by name.
+   * Finds a loan product by its display name.
+   *
+   * @param name product name stored in the database
+   * @return matching loan type when present
    */
   public Optional<LoanType> getLoanTypeByName(String name) {
     for (LoanType loanType : loanTypeDao.getAllLoanTypes()) {
@@ -56,52 +60,75 @@ public class LoanService {
   }
 
   /**
-   * Handles get loan type by id.
+   * Finds a loan product by identifier.
+   *
+   * @param loanTypeId loan type primary key
+   * @return matching loan type when present
    */
   public Optional<LoanType> getLoanTypeById(Long loanTypeId) {
     return loanTypeDao.getLoanTypeById(loanTypeId);
   }
 
   /**
-   * Handles get loans by user id.
+   * Loads every loan record created for a user.
+   *
+   * @param userId owner identifier
+   * @return loans belonging to the user
    */
   public List<Loan> getLoansByUserId(Long userId) {
     return loanDao.getLoansByUserId(userId);
   }
 
   /**
-   * Handles get active loans by user id.
+   * Loads active loans for repayment views.
+   *
+   * @param userId owner identifier
+   * @return active user loans
    */
   public List<Loan> getActiveLoansByUserId(Long userId) {
     return loanDao.getActiveLoansByUserId(userId);
   }
 
   /**
-   * Handles get pending loans.
+   * Loads loan applications waiting for manager review.
+   *
+   * @return pending loan applications
    */
   public List<Loan> getPendingLoans() {
     return loanDao.getPendingLoans();
   }
 
   /**
-   * Handles create application.
+   * Creates a pending loan application after product amount validation.
+   *
+   * @param userId applicant identifier
+   * @param loanTypeName requested product name
+   * @param request application amount
+   * @return {@code true} when the application is stored
+   * @throws IllegalArgumentException when the product is missing or amount violates product rules
    */
   public boolean createApplication(Long userId, String loanTypeName, LoanApplicationRequest request) {
     validatePositive(request.getAmount(), "Введите сумму кредита");
 
     Optional<LoanType> loanTypeOptional = getLoanTypeByName(loanTypeName);
-    if (!loanTypeOptional.isPresent()) {
+    if (loanTypeOptional.isEmpty()) {
       throw new IllegalArgumentException("Тип кредита не найден");
     }
     LoanType loanType = loanTypeOptional.get();
+    LoanProductStrategy strategy = strategyResolver.resolve(loanType);
 
-    validateAmountRange(loanType, request.getAmount());
+    strategy.validateApplicationAmount(loanType, request.getAmount());
 
     return loanDao.createPendingLoan(userId, loanType.getLoanTypeId(), request.getAmount());
   }
 
   /**
-   * Handles create offer.
+   * Creates a manager offer for a pending loan application.
+   *
+   * @param parentLoanId original pending application
+   * @param request proposed amount, rate, duration, and optional monthly payment
+   * @return {@code true} when the offer is stored
+   * @throws IllegalArgumentException when the application is missing, not pending, or violates product rules
    */
   public boolean createOffer(Long parentLoanId, LoanOfferRequest request) {
     validatePositive(request.getAmount(), "Введите сумму предложения");
@@ -112,7 +139,7 @@ public class LoanService {
     }
 
     Optional<Loan> loanOptional = loanDao.getLoanById(parentLoanId);
-    if (!loanOptional.isPresent()) {
+    if (loanOptional.isEmpty()) {
       throw new IllegalArgumentException("Заявка не найдена");
     }
     Loan parentLoan = loanOptional.get();
@@ -122,16 +149,17 @@ public class LoanService {
     }
 
     Optional<LoanType> loanTypeOptional = loanTypeDao.getLoanTypeById(parentLoan.getLoanTypeId());
-    if (!loanTypeOptional.isPresent()) {
+    if (loanTypeOptional.isEmpty()) {
       throw new IllegalArgumentException("Тип кредита не найден");
     }
     LoanType loanType = loanTypeOptional.get();
+    LoanProductStrategy strategy = strategyResolver.resolve(loanType);
 
-    validateAmountRange(loanType, request.getAmount());
+    strategy.validateOffer(loanType, request.getAmount(), request.getDuration());
 
     BigDecimal monthlyPayment = request.getMonthlyPayment();
     if (monthlyPayment == null || monthlyPayment.compareTo(BigDecimal.ZERO) <= 0) {
-      monthlyPayment = calculateMonthlyPayment(request.getAmount(), request.getRate(), request.getDuration());
+      monthlyPayment = strategy.calculateMonthlyPayment(request.getAmount(), request.getRate(), request.getDuration());
     }
 
     return loanDao.createOffer(
@@ -146,87 +174,81 @@ public class LoanService {
   }
 
   /**
-   * Handles accept offer.
+   * Accepts a manager loan offer on behalf of the owner.
+   *
+   * @param userId expected loan owner
+   * @param loanId offer identifier
+   * @return {@code true} when the offer becomes active
    */
   public boolean acceptOffer(Long userId, Long loanId) {
     return loanDao.acceptOffer(userId, loanId);
   }
 
   /**
-   * Handles reject offer.
+   * Rejects a manager loan offer on behalf of the owner.
+   *
+   * @param userId expected loan owner
+   * @param loanId offer identifier
+   * @return {@code true} when the offer is refused
    */
   public boolean rejectOffer(Long userId, Long loanId) {
     return loanDao.refuseOffer(userId, loanId);
   }
 
   /**
-   * Handles reject application.
+   * Rejects a pending loan application during manager review.
+   *
+   * @param loanId pending application identifier
+   * @return {@code true} when the application is rejected
    */
   public boolean rejectApplication(Long loanId) {
     return loanDao.rejectPendingLoan(loanId);
   }
 
   /**
-   * Handles calculate late penalty.
+   * Calculates the current late-payment penalty for a loan.
+   *
+   * @param loan loan to inspect; {@code null} returns zero
+   * @return calculated penalty or zero when the product cannot be resolved
    */
   public BigDecimal calculateLatePenalty(Loan loan) {
-    if (loan.getStartDate() == null || loan.getMonthlyPayment() == null || loan.getDuration() == null || !LoanStatus.ACTIVE.name().equals(loan.getStatus())) {
+    if (loan == null || loan.getLoanTypeId() == null) {
       return BigDecimal.ZERO;
     }
 
-    long passedMonths = Math.max(0, java.time.temporal.ChronoUnit.MONTHS.between(loan.getStartDate(), LocalDate.now()));
-    long expectedPaidMonths = Math.min(passedMonths, loan.getDuration());
-    BigDecimal expectedRemaining = loan.getMonthlyPayment().multiply(BigDecimal.valueOf(loan.getDuration() - expectedPaidMonths)).max(BigDecimal.ZERO);
-
-    if (loan.getRemainingAmount() == null || loan.getRemainingAmount().compareTo(expectedRemaining) <= 0) {
-      return BigDecimal.ZERO;
-    }
-
-    BigDecimal overdueAmount = loan.getRemainingAmount().subtract(expectedRemaining);
-    return overdueAmount.multiply(BigDecimal.valueOf(0.01)).setScale(2, RoundingMode.HALF_UP);
+    return loanTypeDao.getLoanTypeById(loan.getLoanTypeId())
+        .map(strategyResolver::resolve)
+        .map(strategy -> strategy.calculateLatePenalty(loan))
+        .orElse(BigDecimal.ZERO);
   }
 
   /**
-   * Handles get payment due dates.
+   * Calculates expected payment due dates for a loan.
+   *
+   * @param loan active or offered loan; {@code null} returns an empty list
+   * @return due dates calculated by the product strategy
    */
   public List<LocalDate> getPaymentDueDates(Loan loan) {
-    if (loan.getStartDate() == null || loan.getDuration() == null || loan.getDuration() <= 0) {
+    if (loan == null || loan.getLoanTypeId() == null) {
       return List.of();
     }
 
-    List<LocalDate> dates = new ArrayList<>();
-    for (int month = 1; month <= loan.getDuration(); month++) {
-      dates.add(loan.getStartDate().plusMonths(month));
-    }
-    return dates;
+    return loanTypeDao.getLoanTypeById(loan.getLoanTypeId())
+        .map(strategyResolver::resolve)
+        .map(strategy -> strategy.getPaymentDueDates(loan))
+        .orElse(List.of());
   }
 
   /**
-   * Handles calculate monthly payment.
+   * Calculates an annuity monthly payment with the default loan strategy.
+   *
+   * @param amount principal amount
+   * @param annualRate yearly percent rate
+   * @param duration duration in months
+   * @return rounded monthly payment
    */
   public BigDecimal calculateMonthlyPayment(BigDecimal amount, BigDecimal annualRate, Integer duration) {
-    BigDecimal monthlyRate = annualRate.divide(BigDecimal.valueOf(100), MATH_CONTEXT).divide(BigDecimal.valueOf(12), MATH_CONTEXT);
-
-    if (monthlyRate.compareTo(BigDecimal.ZERO) == 0) {
-      return amount.divide(BigDecimal.valueOf(duration), 2, RoundingMode.HALF_UP);
-    }
-
-    BigDecimal onePlusRate = BigDecimal.ONE.add(monthlyRate);
-    BigDecimal ratePower = onePlusRate.pow(duration, MATH_CONTEXT);
-    BigDecimal numerator = amount.multiply(monthlyRate, MATH_CONTEXT).multiply(ratePower, MATH_CONTEXT);
-    BigDecimal denominator = ratePower.subtract(BigDecimal.ONE, MATH_CONTEXT);
-
-    return numerator.divide(denominator, 2, RoundingMode.HALF_UP);
-  }
-
-  private void validateAmountRange(LoanType loanType, BigDecimal amount) {
-    if (loanType.getMinimumAmount() != null && amount.compareTo(loanType.getMinimumAmount()) < 0) {
-      throw new IllegalArgumentException("Минимальная сумма кредита: " + loanType.getMinimumAmount());
-    }
-
-    if (loanType.getMaximumAmount() != null && amount.compareTo(loanType.getMaximumAmount()) > 0) {
-      throw new IllegalArgumentException("Максимальная сумма кредита: " + loanType.getMaximumAmount());
-    }
+    return strategyResolver.defaultStrategy().calculateMonthlyPayment(amount, annualRate, duration);
   }
 
   private void validatePositive(BigDecimal amount, String message) {

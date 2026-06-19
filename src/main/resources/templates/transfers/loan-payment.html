@@ -17,6 +17,7 @@
         <h1 th:text="#{transfers.loanPayment}">Погасить кредит</h1>
 
         <form class="transfer-form" method="post" th:action="@{/transfers/loan-payment}" th:object="${loanPaymentRequest}">
+            <input type="hidden" name="_csrf" th:value="${csrfToken}">
             <div class="transfer-message transfer-message-success" th:if="${loanPaymentSuccess}" th:text="${loanPaymentSuccess}">
                 Платеж выполнен.
             </div>

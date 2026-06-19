@@ -6,53 +6,67 @@ import org.openbank.model.User;
 import org.springframework.stereotype.Service;
 
 /**
- * Provides staff session service operations.
+ * Stores staff login state in the HTTP session for admin and manager areas.
+ *
+ * <p>Authentication is performed by {@link UserService}; this service only records the authenticated
+ * staff user's database id in the session.</p>
  */
 @Service
 public class StaffSessionService {
 
   /**
-   * Handles is admin logged in.
+   * Checks whether the current session has an authenticated admin id.
+   *
+   * @param session current HTTP session
+   * @return {@code true} when an admin login marker is present
    */
   public boolean isAdminLoggedIn(HttpSession session) {
-    return Boolean.TRUE.equals(session.getAttribute(SessionKeys.ADMIN_LOGGED_IN));
+    return session.getAttribute(SessionKeys.CURRENT_ADMIN_ID) instanceof Long;
   }
 
   /**
-   * Handles login admin.
+   * Stores a successful admin login in the session.
+   *
+   * @param session current HTTP session
+   * @param admin authenticated admin user loaded from the database
    */
-  public boolean loginAdmin(HttpSession session, String login, String password) {
-    if ("admin".equals(login) && "12345".equals(password)) {
-      session.setAttribute(SessionKeys.ADMIN_LOGGED_IN, true);
-      return true;
-    }
-
-    return false;
+  public void loginAdmin(HttpSession session, User admin) {
+    session.setAttribute(SessionKeys.CURRENT_ADMIN_ID, admin.getUserId());
   }
 
   /**
-   * Handles logout admin.
+   * Removes admin login state without affecting client or manager markers.
+   *
+   * @param session current HTTP session
    */
   public void logoutAdmin(HttpSession session) {
-    session.removeAttribute(SessionKeys.ADMIN_LOGGED_IN);
+    session.removeAttribute(SessionKeys.CURRENT_ADMIN_ID);
   }
 
   /**
-   * Handles is manager logged in.
+   * Checks whether the current session has an authenticated manager id.
+   *
+   * @param session current HTTP session
+   * @return {@code true} when a manager login marker is present
    */
   public boolean isManagerLoggedIn(HttpSession session) {
     return session.getAttribute(SessionKeys.CURRENT_MANAGER_ID) instanceof Long;
   }
 
   /**
-   * Handles login manager.
+   * Stores a successful manager login in the session.
+   *
+   * @param session current HTTP session
+   * @param manager authenticated manager user
    */
   public void loginManager(HttpSession session, User manager) {
     session.setAttribute(SessionKeys.CURRENT_MANAGER_ID, manager.getUserId());
   }
 
   /**
-   * Handles logout manager.
+   * Removes manager login state without affecting client or admin markers.
+   *
+   * @param session current HTTP session
    */
   public void logoutManager(HttpSession session) {
     session.removeAttribute(SessionKeys.CURRENT_MANAGER_ID);

@@ -13,25 +13,13 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
-/**
- * Provides loan dao impl operations.
- */
 @Repository
 public class LoanDaoImpl implements LoanDao {
 
   private final ConnectionPool connectionPool;
-
-  /**
-   * Handles loan dao impl.
-   */
   public LoanDaoImpl(ConnectionPool connectionPool) {
     this.connectionPool = connectionPool;
   }
-
-  /**
-   * Handles get pending loans.
-   */
   @Override
   public List<Loan> getPendingLoans() {
 
@@ -64,10 +52,6 @@ public class LoanDaoImpl implements LoanDao {
       connectionPool.releaseConnection(connection);
     }
   }
-
-  /**
-   * Handles get loan by id.
-   */
   @Override
   public Optional<Loan> getLoanById(Long loanId) {
     String sql = """
@@ -96,10 +80,6 @@ public class LoanDaoImpl implements LoanDao {
       connectionPool.releaseConnection(connection);
     }
   }
-
-  /**
-   * Handles get loans by user id.
-   */
   @Override
   public List<Loan> getLoansByUserId(Long userId) {
     List<Loan> loans = new ArrayList<>();
@@ -131,10 +111,6 @@ public class LoanDaoImpl implements LoanDao {
       connectionPool.releaseConnection(connection);
     }
   }
-
-  /**
-   * Handles get active loans by user id.
-   */
   @Override
   public List<Loan> getActiveLoansByUserId(Long userId) {
     List<Loan> loans = new ArrayList<>();
@@ -167,10 +143,6 @@ public class LoanDaoImpl implements LoanDao {
       connectionPool.releaseConnection(connection);
     }
   }
-
-  /**
-   * Handles create pending loan.
-   */
   @Override
   public boolean createPendingLoan(Long userId, Long loanTypeId, BigDecimal requestedAmount) {
     String sql = """
@@ -197,10 +169,6 @@ public class LoanDaoImpl implements LoanDao {
       connectionPool.releaseConnection(connection);
     }
   }
-
-  /**
-   * Handles create offer.
-   */
   @Override
   public boolean createOffer(Long parentLoanId, Long userId, Long loanTypeId, BigDecimal amount, BigDecimal rate, Integer duration, BigDecimal monthlyPayment) {
     String sql = """
@@ -231,10 +199,6 @@ public class LoanDaoImpl implements LoanDao {
       connectionPool.releaseConnection(connection);
     }
   }
-
-  /**
-   * Handles get offers.
-   */
   @Override
   public List<Loan> getOffers(Long userId) {
     List<Loan> loans = new ArrayList<>();
@@ -267,10 +231,6 @@ public class LoanDaoImpl implements LoanDao {
       connectionPool.releaseConnection(connection);
     }
   }
-
-  /**
-   * Handles accept offer.
-   */
   @Override
   public boolean acceptOffer(Long userId, Long loanId) {
     String selectSql = """
@@ -351,10 +311,6 @@ public class LoanDaoImpl implements LoanDao {
       connectionPool.releaseConnection(connection);
     }
   }
-
-  /**
-   * Handles refuse offer.
-   */
   @Override
   public boolean refuseOffer(Long userId, Long loanId) {
     String sql = """
@@ -382,10 +338,6 @@ public class LoanDaoImpl implements LoanDao {
       connectionPool.releaseConnection(connection);
     }
   }
-
-  /**
-   * Handles reject pending loan.
-   */
   @Override
   public boolean rejectPendingLoan(Long loanId) {
     String sql = """
@@ -411,10 +363,6 @@ public class LoanDaoImpl implements LoanDao {
       connectionPool.releaseConnection(connection);
     }
   }
-
-  /**
-   * Handles pay loan.
-   */
   @Override
   public boolean payLoan(Long loanId, BigDecimal amount) {
     String sql = """
@@ -444,10 +392,6 @@ public class LoanDaoImpl implements LoanDao {
       connectionPool.releaseConnection(connection);
     }
   }
-
-  /**
-   * Handles pay loan.
-   */
   @Override
   public boolean payLoan(Connection connection, Long loanId, BigDecimal amount) {
     String sql = """

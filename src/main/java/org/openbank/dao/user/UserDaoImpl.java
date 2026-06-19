@@ -1,8 +1,7 @@
 package org.openbank.dao.user;
 
-import org.openbank.exception.BankDataAccessException;
-
 import org.openbank.db.ConnectionPool;
+import org.openbank.exception.BankDataAccessException;
 import org.openbank.model.User;
 import org.springframework.stereotype.Repository;
 
@@ -12,14 +11,13 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public class UserDaoImpl implements UserDao{
+public class UserDaoImpl implements UserDao {
 
   private final ConnectionPool connectionPool;
 
   public UserDaoImpl(ConnectionPool connectionPool) {
     this.connectionPool = connectionPool;
   }
-
 
   @Override
   public boolean createNewUser(User user) {

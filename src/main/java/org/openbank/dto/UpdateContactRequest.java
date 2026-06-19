@@ -6,11 +6,11 @@ import jakarta.validation.constraints.Size;
 
 public class UpdateContactRequest {
 
-  @Pattern(regexp = "^$|^\\+?\\d[\\d\\s()-]{8,20}$", message = "Phone number format is invalid")
+  @Pattern(regexp = "^$|^\\+?\\d[\\d\\s()-]{8,20}$", message = "{validation.phone.format}")
   private String phone;
 
-  @Email(message = "Email format is invalid")
-  @Size(max = 255, message = "Email must be shorter than 255 characters")
+  @Email(message = "{validation.email.format}")
+  @Size(max = 255, message = "{validation.email.size}")
   private String email;
 
   public String getPhone() {

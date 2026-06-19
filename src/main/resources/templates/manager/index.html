@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Менеджер</title>
+    <title th:text="#{manager.title}">Manager</title>
     <link rel="stylesheet" href="../static/css/styles.css" th:href="@{/css/styles.css}">
     <meta charset="UTF-8">
 </head>
@@ -11,36 +11,38 @@
     <section class="auth-card">
         <div class="auth-header">
             <a href="#" th:href="@{/}" class="auth-logo">Bank Manager</a>
-            <span>Вход для менеджера</span>
-            <h1>Войти</h1>
+            <span th:text="#{manager.login.subtitle}">Manager sign in</span>
+            <h1 th:text="#{auth.login.heading}">Sign in</h1>
         </div>
 
         <form class="auth-form" method="post" th:action="@{/manager/login}">
+            <input type="hidden" name="_csrf" th:value="${csrfToken}">
             <div class="auth-errors" th:if="${managerLoginError}">
                 <p th:text="${managerLoginError}">Ошибка</p>
             </div>
 
             <div class="auth-field">
-                <label for="managerLogin">Телефон или почта</label>
-                <input id="managerLogin" name="login" type="text" th:value="${managerLogin}" placeholder="+7 700 000 00 00 или mail@example.com" required>
+                <label for="managerLogin" th:text="#{auth.login.label}">Phone number or email</label>
+                <input id="managerLogin" name="login" type="text" th:value="${managerLogin}" th:placeholder="#{auth.login.placeholder}" required>
             </div>
 
             <div class="auth-field">
-                <label for="managerPassword">Пароль</label>
+                <label for="managerPassword" th:text="#{auth.password}">Password</label>
                 <input id="managerPassword" name="password" type="password" required>
             </div>
 
-            <button class="auth-submit-button" type="submit">Войти</button>
+            <button class="auth-submit-button" type="submit" th:text="#{auth.login.submit}">Sign in</button>
         </form>
     </section>
 
     <section class="auth-card auth-card-wide">
         <div class="auth-header">
-            <span>Новый менеджер</span>
-            <h1>Регистрация</h1>
+            <span th:text="#{manager.register.subtitle}">New manager</span>
+            <h1 th:text="#{auth.register.heading}">Registration</h1>
         </div>
 
         <form class="auth-form" method="post" th:action="@{/manager/register}" th:object="${createUserRequest}">
+            <input type="hidden" name="_csrf" th:value="${csrfToken}">
             <div class="settings-message settings-message-success" th:if="${managerRegisterSuccess}" th:text="${managerRegisterSuccess}">
                 Заявка отправлена.
             </div>
@@ -51,37 +53,37 @@
 
             <div class="auth-fields-grid">
                 <div class="auth-field">
-                    <label for="name">Имя</label>
+                    <label for="name" th:text="#{auth.register.name}">First name</label>
                     <input id="name" name="name" th:field="*{name}" type="text" required>
                 </div>
 
                 <div class="auth-field">
-                    <label for="surname">Фамилия</label>
+                    <label for="surname" th:text="#{auth.register.surname}">Last name</label>
                     <input id="surname" name="surname" th:field="*{surname}" type="text" required>
                 </div>
             </div>
 
             <div class="auth-field">
-                <label for="phone">Номер телефона</label>
+                <label for="phone" th:text="#{auth.register.phone}">Phone number</label>
                 <input id="phone" name="phone" th:field="*{phone}" type="tel" required>
             </div>
 
             <div class="auth-field">
-                <label for="email">Почта</label>
+                <label for="email" th:text="#{auth.register.email}">Email</label>
                 <input id="email" name="email" th:field="*{email}" type="email" required>
             </div>
 
             <div class="auth-field">
-                <label for="password">Пароль</label>
+                <label for="password" th:text="#{auth.password}">Password</label>
                 <input id="password" name="password" th:field="*{password}" type="password" required>
             </div>
 
             <div class="auth-field">
-                <label for="confirmPassword">Повторите пароль</label>
+                <label for="confirmPassword" th:text="#{auth.register.confirmPassword}">Repeat password</label>
                 <input id="confirmPassword" name="confirmPassword" th:field="*{confirmPassword}" type="password" required>
             </div>
 
-            <button class="auth-submit-button" type="submit">Отправить заявку</button>
+            <button class="auth-submit-button" type="submit" th:text="#{manager.register.submit}">Send request</button>
         </form>
     </section>
 </main>

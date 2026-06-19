@@ -14,25 +14,13 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
-/**
- * Provides loan type dao impl operations.
- */
 @Repository
 public class LoanTypeDaoImpl implements LoanTypeDao {
 
   private final ConnectionPool connectionPool;
-
-  /**
-   * Handles loan type dao impl.
-   */
   public LoanTypeDaoImpl(ConnectionPool connectionPool) {
     this.connectionPool = connectionPool;
   }
-
-  /**
-   * Handles create new type of loan.
-   */
   @Override
   public boolean createNewTypeOfLoan(String name, BigDecimal rate, Integer duration, BigDecimal minimumAmount, BigDecimal maximumAmount, Long currencyId) {
     String sql = """
@@ -61,10 +49,6 @@ public class LoanTypeDaoImpl implements LoanTypeDao {
       connectionPool.releaseConnection(connection);
     }
   }
-
-  /**
-   * Handles get loan type by id.
-   */
   @Override
   public Optional<LoanType> getLoanTypeById(Long loanTypeId) {
     String sql = """
@@ -93,10 +77,6 @@ public class LoanTypeDaoImpl implements LoanTypeDao {
       connectionPool.releaseConnection(connection);
     }
   }
-
-  /**
-   * Handles get all loan types.
-   */
   @Override
   public List<LoanType> getAllLoanTypes() {
     List<LoanType> loanTypes = new ArrayList<>();
@@ -126,10 +106,6 @@ public class LoanTypeDaoImpl implements LoanTypeDao {
       connectionPool.releaseConnection(connection);
     }
   }
-
-  /**
-   * Handles change rate of loan type.
-   */
   @Override
   public boolean changeRateOfLoanType(Long loanTypeId, BigDecimal newRate) {
     String sql = """

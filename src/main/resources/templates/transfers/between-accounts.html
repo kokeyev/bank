@@ -17,6 +17,7 @@
         <h1 th:text="#{transfers.between}">Между своими счетами</h1>
 
         <form class="transfer-form" method="post" th:action="@{/transfers/between-accounts}" th:object="${transferRequest}">
+            <input type="hidden" name="_csrf" th:value="${csrfToken}">
             <div class="transfer-message transfer-message-success" th:if="${transferSuccess}" th:text="${transferSuccess}">
                 <span th:text="#{transfers.success}">Перевод выполнен.</span>
             </div>

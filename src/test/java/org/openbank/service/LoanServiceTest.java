@@ -1,8 +1,8 @@
 package org.openbank.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.openbank.dao.loan.LoanDao;
@@ -12,6 +12,10 @@ import org.openbank.dto.LoanOfferRequest;
 import org.openbank.model.Loan;
 import org.openbank.model.LoanType;
 import org.openbank.model.status.LoanStatus;
+import org.openbank.service.strategy.loan.AutoLoanStrategy;
+import org.openbank.service.strategy.loan.LoanProductStrategyResolver;
+import org.openbank.service.strategy.loan.MortgageLoanStrategy;
+import org.openbank.service.strategy.loan.PurposeLoanStrategy;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -32,8 +36,17 @@ class LoanServiceTest {
   @Mock
   private LoanTypeDao loanTypeDao;
 
-  @InjectMocks
   private LoanService service;
+
+  @BeforeEach
+  void setUp() {
+    LoanProductStrategyResolver strategyResolver = new LoanProductStrategyResolver(List.of(
+        new PurposeLoanStrategy(),
+        new AutoLoanStrategy(),
+        new MortgageLoanStrategy()
+    ));
+    service = new LoanService(loanDao, loanTypeDao, strategyResolver);
+  }
 
   @Test
   void createApplicationValidatesAmountRangeAndDelegates() {
@@ -79,11 +92,25 @@ class LoanServiceTest {
   }
 
   @Test
+  void createOfferRejectsDurationAboveProductLimit() {
+    Loan parentLoan = loan(10L, 7L, 2L, new BigDecimal("500000"), LoanStatus.PENDING.name());
+    LoanOfferRequest request = new LoanOfferRequest();
+    request.setAmount(new BigDecimal("500000"));
+    request.setRate(new BigDecimal("12"));
+    request.setDuration(13);
+    when(loanDao.getLoanById(10L)).thenReturn(Optional.of(parentLoan));
+    when(loanTypeDao.getLoanTypeById(2L)).thenReturn(Optional.of(loanType()));
+
+    assertThrows(IllegalArgumentException.class, () -> service.createOffer(10L, request));
+  }
+
+  @Test
   void calculateLatePenaltyReturnsOnePercentOfOverdueAmount() {
     Loan loan = loan(10L, 7L, 2L, new BigDecimal("1000"), LoanStatus.ACTIVE.name());
     loan.setStartDate(LocalDate.now().minusMonths(2));
     loan.setDuration(4);
     loan.setMonthlyPayment(new BigDecimal("100"));
+    when(loanTypeDao.getLoanTypeById(2L)).thenReturn(Optional.of(loanType()));
 
     assertEquals(new BigDecimal("8.00"), service.calculateLatePenalty(loan));
   }
@@ -93,6 +120,7 @@ class LoanServiceTest {
     Loan loan = loan(10L, 7L, 2L, BigDecimal.TEN, LoanStatus.ACTIVE.name());
     loan.setStartDate(LocalDate.of(2026, 1, 15));
     loan.setDuration(3);
+    when(loanTypeDao.getLoanTypeById(2L)).thenReturn(Optional.of(loanType()));
 
     assertEquals(
         List.of(LocalDate.of(2026, 2, 15), LocalDate.of(2026, 3, 15), LocalDate.of(2026, 4, 15)),

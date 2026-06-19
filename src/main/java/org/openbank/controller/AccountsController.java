@@ -2,12 +2,15 @@ package org.openbank.controller;
 
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import org.openbank.dto.AccountLimitUpdateRequest;
+import org.openbank.dto.DepositWithdrawRequest;
 import org.openbank.dto.OpenAccountRequest;
 import org.openbank.model.User;
 import org.openbank.service.AccountService;
 import org.openbank.view.BankViewService;
 import org.openbank.service.CurrentUserService;
 import org.openbank.service.DepositService;
+import org.openbank.service.MessageService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -19,7 +22,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -28,21 +30,31 @@ import java.util.Optional;
 public class AccountsController {
 
   private static final int TRANSACTION_PAGE_SIZE = 6;
+  private static final int DEPOSIT_PAGE_SIZE = 4;
+  private static final int LOAN_PAGE_SIZE = 4;
 
   private final CurrentUserService currentUserService;
   private final AccountService accountService;
   private final DepositService depositService;
   private final BankViewService bankViewService;
+  private final MessageService messageService;
 
-  public AccountsController(CurrentUserService currentUserService, AccountService accountService, DepositService depositService, BankViewService bankViewService) {
+  public AccountsController(CurrentUserService currentUserService, AccountService accountService, DepositService depositService, BankViewService bankViewService, MessageService messageService) {
     this.currentUserService = currentUserService;
     this.accountService = accountService;
     this.depositService = depositService;
     this.bankViewService = bankViewService;
+    this.messageService = messageService;
   }
 
   @GetMapping({"/", "/accounts"})
-  public String accounts(@RequestParam(value = "transactionsPage", defaultValue = "1") int transactionsPage, HttpSession session, Model model) {
+  public String accounts(
+      @RequestParam(value = "depositsPage", defaultValue = "1") int depositsPage,
+      @RequestParam(value = "loansPage", defaultValue = "1") int loansPage,
+      @RequestParam(value = "transactionsPage", defaultValue = "1") int transactionsPage,
+      HttpSession session,
+      Model model
+  ) {
 
     Optional<User> currentUser = currentUserService.getCurrentUser(session);
     if (currentUser.isPresent()) {
@@ -50,8 +62,8 @@ public class AccountsController {
       Long userId = user.getUserId();
       model.addAttribute("clientName", user.getName());
       model.addAttribute("accounts", bankViewService.getAccountViews(userId));
-      model.addAttribute("deposits", bankViewService.getDepositViews(userId));
-      model.addAttribute("loans", bankViewService.getLoanViews(userId));
+      model.addAttribute("depositsPage", bankViewService.getDepositViewsPage(userId, depositsPage, DEPOSIT_PAGE_SIZE));
+      model.addAttribute("loansPage", bankViewService.getLoanViewsPage(userId, loansPage, LOAN_PAGE_SIZE));
       model.addAttribute("transactionsPage", bankViewService.getTransactionViewsPage(userId, transactionsPage, TRANSACTION_PAGE_SIZE));
       model.addAttribute("accountOptions", bankViewService.getTransferAccountOptions(userId));
     }
@@ -60,16 +72,21 @@ public class AccountsController {
   }
 
   @PostMapping("/deposits/{depositId}/withdraw")
-  public String withdrawFromDeposit(@PathVariable("depositId") Long depositId, @RequestParam("targetAccountId") Long targetAccountId, @RequestParam("amount") BigDecimal amount, HttpSession session, RedirectAttributes redirectAttributes) {
+  public String withdrawFromDeposit(@PathVariable("depositId") Long depositId, @Valid @ModelAttribute DepositWithdrawRequest request, BindingResult bindingResult, HttpSession session, RedirectAttributes redirectAttributes) {
     Optional<User> currentUser = currentUserService.getCurrentUser(session);
 
     if (currentUser.isEmpty()) {
       return "redirect:/login?loginRequired=true";
     }
 
+    if (bindingResult.hasErrors()) {
+      redirectAttributes.addFlashAttribute("depositError", firstError(bindingResult));
+      return "redirect:/accounts";
+    }
+
     try {
-      depositService.withdrawFromDeposit(currentUser.get().getUserId(), depositId, targetAccountId, amount);
-      redirectAttributes.addFlashAttribute("depositSuccess", "Деньги сняты с депозита.");
+      depositService.withdrawFromDeposit(currentUser.get().getUserId(), depositId, request.getTargetAccountId(), request.getAmount());
+      redirectAttributes.addFlashAttribute("depositSuccess", messageService.get("accounts.deposit.withdraw.success"));
     } catch (IllegalArgumentException e) {
       redirectAttributes.addFlashAttribute("depositError", e.getMessage());
     }
@@ -119,16 +136,21 @@ public class AccountsController {
   }
 
   @PostMapping("/accounts/{accountId}/limit")
-  public String updateLimit(@PathVariable("accountId") Long accountId, @RequestParam("transactionLimit") BigDecimal transactionLimit, HttpSession session, RedirectAttributes redirectAttributes) {
+  public String updateLimit(@PathVariable("accountId") Long accountId, @Valid @ModelAttribute AccountLimitUpdateRequest request, BindingResult bindingResult, HttpSession session, RedirectAttributes redirectAttributes) {
     Optional<User> currentUser = currentUserService.getCurrentUser(session);
 
     if (currentUser.isEmpty()) {
       return "redirect:/login?loginRequired=true";
     }
 
+    if (bindingResult.hasErrors()) {
+      redirectAttributes.addFlashAttribute("accountError", firstError(bindingResult));
+      return "redirect:/accounts";
+    }
+
     try {
-      accountService.updateTransactionLimit(currentUser.get().getUserId(), accountId, transactionLimit);
-      redirectAttributes.addFlashAttribute("accountSuccess", "Лимит счета обновлен.");
+      accountService.updateTransactionLimit(currentUser.get().getUserId(), accountId, request.getTransactionLimit());
+      redirectAttributes.addFlashAttribute("accountSuccess", messageService.get("accounts.limit.success"));
     } catch (IllegalArgumentException e) {
       redirectAttributes.addFlashAttribute("accountError", e.getMessage());
     }
@@ -146,7 +168,7 @@ public class AccountsController {
 
     try {
       accountService.makeMainAccount(currentUser.get().getUserId(), accountId);
-      redirectAttributes.addFlashAttribute("accountSuccess", "Основной счет обновлен.");
+      redirectAttributes.addFlashAttribute("accountSuccess", messageService.get("accounts.main.success"));
     } catch (IllegalArgumentException e) {
       redirectAttributes.addFlashAttribute("accountError", e.getMessage());
     }
@@ -164,7 +186,7 @@ public class AccountsController {
 
     try {
       accountService.deactivateAccount(currentUser.get().getUserId(), accountId);
-      redirectAttributes.addFlashAttribute("accountSuccess", "Счет деактивирован.");
+      redirectAttributes.addFlashAttribute("accountSuccess", messageService.get("accounts.deactivate.success"));
     } catch (IllegalArgumentException e) {
       redirectAttributes.addFlashAttribute("accountError", e.getMessage());
     }
@@ -175,5 +197,10 @@ public class AccountsController {
   private void addOpenAccountModelAttributes(Model model, OpenAccountRequest openAccountRequest) {
     model.addAttribute("openAccountRequest", openAccountRequest);
     model.addAttribute("currencies", accountService.getAllCurrencies());
+  }
+
+  private String firstError(BindingResult bindingResult) {
+    FieldError error = bindingResult.getFieldErrors().getFirst();
+    return error.getDefaultMessage();
   }
 }

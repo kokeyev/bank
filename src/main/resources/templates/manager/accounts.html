@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Заявки на счета</title>
+    <title th:text="#{manager.accounts.title}">Account requests</title>
     <link rel="stylesheet" href="../../static/css/styles.css" th:href="@{/css/styles.css}">
     <meta charset="UTF-8">
 </head>
@@ -12,7 +12,7 @@
 <main class="accounts-page">
 
     <header class="accounts-title">
-        <p class="accounts-greeting">Заявки на счета</p>
+        <p class="accounts-greeting" th:text="#{manager.accounts.title}">Account requests</p>
     </header>
 
     <div class="account-message account-message-success" th:if="${managerAccountSuccess}" th:text="${managerAccountSuccess}">
@@ -23,7 +23,7 @@
     </div>
 
     <div class="accounts-empty-state" th:if="${pendingAccountsPage == null || pendingAccountsPage.items.isEmpty()}">
-        <p>Нет заявок на открытие счета.</p>
+        <p th:text="#{manager.accounts.empty}">No account opening requests.</p>
     </div>
 
     <div class="accounts-list" th:if="${pendingAccountsPage != null && !pendingAccountsPage.items.isEmpty()}">
@@ -51,19 +51,21 @@
 
             <div class="account-actions">
                 <form class="action-block" method="post" th:action="@{/manager/accounts/{accountId}/approve(accountId=${account.accountId})}">
-                    <button type="submit">Одобрить</button>
+            <input type="hidden" name="_csrf" th:value="${csrfToken}">
+                    <button type="submit" th:text="#{common.approve}">Approve</button>
                 </form>
 
                 <form class="action-block" method="post" th:action="@{/manager/accounts/{accountId}/reject(accountId=${account.accountId})}">
-                    <button class="deactivate-account-button" type="submit">Отклонить</button>
+            <input type="hidden" name="_csrf" th:value="${csrfToken}">
+                    <button class="deactivate-account-button" type="submit" th:text="#{common.reject}">Reject</button>
                 </form>
             </div>
         </div>
     </div>
     <nav class="pagination" th:if="${pendingAccountsPage != null && pendingAccountsPage.totalPages > 1}">
-        <a th:if="${pendingAccountsPage.hasPrevious}" th:href="@{/manager/accounts(page=${pendingAccountsPage.currentPage - 1})}">Previous</a>
+        <a th:if="${pendingAccountsPage.hasPrevious}" th:href="@{/manager/accounts(page=${pendingAccountsPage.currentPage - 1})}" th:text="#{pagination.previous}">Previous</a>
         <span th:text="${pendingAccountsPage.currentPage + ' / ' + pendingAccountsPage.totalPages}">1 / 1</span>
-        <a th:if="${pendingAccountsPage.hasNext}" th:href="@{/manager/accounts(page=${pendingAccountsPage.currentPage + 1})}">Next</a>
+        <a th:if="${pendingAccountsPage.hasNext}" th:href="@{/manager/accounts(page=${pendingAccountsPage.currentPage + 1})}" th:text="#{pagination.next}">Next</a>
     </nav>
 
 </main>

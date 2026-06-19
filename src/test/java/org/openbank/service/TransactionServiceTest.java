@@ -122,6 +122,57 @@ class TransactionServiceTest {
   }
 
   @Test
+  void cardTransferToKnownCardUsesInternalTransfer() {
+    Account sender = account(1L, 7L, 1L, new BigDecimal("1000"), new BigDecimal("1000"));
+    Account receiver = account(2L, 9L, 1L, BigDecimal.ZERO, new BigDecimal("1000"));
+    when(accountDao.getAccountByCardNumber("4000000000000002")).thenReturn(Optional.of(receiver));
+    when(accountDao.getAccountByIdForUpdate(connection, 1L)).thenReturn(Optional.of(sender));
+    when(accountDao.getAccountByIdForUpdate(connection, 2L)).thenReturn(Optional.of(receiver));
+    when(bankSettingsService.calculateTransferFee(BigDecimal.TEN)).thenReturn(BigDecimal.ZERO);
+    when(accountDao.withdraw(connection, 1L, BigDecimal.TEN)).thenReturn(true);
+    when(accountDao.topUp(connection, 2L, BigDecimal.TEN)).thenReturn(true);
+    when(transactionDao.createNewTransaction(eq(connection), eq(1L), eq(2L), any(), eq(BigDecimal.TEN), eq(1L), eq(BigDecimal.ZERO), anyString(), eq("CARD_TRANSFER"))).thenReturn(true);
+
+    service.makeTransactionByCardNumber(1L, "4000 0000 0000 0002", BigDecimal.TEN);
+
+    verify(accountDao).topUp(connection, 2L, BigDecimal.TEN);
+  }
+
+  @Test
+  void phoneTransferFallsBackToFirstActiveAccount() {
+    User receiver = user(9L);
+    Account sender = account(1L, 7L, 1L, new BigDecimal("1000"), new BigDecimal("1000"));
+    Account receiverAccount = account(3L, 9L, 1L, BigDecimal.ZERO, new BigDecimal("1000"));
+    when(userDao.getUserByPhoneNumber("+77001112233")).thenReturn(Optional.of(receiver));
+    when(accountDao.getMainActiveAccountByUserId(9L)).thenReturn(Optional.empty());
+    when(accountDao.getFirstActiveAccountByUserId(9L)).thenReturn(Optional.of(receiverAccount));
+    when(accountDao.getAccountByIdForUpdate(connection, 1L)).thenReturn(Optional.of(sender));
+    when(accountDao.getAccountByIdForUpdate(connection, 3L)).thenReturn(Optional.of(receiverAccount));
+    when(bankSettingsService.calculateTransferFee(BigDecimal.TEN)).thenReturn(BigDecimal.ZERO);
+    when(accountDao.withdraw(connection, 1L, BigDecimal.TEN)).thenReturn(true);
+    when(accountDao.topUp(connection, 3L, BigDecimal.TEN)).thenReturn(true);
+    when(transactionDao.createNewTransaction(eq(connection), eq(1L), eq(3L), any(), eq(BigDecimal.TEN), eq(1L), eq(BigDecimal.ZERO), anyString(), eq("PHONE_TRANSFER"))).thenReturn(true);
+
+    service.makeTransactionByPhoneNumber(1L, "77001112233", BigDecimal.TEN);
+
+    verify(accountDao).getFirstActiveAccountByUserId(9L);
+  }
+
+  @Test
+  void phoneTransferRejectsMissingReceiverOrReceiverWithoutAccount() {
+    when(userDao.getUserByPhoneNumber("+77001112233")).thenReturn(Optional.empty());
+
+    assertThrows(IllegalArgumentException.class, () -> service.makeTransactionByPhoneNumber(1L, "+77001112233", BigDecimal.TEN));
+
+    User receiver = user(9L);
+    when(userDao.getUserByPhoneNumber("+77001112234")).thenReturn(Optional.of(receiver));
+    when(accountDao.getMainActiveAccountByUserId(9L)).thenReturn(Optional.empty());
+    when(accountDao.getFirstActiveAccountByUserId(9L)).thenReturn(Optional.empty());
+
+    assertThrows(IllegalArgumentException.class, () -> service.makeTransactionByPhoneNumber(1L, "+77001112234", BigDecimal.TEN));
+  }
+
+  @Test
   void loanPaymentConvertsToKztAndPaysLoan() {
     Account sender = account(1L, 7L, 2L, new BigDecimal("1000"), new BigDecimal("1000"));
     Loan loan = new Loan(4L, 7L, 1L, null, new BigDecimal("500"), BigDecimal.TEN, 12, LoanStatus.ACTIVE.name(), LocalDate.now(), BigDecimal.TEN);

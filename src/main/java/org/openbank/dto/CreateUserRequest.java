@@ -7,28 +7,28 @@ import jakarta.validation.constraints.Size;
 
 public class CreateUserRequest {
 
-  @NotBlank(message = "Name is required")
-  @Size(max = 100, message = "Name must be shorter than 100 characters")
+  @NotBlank(message = "{validation.name.required}")
+  @Size(max = 100, message = "{validation.name.size}")
   private String name;
 
-  @NotBlank(message = "Surname is required")
-  @Size(max = 100, message = "Surname must be shorter than 100 characters")
+  @NotBlank(message = "{validation.surname.required}")
+  @Size(max = 100, message = "{validation.surname.size}")
   private String surname;
 
-  @NotBlank(message = "Phone number is required")
-  @Pattern(regexp = "^\\+?\\d[\\d\\s()-]{8,20}$", message = "Phone number format is invalid")
+  @NotBlank(message = "{validation.phone.required}")
+  @Pattern(regexp = "^\\+?\\d[\\d\\s()-]{8,20}$", message = "{validation.phone.format}")
   private String phone;
 
-  @NotBlank(message = "Email is required")
-  @Email(message = "Email format is invalid")
-  @Size(max = 255, message = "Email must be shorter than 255 characters")
+  @NotBlank(message = "{validation.email.required}")
+  @Email(message = "{validation.email.format}")
+  @Size(max = 255, message = "{validation.email.size}")
   private String email;
 
-  @NotBlank(message = "Password is required")
-  @Size(min = 8, max = 72, message = "Password must contain from 8 to 72 characters")
+  @NotBlank(message = "{validation.password.required}")
+  @Size(min = 8, max = 72, message = "{validation.password.size}")
   private String password;
 
-  @NotBlank(message = "Password confirmation is required")
+  @NotBlank(message = "{validation.password.confirm.required}")
   private String confirmPassword;
 
   public String getName() {

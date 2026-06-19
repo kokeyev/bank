@@ -16,25 +16,13 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
-/**
- * Provides transaction dao impl operations.
- */
 @Repository
 public class TransactionDaoImpl implements TransactionDao {
 
   private final ConnectionPool connectionPool;
-
-  /**
-   * Handles transaction dao impl.
-   */
   public TransactionDaoImpl(ConnectionPool connectionPool) {
     this.connectionPool = connectionPool;
   }
-
-  /**
-   * Handles create new transaction.
-   */
   @Override
   public boolean createNewTransaction(Long senderAccountId, Long receiverAccountId, LocalDateTime transactionDate, BigDecimal amount, Long currencyId, BigDecimal fee, String message, String transactionType) {
     Connection connection = null;
@@ -46,10 +34,6 @@ public class TransactionDaoImpl implements TransactionDao {
       connectionPool.releaseConnection(connection);
     }
   }
-
-  /**
-   * Handles create new transaction.
-   */
   @Override
   public boolean createNewTransaction(Connection connection, Long senderAccountId, Long receiverAccountId, LocalDateTime transactionDate, BigDecimal amount, Long currencyId, BigDecimal fee, String message, String transactionType) {
     String sql = """
@@ -72,10 +56,6 @@ public class TransactionDaoImpl implements TransactionDao {
       throw new BankDataAccessException("Не удалось сохранить историю транзакции", e);
     }
   }
-
-  /**
-   * Handles get transaction by id.
-   */
   @Override
   public Optional<Transaction> getTransactionById(Long transactionId) {
     String sql = """
@@ -104,10 +84,6 @@ public class TransactionDaoImpl implements TransactionDao {
       connectionPool.releaseConnection(connection);
     }
   }
-
-  /**
-   * Handles get transactions by account id.
-   */
   @Override
   public List<Transaction> getTransactionsByAccountId(Long accountId) {
     List<Transaction> transactions = new ArrayList<>();
@@ -140,18 +116,10 @@ public class TransactionDaoImpl implements TransactionDao {
       connectionPool.releaseConnection(connection);
     }
   }
-
-  /**
-   * Handles get recent transactions by user id.
-   */
   @Override
   public List<Transaction> getRecentTransactionsByUserId(Long userId, int limit) {
     return getTransactionsByUserId(userId, limit, 0);
   }
-
-  /**
-   * Handles get transactions by user id.
-   */
   @Override
   public List<Transaction> getTransactionsByUserId(Long userId, int limit, int offset) {
     List<Transaction> transactions = new ArrayList<>();
@@ -190,10 +158,6 @@ public class TransactionDaoImpl implements TransactionDao {
       connectionPool.releaseConnection(connection);
     }
   }
-
-  /**
-   * Handles count transactions by user id.
-   */
   @Override
   public int countTransactionsByUserId(Long userId) {
     String sql = """

@@ -9,15 +9,15 @@ import java.math.BigDecimal;
 
 public class CardTransferRequest {
 
-  @NotNull(message = "Sender account is required")
+  @NotNull(message = "{validation.senderAccount.required}")
   private Long senderAccountId;
 
-  @NotBlank(message = "Card number is required")
-  @Pattern(regexp = "\\d{16}", message = "Card number must contain exactly 16 digits")
+  @NotBlank(message = "{validation.cardNumber.required}")
+  @Pattern(regexp = "\\d{16}", message = "{validation.cardNumber.format}")
   private String receiverCardNumber;
 
-  @NotNull(message = "Amount is required")
-  @DecimalMin(value = "0.01", message = "Amount must be greater than 0")
+  @NotNull(message = "{validation.amount.required}")
+  @DecimalMin(value = "0.01", message = "{validation.amount.positive}")
   private BigDecimal amount;
 
   private String message;

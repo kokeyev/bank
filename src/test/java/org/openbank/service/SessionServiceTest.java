@@ -40,15 +40,16 @@ class SessionServiceTest {
   }
 
   @Test
-  void staffSessionServiceHandlesAdminAndManagerSessions() {
+  void staffSessionServiceStoresAdminAndManagerSessions() {
     StaffSessionService staffSessionService = new StaffSessionService();
     HttpSession session = mock(HttpSession.class);
+    User admin = new User(7L, "A", "B", "+7", "admin@b.kz", "ADMIN", "ACTIVE", LocalDate.now(), null, "hash");
     User manager = new User(8L, "M", "B", "+7", "m@b.kz", "MANAGER", "ACTIVE", LocalDate.now(), null, "hash");
 
-    assertTrue(staffSessionService.loginAdmin(session, "admin", "12345"));
+    staffSessionService.loginAdmin(session, admin);
     staffSessionService.loginManager(session, manager);
 
-    verify(session).setAttribute(SessionKeys.ADMIN_LOGGED_IN, true);
+    verify(session).setAttribute(SessionKeys.CURRENT_ADMIN_ID, 7L);
     verify(session).setAttribute(SessionKeys.CURRENT_MANAGER_ID, 8L);
   }
 }

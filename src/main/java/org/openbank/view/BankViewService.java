@@ -5,7 +5,6 @@ import org.openbank.dto.DepositOption;
 import org.openbank.dto.DepositTypeOption;
 import org.openbank.dto.DepositView;
 import org.openbank.dto.LoanOption;
-import org.openbank.dto.LoanPaymentScheduleItem;
 import org.openbank.dto.LoanTypeView;
 import org.openbank.dto.LoanView;
 import org.openbank.dto.Page;
@@ -20,16 +19,14 @@ import org.openbank.model.LoanType;
 import org.openbank.model.Transaction;
 import org.openbank.model.status.AccountStatus;
 import org.openbank.model.status.DepositStatus;
-import org.openbank.model.status.LoanStatus;
 import org.openbank.service.AccountService;
 import org.openbank.service.DepositService;
 import org.openbank.service.LoanService;
+import org.openbank.service.MessageService;
 import org.openbank.service.TransactionService;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -37,31 +34,26 @@ import java.util.Optional;
 @Service
 public class BankViewService {
 
-  private static final String CAPITAL = "Капитал";
-  private static final DateTimeFormatter TRANSACTION_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
-
   private final AccountService accountService;
   private final DepositService depositService;
   private final LoanService loanService;
   private final TransactionService transactionService;
-  private final BankDisplayFormatter formatter;
-  private final TransactionTypeFormatter transactionTypeFormatter;
-  private final LoanProductText loanProductText;
+  private final BankViewMapper mapper;
+  private final MessageService messageService;
 
-  public BankViewService(AccountService accountService, DepositService depositService, LoanService loanService, TransactionService transactionService, BankDisplayFormatter formatter, TransactionTypeFormatter transactionTypeFormatter, LoanProductText loanProductText) {
+  public BankViewService(AccountService accountService, DepositService depositService, LoanService loanService, TransactionService transactionService, BankViewMapper mapper, MessageService messageService) {
     this.accountService = accountService;
     this.depositService = depositService;
     this.loanService = loanService;
     this.transactionService = transactionService;
-    this.formatter = formatter;
-    this.transactionTypeFormatter = transactionTypeFormatter;
-    this.loanProductText = loanProductText;
+    this.mapper = mapper;
+    this.messageService = messageService;
   }
 
   public List<AccountView> getAccountViews(Long userId) {
     List<AccountView> result = new ArrayList<>();
     for (Account account : accountService.getAccountsByUserId(userId)) {
-      result.add(toAccountView(account));
+      result.add(mapper.toAccountView(account));
     }
     return result;
   }
@@ -69,7 +61,7 @@ public class BankViewService {
   public List<AccountView> getPendingAccountViews() {
     List<AccountView> result = new ArrayList<>();
     for (Account account : accountService.getPendingAccounts()) {
-      result.add(toAccountView(account));
+      result.add(mapper.toAccountView(account));
     }
     return result;
   }
@@ -81,55 +73,71 @@ public class BankViewService {
   public List<DepositView> getDepositViews(Long userId) {
     List<DepositView> result = new ArrayList<>();
     for (Deposit deposit : depositService.getDepositsByUserId(userId)) {
-      result.add(toDepositView(deposit));
+      result.add(mapper.toDepositView(deposit));
     }
     return result;
+  }
+
+  public Page<DepositView> getDepositViewsPage(Long userId, int page, int size) {
+    return new Page<>(getDepositViews(userId), page, size);
   }
 
   public List<DepositView> getPendingDepositViews() {
     List<DepositView> result = new ArrayList<>();
     for (Deposit deposit : depositService.getPendingDeposits()) {
-      result.add(toDepositView(deposit));
+      result.add(mapper.toDepositView(deposit));
     }
     return result;
+  }
+
+  public Page<DepositView> getPendingDepositViewsPage(int page, int size) {
+    return new Page<>(getPendingDepositViews(), page, size);
   }
 
   public List<LoanView> getLoanViews(Long userId) {
     List<LoanView> result = new ArrayList<>();
     for (Loan loan : loanService.getLoansByUserId(userId)) {
-      result.add(toLoanView(loan));
+      result.add(mapper.toLoanView(loan));
     }
     return result;
+  }
+
+  public Page<LoanView> getLoanViewsPage(Long userId, int page, int size) {
+    return new Page<>(getLoanViews(userId), page, size);
   }
 
   public List<LoanView> getPendingLoanViews() {
     List<LoanView> result = new ArrayList<>();
     for (Loan loan : loanService.getPendingLoans()) {
-      result.add(toPendingLoanView(loan));
+      result.add(mapper.toPendingLoanView(loan));
     }
     return result;
+  }
+
+  public Page<LoanView> getPendingLoanViewsPage(int page, int size) {
+    return new Page<>(getPendingLoanViews(), page, size);
   }
 
   public List<LoanTypeView> getLoanTypeViews() {
     List<LoanTypeView> result = new ArrayList<>();
     for (LoanType loanType : loanService.getAllLoanTypes()) {
-      result.add(toLoanTypeView(loanType));
+      result.add(mapper.toLoanTypeView(loanType));
     }
     return result;
   }
 
   public LoanTypeView getLoanTypeView(String loanTypeName) {
     Optional<LoanType> loanTypeOptional = loanService.getLoanTypeByName(loanTypeName);
-    if (!loanTypeOptional.isPresent()) {
-      throw new IllegalStateException("Тип кредита не найден");
+    if (loanTypeOptional.isEmpty()) {
+      throw new IllegalStateException(messageService.get("error.loanType.notFound"));
     }
-    return toLoanTypeView(loanTypeOptional.get());
+    return mapper.toLoanTypeView(loanTypeOptional.get());
   }
 
   public List<TransactionView> getTransactionViews(Long userId, int limit) {
     List<TransactionView> result = new ArrayList<>();
     for (Transaction transaction : transactionService.getRecentTransactionsByUserId(userId, limit)) {
-      result.add(toTransactionView(transaction));
+      result.add(mapper.toTransactionView(transaction));
     }
     return result;
   }
@@ -143,7 +151,7 @@ public class BankViewService {
 
     List<TransactionView> items = new ArrayList<>();
     for (Transaction transaction : transactionService.getTransactionsByUserId(userId, safeSize, offset)) {
-      items.add(toTransactionView(transaction));
+      items.add(mapper.toTransactionView(transaction));
     }
 
     return new Page<>(items, currentPage, safeSize, total);
@@ -153,7 +161,7 @@ public class BankViewService {
     List<TransferAccountOption> result = new ArrayList<>();
     for (Account account : accountService.getAccountsByUserId(userId)) {
       if (AccountStatus.ACTIVE.name().equals(account.getStatus())) {
-        result.add(toTransferAccountOption(account));
+        result.add(mapper.toTransferAccountOption(account));
       }
     }
     return result;
@@ -162,7 +170,7 @@ public class BankViewService {
   public List<TransferAccountOption> getAllAccountOptions(Long userId) {
     List<TransferAccountOption> result = new ArrayList<>();
     for (Account account : accountService.getAccountsByUserId(userId)) {
-      result.add(toTransferAccountOption(account));
+      result.add(mapper.toTransferAccountOption(account));
     }
     return result;
   }
@@ -170,7 +178,7 @@ public class BankViewService {
   public List<DepositTypeOption> getDepositTypeOptions(String productName) {
     List<DepositTypeOption> result = new ArrayList<>();
     for (DepositType depositType : depositService.getDepositTypesByProduct(productName)) {
-      result.add(toDepositTypeOption(depositType));
+      result.add(mapper.toDepositTypeOption(depositType));
     }
     return result;
   }
@@ -195,13 +203,13 @@ public class BankViewService {
   }
 
   public String formatMoney(BigDecimal amount) {
-    return formatter.money(amount);
+    return mapper.formatMoney(amount);
   }
 
   public List<LoanOption> getLoanOptions(Long userId) {
     List<LoanOption> result = new ArrayList<>();
     for (Loan loan : loanService.getActiveLoansByUserId(userId)) {
-      result.add(toLoanOption(loan));
+      result.add(mapper.toLoanOption(loan));
     }
     return result;
   }
@@ -210,142 +218,10 @@ public class BankViewService {
     List<DepositOption> result = new ArrayList<>();
     for (Deposit deposit : depositService.getDepositsByUserId(userId)) {
       if (canTopUpDeposit(deposit)) {
-        result.add(toDepositOption(deposit));
+        result.add(mapper.toDepositOption(deposit));
       }
     }
     return result;
-  }
-
-  private AccountView toAccountView(Account account) {
-    String currency = accountService.getCurrencyNameById(account.getCurrencyId());
-
-    return new AccountView(
-        account.getAccountId(),
-        account.getName(),
-        formatter.money(account.getBalance()),
-        currency,
-        formatter.cardNumber(account.getCardNumber()),
-        formatter.expiryDate(account.getExpiryDate()),
-        account.getCvv(),
-        formatter.money(account.getTransactionLimit()),
-        formatter.decimalValue(account.getTransactionLimit()),
-        account.getStatus(),
-        formatter.accountStatus(account.getStatus()),
-        Boolean.TRUE.equals(account.getMain()),
-        AccountStatus.ACTIVE.name().equals(account.getStatus())
-    );
-  }
-
-  private DepositView toDepositView(Deposit deposit) {
-    DepositType depositType = depositService.getDepositTypeById(deposit.getDepositTypeId())
-        .orElseThrow(() -> new IllegalStateException("Тип депозита не найден"));
-    String currency = depositService.getCurrencyNameById(depositType.getCurrencyId());
-
-    return new DepositView(
-        deposit.getDepositId(),
-        depositType.getName(),
-        formatter.money(deposit.getCurrentAmount()),
-        formatter.decimalValue(deposit.getCurrentAmount()),
-        currency,
-        formatter.rate(depositType.getRate()),
-        depositType.getDuration() + " мес.",
-        formatter.displayDate(deposit.getStartDate()),
-        formatter.depositStatus(deposit.getStatus()),
-        formatter.yesNo(deposit.getAutoRenewal()),
-        formatter.yesNo(deposit.getReinvestInterest()),
-        DepositStatus.ACTIVE.name().equals(deposit.getStatus()),
-        Boolean.TRUE.equals(depositType.getWithdrawal())
-    );
-  }
-
-  private LoanView toLoanView(Loan loan) {
-    LoanType loanType = loanService.getLoanTypeById(loan.getLoanTypeId())
-        .orElseThrow(() -> new IllegalStateException("Тип кредита не найден"));
-
-    return new LoanView(
-        loan.getLoanId(),
-        loanProductText.name(loanType.getName()),
-        formatter.money(loan.getRemainingAmount()) + " ₸",
-        loan.getRate() == null ? "-" : formatter.rate(loan.getRate()),
-        loan.getDuration() == null ? "-" : formatter.duration(loan.getDuration()),
-        loan.getMonthlyPayment() == null ? "-" : formatter.money(loan.getMonthlyPayment()) + " ₸",
-        formatter.loanStatus(loan.getStatus()),
-        formatter.displayDateOrDash(loan.getStartDate()),
-        LoanStatus.OFFERED.name().equals(loan.getStatus()),
-        LoanStatus.ACTIVE.name().equals(loan.getStatus()),
-        formatter.money(loanService.calculateLatePenalty(loan)) + " ₸",
-        getScheduleItems(loan)
-    );
-  }
-
-  private LoanView toPendingLoanView(Loan loan) {
-    LoanType loanType = loanService.getLoanTypeById(loan.getLoanTypeId())
-        .orElseThrow(() -> new IllegalStateException("Тип кредита не найден"));
-
-    return new LoanView(
-        loan.getLoanId(),
-        loanProductText.name(loanType.getName()),
-        formatter.money(loan.getRemainingAmount()) + " ₸",
-        loan.getRate() == null ? "-" : formatter.rate(loan.getRate()),
-        loan.getDuration() == null ? "-" : loan.getDuration() + " мес.",
-        loan.getMonthlyPayment() == null ? "-" : formatter.money(loan.getMonthlyPayment()) + " ₸",
-        "На рассмотрении",
-        "-",
-        false
-    );
-  }
-
-  private LoanTypeView toLoanTypeView(LoanType loanType) {
-    return new LoanTypeView(
-        loanType.getLoanTypeId(),
-        loanProductText.name(loanType.getName()),
-        loanProductText.slug(loanType.getName()),
-        loanProductText.tag(loanType.getName()),
-        loanProductText.description(loanType.getName()),
-        loanProductText.amountRange(formatter.money(loanType.getMinimumAmount()), formatter.money(loanType.getMaximumAmount())),
-        loanProductText.durationUpTo(loanType.getDuration()),
-        loanProductText.rateFrom(formatter.rate(loanType.getRate()))
-    );
-  }
-
-  private TransactionView toTransactionView(Transaction transaction) {
-    String currency = accountService.getCurrencyNameById(transaction.getCurrencyId());
-    String date = transaction.getTransactionDate() == null ? "" : transaction.getTransactionDate().format(TRANSACTION_DATE_FORMATTER);
-
-    return new TransactionView(
-        date,
-        transactionTypeFormatter.displayName(transaction.getTransactionType()),
-        formatter.money(transaction.getAmount()) + " " + currency,
-        formatter.money(transaction.getFee()),
-        transaction.getMessage()
-    );
-  }
-
-  private TransferAccountOption toTransferAccountOption(Account account) {
-    String currency = accountService.getCurrencyNameById(account.getCurrencyId());
-    return new TransferAccountOption(account.getAccountId(), account.getName() + " - " + formatter.money(account.getBalance()) + " " + currency);
-  }
-
-  private LoanOption toLoanOption(Loan loan) {
-    LoanType loanType = loanService.getLoanTypeById(loan.getLoanTypeId())
-        .orElseThrow(() -> new IllegalStateException("Тип кредита не найден"));
-    return new LoanOption(loan.getLoanId(), loanProductText.remainingAmount(loanType.getName(), formatter.money(loan.getRemainingAmount())));
-  }
-
-  private DepositOption toDepositOption(Deposit deposit) {
-    DepositType depositType = depositService.getDepositTypeById(deposit.getDepositTypeId())
-        .orElseThrow(() -> new IllegalStateException("Тип депозита не найден"));
-    String currency = depositService.getCurrencyNameById(depositType.getCurrencyId());
-    String label = depositType.getName() + " " + depositType.getDuration() + " мес. - " + formatter.money(deposit.getCurrentAmount()) + " " + currency;
-
-    return new DepositOption(deposit.getDepositId(), label);
-  }
-
-  private DepositTypeOption toDepositTypeOption(DepositType depositType) {
-    String currency = depositService.getCurrencyNameById(depositType.getCurrencyId());
-    String label = depositType.getDuration() + " мес. / " + currency + " / " + depositType.getRate() + "% / минимум " + formatter.money(depositType.getMinimumAmount());
-
-    return new DepositTypeOption(depositType.getDepositTypeId(), label);
   }
 
   private boolean canTopUpDeposit(Deposit deposit) {
@@ -354,30 +230,8 @@ public class BankViewService {
     }
 
     DepositType depositType = depositService.getDepositTypeById(deposit.getDepositTypeId())
-        .orElseThrow(() -> new IllegalStateException("Тип депозита не найден"));
-    return !CAPITAL.equals(depositType.getName());
-  }
-
-  private List<LoanPaymentScheduleItem> getScheduleItems(Loan loan) {
-    if (!LoanStatus.ACTIVE.name().equals(loan.getStatus()) || loan.getMonthlyPayment() == null) {
-      return List.of();
-    }
-
-    List<LocalDate> dueDates = loanService.getPaymentDueDates(loan);
-    List<LoanPaymentScheduleItem> result = new ArrayList<>();
-
-    for (int i = 0; i < dueDates.size(); i++) {
-      LocalDate dueDate = dueDates.get(i);
-      String status = dueDate.isBefore(LocalDate.now()) ? "Проверьте оплату" : "Ожидается";
-      result.add(new LoanPaymentScheduleItem(
-          i + 1,
-          formatter.displayDate(dueDate),
-          formatter.money(loan.getMonthlyPayment()) + " ₸",
-          status
-      ));
-    }
-
-    return result;
+        .orElseThrow(() -> new IllegalStateException(messageService.get("error.depositType.notFound")));
+    return depositService.canTopUpDeposit(deposit, depositType);
   }
 
 }

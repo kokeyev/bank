@@ -16,6 +16,7 @@
         </div>
 
         <form class="auth-form" method="post" th:action="@{/login}">
+            <input type="hidden" name="_csrf" th:value="${csrfToken}">
             <div class="auth-errors" th:if="${loginError}">
                 <p th:text="${loginError}">Неверный логин или пароль.</p>
             </div>

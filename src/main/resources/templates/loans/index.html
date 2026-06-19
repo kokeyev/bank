@@ -51,13 +51,13 @@
     <section class="client-loans-section">
         <h2 th:text="#{loans.myLoans}">Мои кредиты</h2>
 
-        <div class="accounts-empty-state" th:if="${loans == null || loans.isEmpty()}">
+        <div class="accounts-empty-state" th:if="${loansPage == null || loansPage.items.isEmpty()}">
             <p th:if="${loggedIn}" th:text="#{loans.empty}">У вас пока нет заявок и активных кредитов.</p>
             <p th:unless="${loggedIn}" th:text="#{loans.loginToView}">Войдите в аккаунт, чтобы увидеть свои кредиты и предложения.</p>
         </div>
 
-        <div class="client-loans-list" th:if="${loans != null && !loans.isEmpty()}">
-            <div class="client-loan-card" th:each="loan : ${loans}">
+        <div class="client-loans-list" th:if="${loansPage != null && !loansPage.items.isEmpty()}">
+            <div class="client-loan-card" th:each="loan : ${loansPage.items}">
                 <div class="client-loan-topline">
                     <div>
                         <div class="client-loan-name" th:text="${loan.typeName}">На любые цели</div>
@@ -96,9 +96,11 @@
 
                 <div class="client-loan-actions" th:if="${loan.offered}">
                     <form method="post" th:action="@{/loans/{loanId}/accept(loanId=${loan.loanId})}">
+            <input type="hidden" name="_csrf" th:value="${csrfToken}">
                         <button class="loan-submit-button" type="submit" th:text="#{loans.accept}">Принять</button>
                     </form>
                     <form method="post" th:action="@{/loans/{loanId}/reject(loanId=${loan.loanId})}">
+            <input type="hidden" name="_csrf" th:value="${csrfToken}">
                         <button class="loan-secondary-button" type="submit" th:text="#{loans.reject}">Отклонить</button>
                     </form>
                 </div>
@@ -126,6 +128,12 @@
                 </div>
             </div>
         </div>
+
+        <nav class="pagination" th:if="${loansPage != null && loansPage.totalPages > 1}">
+            <a th:if="${loansPage.hasPrevious}" th:href="@{/loans(page=${loansPage.currentPage - 1})}" th:text="#{pagination.previous}">Previous</a>
+            <span th:text="${loansPage.currentPage + ' / ' + loansPage.totalPages}">1 / 1</span>
+            <a th:if="${loansPage.hasNext}" th:href="@{/loans(page=${loansPage.currentPage + 1})}" th:text="#{pagination.next}">Next</a>
+        </nav>
     </section>
 
     <div class="loan-note">

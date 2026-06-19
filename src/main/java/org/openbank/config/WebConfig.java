@@ -28,10 +28,12 @@ public class WebConfig implements WebMvcConfigurer {
 
   private final ApplicationContext applicationContext;
   private final LoginRequiredInterceptor loginRequiredInterceptor;
+  private final CsrfInterceptor csrfInterceptor;
 
-  public WebConfig(ApplicationContext applicationContext, LoginRequiredInterceptor loginRequiredInterceptor) {
+  public WebConfig(ApplicationContext applicationContext, LoginRequiredInterceptor loginRequiredInterceptor, CsrfInterceptor csrfInterceptor) {
     this.applicationContext = applicationContext;
     this.loginRequiredInterceptor = loginRequiredInterceptor;
+    this.csrfInterceptor = csrfInterceptor;
   }
 
   @Bean
@@ -89,6 +91,7 @@ public class WebConfig implements WebMvcConfigurer {
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
     registry.addInterceptor(localeChangeInterceptor());
+    registry.addInterceptor(csrfInterceptor);
     registry.addInterceptor(loginRequiredInterceptor);
   }
 

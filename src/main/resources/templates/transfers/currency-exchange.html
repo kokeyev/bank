@@ -17,6 +17,7 @@
         <h1 th:text="#{transfers.exchange}">Обмен валют</h1>
 
         <form class="transfer-form" method="post" th:action="@{/transfers/currency-exchange}" th:object="${transferRequest}">
+            <input type="hidden" name="_csrf" th:value="${csrfToken}">
             <div class="transfer-message transfer-message-success" th:if="${exchangeSuccess}" th:text="${exchangeSuccess}">
                 Обмен выполнен.
             </div>

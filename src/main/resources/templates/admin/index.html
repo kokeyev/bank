@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Админ</title>
+    <title th:text="#{admin.title}">Admin</title>
     <link rel="stylesheet" href="../static/css/styles.css" th:href="@{/css/styles.css}">
     <meta charset="UTF-8">
 </head>
@@ -10,96 +10,108 @@
 <div th:replace="~{fragments/admin-header :: header}"></div>
 
 <main class="settings-page">
-    <h1>Админ</h1>
+    <h1 th:text="#{admin.title}">Admin</h1>
 
     <div class="loan-message loan-message-success" th:if="${adminSuccess}" th:text="${adminSuccess}">Готово.</div>
     <div class="loan-message loan-message-error" th:if="${adminError}" th:text="${adminError}">Ошибка.</div>
 
     <div class="settings-layout">
         <section class="settings-card account-actions-card">
-            <h2>Новые менеджеры</h2>
+            <h2 th:text="#{admin.managers.title}">New managers</h2>
 
-            <div class="accounts-empty-state" th:if="${pendingManagers == null || pendingManagers.isEmpty()}">
-                <p>Нет новых заявок менеджеров.</p>
+            <div class="accounts-empty-state" th:if="${pendingManagersPage == null || pendingManagersPage.items.isEmpty()}">
+                <p th:text="#{admin.managers.empty}">No new manager requests.</p>
             </div>
 
-            <div class="admin-list" th:if="${pendingManagers != null && !pendingManagers.isEmpty()}">
-                <div class="admin-list-item" th:each="manager : ${pendingManagers}">
+            <div class="admin-list" th:if="${pendingManagersPage != null && !pendingManagersPage.items.isEmpty()}">
+                <div class="admin-list-item" th:each="manager : ${pendingManagersPage.items}">
                     <div>
                         <strong th:text="${manager.name + ' ' + manager.surname}">Имя Фамилия</strong>
                         <span th:text="${manager.emailAddress + ' / ' + manager.phoneNumber}">manager@example.com</span>
                     </div>
                     <div class="settings-actions">
                         <form method="post" th:action="@{/admin/managers/{managerId}/approve(managerId=${manager.userId})}">
-                            <button class="save-settings-button" type="submit">Одобрить</button>
+            <input type="hidden" name="_csrf" th:value="${csrfToken}">
+                            <button class="save-settings-button" type="submit" th:text="#{common.approve}">Approve</button>
                         </form>
                         <form method="post" th:action="@{/admin/managers/{managerId}/reject(managerId=${manager.userId})}">
-                            <button class="delete-account-button" type="submit">Отклонить</button>
+            <input type="hidden" name="_csrf" th:value="${csrfToken}">
+                            <button class="delete-account-button" type="submit" th:text="#{common.reject}">Reject</button>
                         </form>
                     </div>
                 </div>
             </div>
+
+            <nav class="pagination" th:if="${pendingManagersPage != null && pendingManagersPage.totalPages > 1}">
+                <a th:if="${pendingManagersPage.hasPrevious}" th:href="@{/admin(managersPage=${pendingManagersPage.currentPage - 1})}" th:text="#{pagination.previous}">Previous</a>
+                <span th:text="${pendingManagersPage.currentPage + ' / ' + pendingManagersPage.totalPages}">1 / 1</span>
+                <a th:if="${pendingManagersPage.hasNext}" th:href="@{/admin(managersPage=${pendingManagersPage.currentPage + 1})}" th:text="#{pagination.next}">Next</a>
+            </nav>
         </section>
 
         <section class="settings-card">
-            <h2>Комиссия</h2>
+            <h2 th:text="#{admin.fee.title}">Fee</h2>
             <form class="settings-form" method="post" th:action="@{/admin/settings/fee}">
+            <input type="hidden" name="_csrf" th:value="${csrfToken}">
                 <div class="settings-field">
-                    <label for="transferFeePercent">Комиссия за перевод, %</label>
+                    <label for="transferFeePercent" th:text="#{admin.fee.percent}">Transfer fee, %</label>
                     <input id="transferFeePercent" name="transferFeePercent" type="number" min="0" step="0.01" th:value="${transferFeePercent}" required>
                 </div>
-                <button class="save-settings-button" type="submit">Сохранить</button>
+                <button class="save-settings-button" type="submit" th:text="#{common.save}">Save</button>
             </form>
         </section>
 
         <section class="settings-card">
-            <h2>Курсы валют</h2>
+            <h2 th:text="#{admin.currencyRates.title}">Currency rates</h2>
             <form class="settings-form" method="post" th:action="@{/admin/settings/currency-rate}">
+            <input type="hidden" name="_csrf" th:value="${csrfToken}">
                 <div class="settings-field">
-                    <label for="currencyId">Валюта</label>
+                    <label for="currencyId" th:text="#{exchange.currency}">Currency</label>
                     <select id="currencyId" name="currencyId" required>
                         <option th:each="currency : ${currencies}" th:value="${currency.currencyId}" th:text="${currency.name + ' / ' + currency.rateToKzt}">USD</option>
                     </select>
                 </div>
                 <div class="settings-field">
-                    <label for="rateToKzt">Новый курс к KZT</label>
+                    <label for="rateToKzt" th:text="#{exchange.newRate}">New rate to KZT</label>
                     <input id="rateToKzt" name="rateToKzt" type="number" min="0.0001" step="0.0001" required>
                 </div>
-                <button class="save-settings-button" type="submit">Обновить</button>
+                <button class="save-settings-button" type="submit" th:text="#{common.update}">Update</button>
             </form>
         </section>
 
         <section class="settings-card">
-            <h2>Ставки депозитов</h2>
+            <h2 th:text="#{admin.depositRates.title}">Deposit rates</h2>
             <form class="settings-form" method="post" th:action="@{/admin/settings/deposit-rate}">
+            <input type="hidden" name="_csrf" th:value="${csrfToken}">
                 <div class="settings-field">
-                    <label for="depositTypeId">Депозит</label>
+                    <label for="depositTypeId" th:text="#{admin.depositRates.deposit}">Deposit</label>
                     <select id="depositTypeId" name="depositTypeId" required>
-                        <option th:each="type : ${depositTypes}" th:value="${type.depositTypeId}" th:text="${type.name + ' / ' + type.duration + ' мес. / ' + type.rate + '%'}">Копилка</option>
+                        <option th:each="type : ${depositTypes}" th:value="${type.depositTypeId}" th:text="${type.name + ' / ' + type.duration + ' ' + #messages.msg('format.months.short') + ' / ' + type.rate + '%'}">Deposit</option>
                     </select>
                 </div>
                 <div class="settings-field">
-                    <label for="depositRate">Новая ставка, %</label>
+                    <label for="depositRate" th:text="#{admin.newRatePercent}">New rate, %</label>
                     <input id="depositRate" name="rate" type="number" min="0" step="0.01" required>
                 </div>
-                <button class="save-settings-button" type="submit">Обновить</button>
+                <button class="save-settings-button" type="submit" th:text="#{common.update}">Update</button>
             </form>
         </section>
 
         <section class="settings-card">
-            <h2>Ставки кредитов</h2>
+            <h2 th:text="#{admin.loanRates.title}">Loan rates</h2>
             <form class="settings-form" method="post" th:action="@{/admin/settings/loan-rate}">
+            <input type="hidden" name="_csrf" th:value="${csrfToken}">
                 <div class="settings-field">
-                    <label for="loanTypeId">Кредит</label>
+                    <label for="loanTypeId" th:text="#{admin.loanRates.loan}">Loan</label>
                     <select id="loanTypeId" name="loanTypeId" required>
-                        <option th:each="type : ${loanTypes}" th:value="${type.loanTypeId}" th:text="${type.name + ' / ' + type.rate + '%'}">На любые цели</option>
+                        <option th:each="type : ${loanTypes}" th:value="${type.loanTypeId}" th:text="${type.name + ' / ' + type.rate + '%'}">Loan</option>
                     </select>
                 </div>
                 <div class="settings-field">
-                    <label for="loanRate">Новая ставка, %</label>
+                    <label for="loanRate" th:text="#{admin.newRatePercent}">New rate, %</label>
                     <input id="loanRate" name="rate" type="number" min="0" step="0.01" required>
                 </div>
-                <button class="save-settings-button" type="submit">Обновить</button>
+                <button class="save-settings-button" type="submit" th:text="#{common.update}">Update</button>
             </form>
         </section>
     </div>

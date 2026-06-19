@@ -11,6 +11,7 @@ transaction_limit NUMERIC(18, 2) NOT NULL,
 name VARCHAR(100) NOT NULL,
 is_main BOOLEAN NOT NULL DEFAULT FALSE,
 CONSTRAINT uq_accounts_card_number UNIQUE (card_number),
+CONSTRAINT chk_accounts_cvv_format CHECK (cvv ~ '^[0-9]{3}$'),
 CONSTRAINT chk_accounts_status CHECK (status IN ('PENDING', 'ACTIVE', 'DEACTIVATED', 'EXPIRED', 'DELETED', 'REJECTED')),
 CONSTRAINT fk_accounts_user
 FOREIGN KEY (user_id)
@@ -19,3 +20,5 @@ CONSTRAINT fk_accounts_currency
 FOREIGN KEY (currency_id)
 REFERENCES currencies(currency_id)
 );
+
+COMMENT ON COLUMN accounts.cvv IS 'Course-project simulation value for displaying issued demo cards. Production banking systems must not store CVV after card issuance/authorization.';

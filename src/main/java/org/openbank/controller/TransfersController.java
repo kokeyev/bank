@@ -11,6 +11,7 @@ import org.openbank.model.User;
 import org.openbank.view.BankViewService;
 import org.openbank.service.CurrentUserService;
 import org.openbank.service.DepositService;
+import org.openbank.service.MessageService;
 import org.openbank.service.TransactionService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,6 +19,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 import java.util.Optional;
@@ -25,21 +27,25 @@ import java.util.Optional;
 @Controller
 public class TransfersController {
 
+  private static final int TRANSACTION_PAGE_SIZE = 10;
+
   private final CurrentUserService currentUserService;
   private final TransactionService transactionService;
   private final DepositService depositService;
   private final BankViewService bankViewService;
+  private final MessageService messageService;
 
-  public TransfersController(CurrentUserService currentUserService, TransactionService transactionService, DepositService depositService, BankViewService bankViewService) {
+  public TransfersController(CurrentUserService currentUserService, TransactionService transactionService, DepositService depositService, BankViewService bankViewService, MessageService messageService) {
     this.currentUserService = currentUserService;
     this.transactionService = transactionService;
     this.depositService = depositService;
     this.bankViewService = bankViewService;
+    this.messageService = messageService;
   }
 
   @GetMapping("/transfers")
-  public String transfers(HttpSession session, Model model) {
-    currentUserService.getCurrentUser(session).ifPresent(user -> model.addAttribute("transactions", bankViewService.getTransactionViews(user.getUserId(), 20)));
+  public String transfers(@RequestParam(value = "page", defaultValue = "1") int page, HttpSession session, Model model) {
+    currentUserService.getCurrentUser(session).ifPresent(user -> model.addAttribute("transactionsPage", bankViewService.getTransactionViewsPage(user.getUserId(), page, TRANSACTION_PAGE_SIZE)));
     return "transfers/index";
   }
 
@@ -50,18 +56,23 @@ public class TransfersController {
   }
 
   @PostMapping("/transfers/between-accounts")
-  public String createTransferBetweenAccounts(@ModelAttribute TransferBetweenAccountsRequest transferRequest, HttpSession session, Model model) {
+  public String createTransferBetweenAccounts(@Valid @ModelAttribute TransferBetweenAccountsRequest transferRequest, BindingResult bindingResult, HttpSession session, Model model) {
     Optional<User> currentUser = currentUserService.getCurrentUser(session);
 
     if (currentUser.isEmpty()) {
       return "redirect:/login?loginRequired=true";
     }
 
+    if (bindingResult.hasErrors()) {
+      addBetweenAccountsModelAttributes(session, model, transferRequest);
+      return "transfers/between-accounts";
+    }
+
     try {
       transactionService.makeTransactionBetweenAccountsOfOneClient(currentUser.get().getUserId(), transferRequest.getSenderAccountId(), transferRequest.getReceiverAccountId(), transferRequest.getAmount(), transferRequest.getMessage());
 
       addBetweenAccountsModelAttributes(session, model, new TransferBetweenAccountsRequest());
-      model.addAttribute("transferSuccess", "Перевод выполнен.");
+      model.addAttribute("transferSuccess", messageService.get("transfers.success"));
     } catch (IllegalArgumentException e) {
       addBetweenAccountsModelAttributes(session, model, transferRequest);
       model.addAttribute("transferError", e.getMessage());
@@ -77,16 +88,21 @@ public class TransfersController {
   }
 
   @PostMapping("/transfers/by-phone")
-  public String createTransferByPhone(@ModelAttribute PhoneTransferRequest request, HttpSession session, Model model) {
+  public String createTransferByPhone(@Valid @ModelAttribute PhoneTransferRequest request, BindingResult bindingResult, HttpSession session, Model model) {
     Optional<User> currentUser = currentUserService.getCurrentUser(session);
     if (currentUser.isEmpty()) {
       return "redirect:/login?loginRequired=true";
     }
 
+    if (bindingResult.hasErrors()) {
+      addPhoneTransferModelAttributes(session, model, request);
+      return "transfers/by-phone";
+    }
+
     try {
       transactionService.makeTransactionByPhoneNumber(request.getSenderAccountId(), request.getReceiverPhoneNumber(), request.getAmount());
       addPhoneTransferModelAttributes(session, model, new PhoneTransferRequest());
-      model.addAttribute("phoneTransferSuccess", "Перевод выполнен.");
+      model.addAttribute("phoneTransferSuccess", messageService.get("transfers.success"));
     } catch (IllegalArgumentException e) {
       addPhoneTransferModelAttributes(session, model, request);
       model.addAttribute("phoneTransferError", e.getMessage());
@@ -116,7 +132,7 @@ public class TransfersController {
     try {
       transactionService.makeTransactionByCardNumber(request.getSenderAccountId(), request.getReceiverCardNumber(), request.getAmount());
       addCardTransferModelAttributes(session, model, new CardTransferRequest());
-      model.addAttribute("cardTransferSuccess", "Перевод выполнен.");
+      model.addAttribute("cardTransferSuccess", messageService.get("transfers.success"));
     } catch (IllegalArgumentException e) {
       addCardTransferModelAttributes(session, model, request);
       model.addAttribute("cardTransferError", e.getMessage());
@@ -132,17 +148,22 @@ public class TransfersController {
   }
 
   @PostMapping("/transfers/deposit-top-up")
-  public String createDepositTopUp(@ModelAttribute DepositTopUpRequest request, HttpSession session, Model model) {
+  public String createDepositTopUp(@Valid @ModelAttribute DepositTopUpRequest request, BindingResult bindingResult, HttpSession session, Model model) {
     Optional<User> currentUser = currentUserService.getCurrentUser(session);
 
     if (currentUser.isEmpty()) {
       return "redirect:/login?loginRequired=true";
     }
 
+    if (bindingResult.hasErrors()) {
+      addDepositTopUpModelAttributes(session, model, request);
+      return "transfers/deposit-top-up";
+    }
+
     try {
       depositService.topUpDeposit(currentUser.get().getUserId(), request.getSourceAccountId(), request.getDepositId(), request.getAmount());
       addDepositTopUpModelAttributes(session, model, new DepositTopUpRequest());
-      model.addAttribute("depositTopUpSuccess", "Депозит пополнен.");
+      model.addAttribute("depositTopUpSuccess", messageService.get("transfers.deposit.success"));
     } catch (IllegalArgumentException e) {
       addDepositTopUpModelAttributes(session, model, request);
       model.addAttribute("depositTopUpError", e.getMessage());
@@ -158,16 +179,21 @@ public class TransfersController {
   }
 
   @PostMapping("/transfers/loan-payment")
-  public String createLoanPayment(@ModelAttribute LoanPaymentRequest request, HttpSession session, Model model) {
+  public String createLoanPayment(@Valid @ModelAttribute LoanPaymentRequest request, BindingResult bindingResult, HttpSession session, Model model) {
     Optional<User> currentUser = currentUserService.getCurrentUser(session);
     if (currentUser.isEmpty()) {
       return "redirect:/login?loginRequired=true";
     }
 
+    if (bindingResult.hasErrors()) {
+      addLoanPaymentModelAttributes(session, model, request);
+      return "transfers/loan-payment";
+    }
+
     try {
       transactionService.makeTransactionTopUpLoan(request.getSourceAccountId(), request.getLoanId(), request.getAmount());
       addLoanPaymentModelAttributes(session, model, new LoanPaymentRequest());
-      model.addAttribute("loanPaymentSuccess", "Платеж по кредиту выполнен.");
+      model.addAttribute("loanPaymentSuccess", messageService.get("transfers.loan.success"));
     } catch (IllegalArgumentException e) {
       addLoanPaymentModelAttributes(session, model, request);
       model.addAttribute("loanPaymentError", e.getMessage());
@@ -183,16 +209,21 @@ public class TransfersController {
   }
 
   @PostMapping("/transfers/currency-exchange")
-  public String createCurrencyExchange(@ModelAttribute TransferBetweenAccountsRequest request, HttpSession session, Model model) {
+  public String createCurrencyExchange(@Valid @ModelAttribute TransferBetweenAccountsRequest request, BindingResult bindingResult, HttpSession session, Model model) {
     Optional<User> currentUser = currentUserService.getCurrentUser(session);
     if (currentUser.isEmpty()) {
       return "redirect:/login?loginRequired=true";
     }
 
+    if (bindingResult.hasErrors()) {
+      addBetweenAccountsModelAttributes(session, model, request);
+      return "transfers/currency-exchange";
+    }
+
     try {
       transactionService.makeTransactionExchangeCurrencies(request.getSenderAccountId(), request.getReceiverAccountId(), request.getAmount());
       addBetweenAccountsModelAttributes(session, model, new TransferBetweenAccountsRequest());
-      model.addAttribute("exchangeSuccess", "Обмен выполнен.");
+      model.addAttribute("exchangeSuccess", messageService.get("transfers.exchange.success"));
     } catch (IllegalArgumentException e) {
       addBetweenAccountsModelAttributes(session, model, request);
       model.addAttribute("exchangeError", e.getMessage());

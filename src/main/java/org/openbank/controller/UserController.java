@@ -6,6 +6,7 @@ import org.openbank.dto.CreateUserRequest;
 import org.openbank.model.User;
 import org.openbank.service.CurrentUserService;
 import org.openbank.exception.UserRegistrationException;
+import org.openbank.service.MessageService;
 import org.openbank.service.UserService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -25,16 +26,18 @@ public class UserController {
 
   private final UserService userService;
   private final CurrentUserService currentUserService;
+  private final MessageService messageService;
 
-  public UserController(UserService userService, CurrentUserService currentUserService) {
+  public UserController(UserService userService, CurrentUserService currentUserService, MessageService messageService) {
     this.userService = userService;
     this.currentUserService = currentUserService;
+    this.messageService = messageService;
   }
 
   @GetMapping("/login")
   public String login(@RequestParam(value = "loginRequired", required = false) Boolean loginRequired, Model model) {
     if (Boolean.TRUE.equals(loginRequired)) {
-      model.addAttribute("loginError", "Войдите в аккаунт, чтобы выполнить это действие.");
+      model.addAttribute("loginError", messageService.get("auth.login.required"));
     }
     return "bank/login";
   }
@@ -44,7 +47,7 @@ public class UserController {
     Optional<User> user = userService.authenticate(login, password);
 
     if (user.isEmpty()) {
-      model.addAttribute("loginError", "Неверный логин или пароль.");
+      model.addAttribute("loginError", messageService.get("auth.login.invalid"));
       model.addAttribute("login", login);
       return "bank/login";
     }

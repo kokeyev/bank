@@ -17,27 +17,30 @@ import java.util.Locale;
 import java.util.Optional;
 
 /**
- * Provides user service operations.
+ * Manages user registration, staff registration, authentication, and profile changes.
+ *
+ * <p>Passwords are always stored through {@link PasswordHasher}; login methods return empty results
+ * instead of exposing whether the login, role, status, or password check failed.</p>
  */
 @Service
 public class UserService {
 
   private static final String DEFAULT_ROLE = "CLIENT";
   private static final String MANAGER_ROLE = "MANAGER";
+  private static final String ADMIN_ROLE = "ADMIN";
 
   private final UserDao userDao;
   private final PasswordHasher passwordHasher;
-
-  /**
-   * Handles user service.
-   */
   public UserService(UserDao userDao, PasswordHasher passwordHasher) {
     this.userDao = userDao;
     this.passwordHasher = passwordHasher;
   }
 
   /**
-   * Handles create user.
+   * Registers an active client account.
+   *
+   * @param request registration form values
+   * @throws UserRegistrationException when required fields, uniqueness, or password confirmation fail
    */
   public void createUser(CreateUserRequest request) {
     List<String> errors = validate(request);
@@ -60,7 +63,10 @@ public class UserService {
   }
 
   /**
-   * Handles create manager.
+   * Registers a manager account that must be approved by an admin before use.
+   *
+   * @param request registration form values
+   * @throws UserRegistrationException when required fields, uniqueness, or password confirmation fail
    */
   public void createManager(CreateUserRequest request) {
     List<String> errors = validate(request);
@@ -83,14 +89,21 @@ public class UserService {
   }
 
   /**
-   * Handles get user by id.
+   * Loads a user by database id.
+   *
+   * @param userId user primary key
+   * @return user when present
    */
   public Optional<User> getUserById(Long userId) {
     return userDao.getUserById(userId);
   }
 
   /**
-   * Handles authenticate.
+   * Authenticates an active client by email or phone number.
+   *
+   * @param login email address or phone number
+   * @param password raw password from the login form
+   * @return authenticated active user, or empty when credentials/status are invalid
    */
   public Optional<User> authenticate(String login, String password) {
     if (isBlank(login) || isBlank(password)) {
@@ -110,7 +123,11 @@ public class UserService {
   }
 
   /**
-   * Handles authenticate manager.
+   * Authenticates an active manager by email or phone number.
+   *
+   * @param login email address or phone number
+   * @param password raw password from the manager login form
+   * @return authenticated active manager, or empty when credentials, role, or status are invalid
    */
   public Optional<User> authenticateManager(String login, String password) {
     Optional<User> user = authenticateStaff(login, password);
@@ -123,28 +140,57 @@ public class UserService {
   }
 
   /**
-   * Handles get pending managers.
+   * Authenticates an active admin stored in the users table.
+   *
+   * @param login email address or phone number
+   * @param password raw password from the admin login form
+   * @return authenticated active admin, or empty when credentials, role, or status are invalid
+   */
+  public Optional<User> authenticateAdmin(String login, String password) {
+    Optional<User> user = authenticateStaff(login, password);
+
+    if (user.isEmpty() || !ADMIN_ROLE.equals(user.get().getRole()) || !UserStatus.ACTIVE.name().equals(user.get().getStatus())) {
+      return Optional.empty();
+    }
+
+    return user;
+  }
+
+  /**
+   * Loads manager registrations waiting for admin approval.
+   *
+   * @return users with manager role and pending status
    */
   public List<User> getPendingManagers() {
     return userDao.getUsersByRoleAndStatus(MANAGER_ROLE, UserStatus.PENDING.name());
   }
 
   /**
-   * Handles approve manager.
+   * Activates a pending manager account.
+   *
+   * @param managerId manager user id
+   * @return {@code true} when the status update succeeds
    */
   public boolean approveManager(Long managerId) {
     return userDao.changeStatusOfUserById(managerId, UserStatus.ACTIVE.name());
   }
 
   /**
-   * Handles reject manager.
+   * Rejects a manager registration by deactivating the user.
+   *
+   * @param managerId manager user id
+   * @return {@code true} when the status update succeeds
    */
   public boolean rejectManager(Long managerId) {
     return userDao.changeStatusOfUserById(managerId, UserStatus.DEACTIVATED.name());
   }
 
   /**
-   * Handles change password.
+   * Changes a user's password after checking the current password and confirmation.
+   *
+   * @param currentUser user requesting the password change
+   * @param request current password, new password, and confirmation
+   * @throws ContactUpdateException when any password validation check fails
    */
   public void changePassword(User currentUser, PasswordChangeRequest request) {
     List<String> errors = new ArrayList<>();
@@ -173,7 +219,10 @@ public class UserService {
   }
 
   /**
-   * Handles deactivate user.
+   * Deactivates a user account.
+   *
+   * @param userId user to deactivate
+   * @throws IllegalStateException when the DAO does not update the record
    */
   public void deactivateUser(Long userId) {
     if (!userDao.changeStatusOfUserById(userId, UserStatus.DEACTIVATED.name())) {
@@ -182,7 +231,13 @@ public class UserService {
   }
 
   /**
-   * Handles update contact details.
+   * Updates phone and email contact details after uniqueness checks.
+   *
+   * @param currentUser current database user
+   * @param request new phone and email values
+   * @return refreshed user record after update
+   * @throws ContactUpdateException when values are blank, unchanged, invalid, or already used
+   * @throws IllegalStateException when the user cannot be reloaded after update
    */
   public User updateContactDetails(User currentUser, UpdateContactRequest request) {
     String newPhone = clean(request.getPhone());

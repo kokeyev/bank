@@ -21,7 +21,10 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Provides transaction service operations.
+ * Executes money movement use cases and writes matching transaction history.
+ *
+ * <p>The service validates account ownership, active status, limits, fees, currency conversion,
+ * and loan payment state before committing updates through {@link DatabaseTransactionRunner}.</p>
  */
 @Service
 public class TransactionService {
@@ -40,10 +43,6 @@ public class TransactionService {
   private final LoanDao loanDao;
   private final BankSettingsService bankSettingsService;
   private final DatabaseTransactionRunner transactionRunner;
-
-  /**
-   * Handles transaction service.
-   */
   public TransactionService(AccountDao accountDao, TransactionDao transactionDao, CurrencyDao currencyDao, UserDao userDao, LoanDao loanDao, BankSettingsService bankSettingsService, DatabaseTransactionRunner transactionRunner) {
     this.accountDao = accountDao;
     this.transactionDao = transactionDao;
@@ -55,7 +54,17 @@ public class TransactionService {
   }
 
   /**
-   * Handles create new transaction.
+   * Records a transaction history entry without performing account balance changes.
+   *
+   * @param senderAccountId source account, or {@code null} for system-originated transactions
+   * @param receiverAccountId target account, or {@code null} for external/system targets
+   * @param amount positive transaction amount
+   * @param currencyId currency used for the history amount
+   * @param fee fee charged for the operation; {@code null} is stored as zero
+   * @param message optional user or system message
+   * @param transactionType domain type code
+   * @return {@code true} when the history record is stored
+   * @throws IllegalArgumentException when amount is missing or not positive
    */
   public boolean createNewTransaction(Long senderAccountId, Long receiverAccountId, BigDecimal amount, Long currencyId, BigDecimal fee, String message, String transactionType) {
     validatePositive(amount, "Сумма транзакции должна быть больше нуля");
@@ -72,35 +81,56 @@ public class TransactionService {
   }
 
   /**
-   * Handles get transactions by account id.
+   * Loads transactions connected to a single account.
+   *
+   * @param accountId account identifier
+   * @return transactions where the account is sender or receiver, as provided by the DAO
    */
   public List<Transaction> getTransactionsByAccountId(Long accountId) {
     return transactionDao.getTransactionsByAccountId(accountId);
   }
 
   /**
-   * Handles get recent transactions by user id.
+   * Loads a limited list of a user's newest transactions.
+   *
+   * @param userId owner identifier
+   * @param limit maximum number of records
+   * @return recent transactions for dashboard display
    */
   public List<Transaction> getRecentTransactionsByUserId(Long userId, int limit) {
     return transactionDao.getRecentTransactionsByUserId(userId, limit);
   }
 
   /**
-   * Handles get transactions by user id.
+   * Loads a page of a user's transactions.
+   *
+   * @param userId owner identifier
+   * @param limit page size
+   * @param offset first row offset
+   * @return transaction page
    */
   public List<Transaction> getTransactionsByUserId(Long userId, int limit, int offset) {
     return transactionDao.getTransactionsByUserId(userId, limit, offset);
   }
 
   /**
-   * Handles count transactions by user id.
+   * Counts transactions for pagination.
+   *
+   * @param userId owner identifier
+   * @return total number of user's transactions
    */
   public int countTransactionsByUserId(Long userId) {
     return transactionDao.countTransactionsByUserId(userId);
   }
 
   /**
-   * Handles make transaction between accounts of one client.
+   * Transfers money between two accounts after confirming they belong to the same user.
+   *
+   * @param senderAccountId account to debit
+   * @param receiverAccountId account to credit
+   * @param amount positive transfer amount
+   * @return {@code true} when the transfer is committed
+   * @throws IllegalArgumentException when accounts are missing, inactive, over limit, or owned by different users
    */
   public boolean makeTransactionBetweenAccountsOfOneClient(Long senderAccountId, Long receiverAccountId, BigDecimal amount) {
     Account senderAccount = checkAccountExists(senderAccountId);
@@ -114,7 +144,15 @@ public class TransactionService {
   }
 
   /**
-   * Handles make transaction between accounts of one client.
+   * Transfers money between two accounts owned by the current user.
+   *
+   * @param userId expected owner of both accounts
+   * @param senderAccountId account to debit
+   * @param receiverAccountId account to credit
+   * @param amount positive transfer amount before fee
+   * @param message optional payment message
+   * @return {@code true} when balance changes and history record are committed
+   * @throws IllegalArgumentException when ownership, status, amount, balance, or limit validation fails
    */
   public boolean makeTransactionBetweenAccountsOfOneClient(Long userId, Long senderAccountId, Long receiverAccountId, BigDecimal amount, String message) {
     validateTransferRequest(userId, senderAccountId, receiverAccountId, amount);
@@ -139,22 +177,28 @@ public class TransactionService {
   }
 
   /**
-   * Handles make transaction by phone number.
+   * Transfers money to another user's main or first active account by phone number.
+   *
+   * @param senderAccountId account to debit
+   * @param receiverPhoneNumber receiver phone number entered by the client
+   * @param amount positive transfer amount before fee
+   * @return {@code true} when the transfer is committed
+   * @throws IllegalArgumentException when the receiver, receiver account, sender account, or amount is invalid
    */
   public boolean makeTransactionByPhoneNumber(Long senderAccountId, String receiverPhoneNumber, BigDecimal amount) {
     validateText(receiverPhoneNumber, "Введите номер телефона получателя");
 
     Optional<User> userOptional = userDao.getUserByPhoneNumber(cleanPhone(receiverPhoneNumber));
-    if (!userOptional.isPresent()) {
+    if (userOptional.isEmpty()) {
       throw new IllegalArgumentException("Получатель не найден");
     }
     User receiver = userOptional.get();
 
     Optional<Account> accountOptional = accountDao.getMainActiveAccountByUserId(receiver.getUserId());
-    if (!accountOptional.isPresent()) {
+    if (accountOptional.isEmpty()) {
       accountOptional = accountDao.getFirstActiveAccountByUserId(receiver.getUserId());
     }
-    if (!accountOptional.isPresent()) {
+    if (accountOptional.isEmpty()) {
       throw new IllegalArgumentException("У получателя нет активного счета");
     }
     Account receiverAccount = accountOptional.get();
@@ -163,7 +207,14 @@ public class TransactionService {
   }
 
   /**
-   * Handles make transaction by card number.
+   * Transfers money to an internal card account, or records an external card transfer when the card
+   * does not belong to OpenBank.
+   *
+   * @param senderAccountId account to debit
+   * @param receiverCardNumber receiver card number entered by the client
+   * @param amount positive transfer amount before fee
+   * @return {@code true} when the transfer is committed
+   * @throws IllegalArgumentException when sender, card number, amount, balance, or limit validation fails
    */
   public boolean makeTransactionByCardNumber(Long senderAccountId, String receiverCardNumber, BigDecimal amount) {
     validateText(receiverCardNumber, "Введите номер карты");
@@ -178,14 +229,13 @@ public class TransactionService {
   }
 
   /**
-   * Handles make transaction top up deposit.
-   */
-  public boolean makeTransactionTopUpDeposit(Long senderAccountId, Long depositId, BigDecimal amount) {
-    return false;
-  }
-
-  /**
-   * Handles make transaction top up loan.
+   * Pays an active loan from a client account, converting the payment to KZT when needed.
+   *
+   * @param senderAccountId account to debit
+   * @param loanId active loan to reduce
+   * @param amount positive payment amount in the sender account currency
+   * @return {@code true} when the payment is committed
+   * @throws IllegalArgumentException when the loan, account, ownership, status, amount, or limit is invalid
    */
   public boolean makeTransactionTopUpLoan(Long senderAccountId, Long loanId, BigDecimal amount) {
     validatePositive(amount, "Сумма платежа должна быть больше нуля");
@@ -213,7 +263,12 @@ public class TransactionService {
   }
 
   /**
-   * Handles make transaction exchange currencies.
+   * Exchanges money by transferring between two accounts with currency conversion.
+   *
+   * @param senderAccountId account to debit
+   * @param receiverAccountId account to credit
+   * @param amount positive amount in the sender account currency
+   * @return {@code true} when the exchange transfer is committed
    */
   public boolean makeTransactionExchangeCurrencies(Long senderAccountId, Long receiverAccountId, BigDecimal amount) {
     return transferToAccount(senderAccountId, receiverAccountId, amount, "Обмен валют", CURRENCY_EXCHANGE);

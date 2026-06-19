@@ -10,10 +10,11 @@ import org.openbank.model.Account;
 import org.openbank.model.Deposit;
 import org.openbank.model.DepositType;
 import org.openbank.model.status.DepositStatus;
+import org.openbank.service.strategy.deposit.DepositProductStrategy;
+import org.openbank.service.strategy.deposit.DepositProductStrategyResolver;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.sql.Connection;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
@@ -22,14 +23,15 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Provides deposit service operations.
+ * Coordinates deposit products, account debits/credits, and deposit status changes.
+ *
+ * <p>Business behavior that depends on a deposit product is delegated to
+ * {@link DepositProductStrategy}; this service keeps the transaction boundaries and ownership
+ * checks in one place.</p>
  */
 @Service
 public class DepositService {
 
-  private static final String KOPILKA = "Копилка";
-  private static final String STRATEGY = "Стратегия";
-  private static final String CAPITAL = "Капитал";
   private static final String DEPOSIT_OPEN = "DEPOSIT_OPEN";
   private static final String DEPOSIT_TOP_UP = "DEPOSIT_TOP_UP";
   private static final String DEPOSIT_WITHDRAWAL = "DEPOSIT_WITHDRAWAL";
@@ -41,21 +43,22 @@ public class DepositService {
   private final CurrencyDao currencyDao;
   private final TransactionDao transactionDao;
   private final DatabaseTransactionRunner transactionRunner;
-
-  /**
-   * Handles deposit service.
-   */
-  public DepositService(DepositDao depositDao, DepositTypeDao depositTypeDao, AccountDao accountDao, CurrencyDao currencyDao, TransactionDao transactionDao, DatabaseTransactionRunner transactionRunner) {
+  private final DepositProductStrategyResolver strategyResolver;
+  public DepositService(DepositDao depositDao, DepositTypeDao depositTypeDao, AccountDao accountDao, CurrencyDao currencyDao, TransactionDao transactionDao, DatabaseTransactionRunner transactionRunner, DepositProductStrategyResolver strategyResolver) {
     this.depositDao = depositDao;
     this.depositTypeDao = depositTypeDao;
     this.accountDao = accountDao;
     this.currencyDao = currencyDao;
     this.transactionDao = transactionDao;
     this.transactionRunner = transactionRunner;
+    this.strategyResolver = strategyResolver;
   }
 
   /**
-   * Handles get deposit types by product.
+   * Finds deposit terms for a product name such as Kopilka, Strategy, or Capital.
+   *
+   * @param productName product family name stored in deposit type records
+   * @return matching deposit terms
    */
   public List<DepositType> getDepositTypesByProduct(String productName) {
     List<DepositType> result = new ArrayList<>();
@@ -68,39 +71,55 @@ public class DepositService {
   }
 
   /**
-   * Handles get deposits by user id.
+   * Loads all deposits owned by a user.
+   *
+   * @param userId owner identifier
+   * @return user's deposit records
    */
   public List<Deposit> getDepositsByUserId(Long userId) {
     return depositDao.getDepositsByUserId(userId);
   }
 
   /**
-   * Handles get deposit type by id.
+   * Finds a deposit type by identifier.
+   *
+   * @param depositTypeId deposit type primary key
+   * @return deposit type when configured
    */
   public Optional<DepositType> getDepositTypeById(Long depositTypeId) {
     return depositTypeDao.getDepositTypeById(depositTypeId);
   }
 
   /**
-   * Handles get currency name by id.
+   * Resolves a currency identifier to its display name.
+   *
+   * @param currencyId currency primary key
+   * @return configured currency name
    */
   public String getCurrencyNameById(Long currencyId) {
     return currencyDao.getCurrencyNameById(currencyId);
   }
 
   /**
-   * Handles open deposit.
+   * Opens a pending deposit and debits the selected source account in one database transaction.
+   *
+   * @param userId owner of the deposit and source account
+   * @param request selected product terms, source account, amount, and product options
+   * @return {@code true} when the deposit request and history record are created
+   * @throws IllegalArgumentException when validation, ownership, currency, or balance checks fail
+   * @throws IllegalStateException when one of the database updates inside the transaction fails
    */
   public boolean openDeposit(Long userId, OpenDepositRequest request) {
     validatePositive(request.getAmount(), "Сумма депозита должна быть больше нуля");
 
     DepositType depositType = depositTypeDao.getDepositTypeById(request.getDepositTypeId())
         .orElseThrow(() -> new IllegalArgumentException("Выберите условия депозита"));
+    DepositProductStrategy strategy = strategyResolver.resolve(depositType);
 
-    validateDepositAmount(depositType, request.getAmount());
+    strategy.validateOpeningAmount(depositType, request.getAmount());
 
-    boolean autoRenewal = resolveAutoRenewal(depositType.getName(), request.getAutoRenewal());
-    boolean reinvestInterest = resolveReinvestInterest(depositType.getName(), request.getReinvestInterest());
+    boolean autoRenewal = strategy.resolveAutoRenewal(request.getAutoRenewal());
+    boolean reinvestInterest = strategy.resolveReinvestInterest(request.getReinvestInterest());
 
     return transactionRunner.run("Не удалось открыть депозит", connection -> {
       Account sourceAccount = getAccountForUpdate(connection, request.getSourceAccountId(), "Выберите счет списания");
@@ -130,7 +149,14 @@ public class DepositService {
   }
 
   /**
-   * Handles top up deposit.
+   * Moves money from a user's account into an active deposit.
+   *
+   * @param userId expected owner of the source account and deposit
+   * @param sourceAccountId account to debit
+   * @param depositId active deposit to credit
+   * @param amount positive top-up amount
+   * @return {@code true} when all updates are committed
+   * @throws IllegalArgumentException when ownership, product rules, currency, amount, or balance checks fail
    */
   public boolean topUpDeposit(Long userId, Long sourceAccountId, Long depositId, BigDecimal amount) {
     validatePositive(amount, "Сумма пополнения должна быть больше нуля");
@@ -141,11 +167,12 @@ public class DepositService {
           .orElseThrow(() -> new IllegalArgumentException("Депозит не найден"));
       DepositType depositType = depositTypeDao.getDepositTypeById(deposit.getDepositTypeId())
           .orElseThrow(() -> new IllegalArgumentException("Тип депозита не найден"));
+      DepositProductStrategy strategy = strategyResolver.resolve(depositType);
 
       validateAccountBelongsToUser(sourceAccount, userId);
       validateDepositBelongsToUser(deposit, userId);
       validateActiveDeposit(deposit);
-      validateTopUpAllowed(depositType);
+      validateTopUpAllowed(strategy);
       validateSameCurrency(sourceAccount.getCurrencyId(), depositType.getCurrencyId());
       validatePositiveOrZero(sourceAccount.getBalance().subtract(amount), "Не хватает средств на счете");
 
@@ -160,7 +187,14 @@ public class DepositService {
   }
 
   /**
-   * Handles withdraw from deposit.
+   * Withdraws part of an active deposit to a user's account when the product allows it.
+   *
+   * @param userId expected owner of the deposit and target account
+   * @param depositId deposit to debit
+   * @param targetAccountId account to credit
+   * @param amount positive withdrawal amount
+   * @return {@code true} when all updates are committed
+   * @throws IllegalArgumentException when ownership, product rules, currency, amount, or balance checks fail
    */
   public boolean withdrawFromDeposit(Long userId, Long depositId, Long targetAccountId, BigDecimal amount) {
     validatePositive(amount, "Сумма снятия должна быть больше нуля");
@@ -170,12 +204,13 @@ public class DepositService {
           .orElseThrow(() -> new IllegalArgumentException("Депозит не найден"));
       DepositType depositType = depositTypeDao.getDepositTypeById(deposit.getDepositTypeId())
           .orElseThrow(() -> new IllegalArgumentException("Тип депозита не найден"));
+      DepositProductStrategy strategy = strategyResolver.resolve(depositType);
       Account targetAccount = getAccountForUpdate(connection, targetAccountId, "Выберите счет зачисления");
 
       validateDepositBelongsToUser(deposit, userId);
       validateAccountBelongsToUser(targetAccount, userId);
       validateActiveDeposit(deposit);
-      validateWithdrawalAllowed(depositType);
+      validateWithdrawalAllowed(strategy, depositType);
       validateSameCurrency(targetAccount.getCurrencyId(), depositType.getCurrencyId());
       validatePositiveOrZero(deposit.getCurrentAmount().subtract(amount), "На депозите недостаточно средств");
 
@@ -190,28 +225,39 @@ public class DepositService {
   }
 
   /**
-   * Handles get pending deposits.
+   * Loads deposits waiting for manager approval.
+   *
+   * @return pending deposit records
    */
   public List<Deposit> getPendingDeposits() {
     return depositDao.getPendingDeposits();
   }
 
   /**
-   * Handles approve deposit.
+   * Approves a pending deposit.
+   *
+   * @param depositId deposit request identifier
+   * @return {@code true} when the DAO changes the status to active
    */
   public boolean approveDeposit(Long depositId) {
     return depositDao.acceptDeposit(depositId);
   }
 
   /**
-   * Handles reject deposit.
+   * Rejects a pending deposit.
+   *
+   * @param depositId deposit request identifier
+   * @return {@code true} when the DAO changes the status to rejected
    */
   public boolean rejectDeposit(Long depositId) {
     return depositDao.setStatus(depositId, DepositStatus.REJECTED);
   }
 
   /**
-   * Handles accrue interest for active deposits.
+   * Calculates monthly rewards for active deposits and records reward transactions.
+   *
+   * @return number of active deposits for which positive interest was processed
+   * @throws IllegalArgumentException when a referenced deposit type is missing
    */
   public int accrueInterestForActiveDeposits() {
     int updated = 0;
@@ -219,10 +265,8 @@ public class DepositService {
     for (Deposit deposit : depositDao.getDepositsByStatus(DepositStatus.ACTIVE)) {
       DepositType depositType = depositTypeDao.getDepositTypeById(deposit.getDepositTypeId())
           .orElseThrow(() -> new IllegalArgumentException("Тип депозита не найден"));
-      BigDecimal monthlyInterest = deposit.getCurrentAmount()
-          .multiply(depositType.getRate())
-          .divide(BigDecimal.valueOf(100), 8, RoundingMode.HALF_UP)
-          .divide(BigDecimal.valueOf(12), 2, RoundingMode.HALF_UP);
+      DepositProductStrategy strategy = strategyResolver.resolve(depositType);
+      BigDecimal monthlyInterest = strategy.calculateMonthlyInterest(deposit, depositType);
 
       if (monthlyInterest.compareTo(BigDecimal.ZERO) <= 0) {
         continue;
@@ -243,7 +287,10 @@ public class DepositService {
   }
 
   /**
-   * Handles process expired deposits.
+   * Closes or renews active deposits whose configured maturity date has passed.
+   *
+   * @return number of deposits whose maturity was processed
+   * @throws IllegalArgumentException when a referenced deposit type is missing
    */
   public int processExpiredDeposits() {
     int updated = 0;
@@ -252,10 +299,11 @@ public class DepositService {
     for (Deposit deposit : depositDao.getDepositsByStatus(DepositStatus.ACTIVE)) {
       DepositType depositType = depositTypeDao.getDepositTypeById(deposit.getDepositTypeId())
           .orElseThrow(() -> new IllegalArgumentException("Тип депозита не найден"));
-      if (deposit.getStartDate() == null || depositType.getDuration() == null) {
+      DepositProductStrategy strategy = strategyResolver.resolve(depositType);
+      LocalDate endDate = strategy.maturityDate(deposit, depositType);
+      if (endDate == null) {
         continue;
       }
-      LocalDate endDate = deposit.getStartDate().plusMonths(depositType.getDuration());
       if (endDate.isAfter(today)) {
         continue;
       }
@@ -275,26 +323,25 @@ public class DepositService {
     return updated;
   }
 
-  private boolean resolveAutoRenewal(String productName, Boolean requestedAutoRenewal) {
-    if (CAPITAL.equals(productName)) {
-      return false;
-    }
-
-    return Boolean.TRUE.equals(requestedAutoRenewal);
+  /**
+   * Checks whether the current deposit state and product rules allow top-up.
+   *
+   * @param deposit deposit instance to inspect
+   * @param depositType product configuration for the deposit
+   * @return {@code true} when the deposit is active and the strategy allows top-up
+   */
+  public boolean canTopUpDeposit(Deposit deposit, DepositType depositType) {
+    return DepositStatus.ACTIVE.name().equals(deposit.getStatus()) && strategyResolver.resolve(depositType).canTopUp();
   }
 
-  private boolean resolveReinvestInterest(String productName, Boolean requestedReinvestInterest) {
-    if (CAPITAL.equals(productName)) {
-      return true;
-    }
-
-    return Boolean.TRUE.equals(requestedReinvestInterest);
-  }
-
-  private void validateDepositAmount(DepositType depositType, BigDecimal amount) {
-    if (amount.compareTo(depositType.getMinimumAmount()) < 0) {
-      throw new IllegalArgumentException("Минимальная сумма для выбранных условий: " + depositType.getMinimumAmount());
-    }
+  /**
+   * Checks whether a product configuration allows partial withdrawals.
+   *
+   * @param depositType product configuration
+   * @return {@code true} when the product strategy allows withdrawals
+   */
+  public boolean canWithdrawDeposit(DepositType depositType) {
+    return strategyResolver.resolve(depositType).canWithdraw(depositType);
   }
 
   private Account getAccountForUpdate(Connection connection, Long accountId, String missingMessage) {
@@ -342,14 +389,14 @@ public class DepositService {
     }
   }
 
-  private void validateTopUpAllowed(DepositType depositType) {
-    if (CAPITAL.equals(depositType.getName())) {
+  private void validateTopUpAllowed(DepositProductStrategy strategy) {
+    if (!strategy.canTopUp()) {
       throw new IllegalArgumentException("Депозит Капитал нельзя пополнять");
     }
   }
 
-  private void validateWithdrawalAllowed(DepositType depositType) {
-    if (!Boolean.TRUE.equals(depositType.getWithdrawal())) {
+  private void validateWithdrawalAllowed(DepositProductStrategy strategy, DepositType depositType) {
+    if (!strategy.canWithdraw(depositType)) {
       throw new IllegalArgumentException("Снятие доступно только для депозита Копилка");
     }
   }

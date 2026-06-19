@@ -8,19 +8,19 @@ import java.math.BigDecimal;
 
 public class LoanOfferRequest {
 
-  @NotNull(message = "Offer amount is required")
-  @DecimalMin(value = "0.01", message = "Offer amount must be positive")
+  @NotNull(message = "{validation.offerAmount.required}")
+  @DecimalMin(value = "0.01", message = "{validation.offerAmount.positive}")
   private BigDecimal amount;
 
-  @NotNull(message = "Rate is required")
-  @DecimalMin(value = "0.01", message = "Rate must be positive")
+  @NotNull(message = "{validation.rate.required}")
+  @DecimalMin(value = "0.01", message = "{validation.rate.positive}")
   private BigDecimal rate;
 
-  @NotNull(message = "Duration is required")
-  @Min(value = 1, message = "Duration must be at least 1 month")
+  @NotNull(message = "{validation.duration.required}")
+  @Min(value = 1, message = "{validation.duration.min}")
   private Integer duration;
 
-  @DecimalMin(value = "0.01", message = "Monthly payment must be positive")
+  @DecimalMin(value = "0.01", message = "{validation.monthlyPayment.positive}")
   private BigDecimal monthlyPayment;
 
   public BigDecimal getAmount() {

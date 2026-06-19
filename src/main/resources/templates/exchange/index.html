@@ -48,6 +48,7 @@
             <h2 th:text="#{exchange.quick}">Быстрый расчет</h2>
 
             <form method="post" th:action="@{/exchange/calculate}">
+            <input type="hidden" name="_csrf" th:value="${csrfToken}">
                 <div class="converter-field">
                     <label for="amount" th:text="#{exchange.give}">Отдаете</label>
                     <div class="converter-input">
@@ -72,6 +73,7 @@
             </form>
 
             <form class="exchange-operation-form" method="post" th:action="@{/exchange}">
+            <input type="hidden" name="_csrf" th:value="${csrfToken}">
                 <h2 th:text="#{exchange.betweenAccounts}">Обменять между счетами</h2>
 
                 <div class="settings-field">
@@ -109,6 +111,7 @@
     <section class="exchange-rates-card manager-rate-card" th:if="${adminLoggedIn}">
         <h2 th:text="#{exchange.updateRate}">Обновить курс</h2>
         <form class="settings-form" method="post" th:action="@{/admin/settings/currency-rate}">
+            <input type="hidden" name="_csrf" th:value="${csrfToken}">
             <div class="settings-field">
                 <label for="rateCurrencyId" th:text="#{exchange.currency}">Валюта</label>
                 <select id="rateCurrencyId" name="currencyId" required>

@@ -7,8 +7,8 @@ import org.openbank.dto.UpdateContactRequest;
 import org.openbank.model.User;
 import org.openbank.service.CurrentUserService;
 import org.openbank.exception.ContactUpdateException;
+import org.openbank.service.MessageService;
 import org.openbank.service.UserService;
-import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -22,19 +22,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Locale;
 
 @Controller
 public class SettingsController {
 
   private final CurrentUserService currentUserService;
   private final UserService userService;
-  private final MessageSource messageSource;
+  private final MessageService messageService;
 
-  public SettingsController(CurrentUserService currentUserService, UserService userService, MessageSource messageSource) {
+  public SettingsController(CurrentUserService currentUserService, UserService userService, MessageService messageService) {
     this.currentUserService = currentUserService;
     this.userService = userService;
-    this.messageSource = messageSource;
+    this.messageService = messageService;
   }
 
   @GetMapping("/settings")
@@ -72,7 +71,7 @@ public class SettingsController {
     try {
       User updatedUser = userService.updateContactDetails(currentUser.get(), updateContactRequest);
       addContactPlaceholders(model, updatedUser);
-      model.addAttribute("contactSuccess", message("settings.contact.success"));
+      model.addAttribute("contactSuccess", messageService.get("settings.contact.success"));
     } catch (ContactUpdateException e) {
       addContactPlaceholders(model, currentUser.get());
       model.addAttribute("contactErrors", e.getErrors());
@@ -109,7 +108,7 @@ public class SettingsController {
     try {
       userService.changePassword(currentUser.get(), passwordChangeRequest);
       addContactPlaceholders(model, currentUser.get());
-      model.addAttribute("passwordSuccess", message("settings.password.success"));
+      model.addAttribute("passwordSuccess", messageService.get("settings.password.success"));
     } catch (ContactUpdateException e) {
       addContactPlaceholders(model, currentUser.get());
       model.addAttribute("passwordErrors", e.getErrors());
@@ -139,10 +138,5 @@ public class SettingsController {
 
   private void addSelectedLanguage(Model model) {
     model.addAttribute("selectedLanguage", LocaleContextHolder.getLocale().getLanguage());
-  }
-
-  private String message(String code) {
-    Locale locale = LocaleContextHolder.getLocale();
-    return messageSource.getMessage(code, null, locale);
   }
 }

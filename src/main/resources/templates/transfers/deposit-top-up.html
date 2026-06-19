@@ -17,6 +17,7 @@
         <h1 th:text="#{transfers.depositTopUp}">Пополнить депозит</h1>
 
         <form class="transfer-form" method="post" th:action="@{/transfers/deposit-top-up}" th:object="${depositTopUpRequest}">
+            <input type="hidden" name="_csrf" th:value="${csrfToken}">
             <div class="transfer-message transfer-message-success" th:if="${depositTopUpSuccess}" th:text="${depositTopUpSuccess}">
                 Депозит пополнен.
             </div>

@@ -122,6 +122,41 @@ class LoanDaoImplTest {
   }
 
   @Test
+  void acceptOfferWithoutParentOnlyActivatesOffer() throws SQLException {
+    when(connection.prepareStatement(anyString())).thenReturn(statement, activateStatement);
+    when(statement.executeQuery()).thenReturn(resultSet);
+    when(resultSet.next()).thenReturn(true);
+    loanRow(15L, 7L, 2L, null, LoanStatus.OFFERED);
+
+    assertTrue(dao.acceptOffer(7L, 15L));
+
+    verify(activateStatement).setString(1, LoanStatus.ACTIVE.name());
+    verify(activateStatement).setLong(3, 15L);
+    verify(connection).commit();
+  }
+
+  @Test
+  void acceptOfferReturnsFalseWhenOfferNotFound() throws SQLException {
+    when(connection.prepareStatement(anyString())).thenReturn(statement);
+    when(statement.executeQuery()).thenReturn(resultSet);
+    when(resultSet.next()).thenReturn(false);
+
+    assertEquals(false, dao.acceptOffer(7L, 15L));
+
+    verify(connection).rollback();
+    verify(connectionPool).releaseConnection(connection);
+  }
+
+  @Test
+  void getLoanByIdReturnsEmptyWhenNoRowExists() throws SQLException {
+    when(connection.prepareStatement(anyString())).thenReturn(statement);
+    when(statement.executeQuery()).thenReturn(resultSet);
+    when(resultSet.next()).thenReturn(false);
+
+    assertTrue(dao.getLoanById(15L).isEmpty());
+  }
+
+  @Test
   void payLoanWrapsSqlException() throws SQLException {
     when(connection.prepareStatement(anyString())).thenReturn(statement);
     when(statement.executeUpdate()).thenThrow(new SQLException("update failed"));

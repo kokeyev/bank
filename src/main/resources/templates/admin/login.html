@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Админ</title>
+    <title th:text="#{admin.title}">Admin</title>
     <link rel="stylesheet" href="../static/css/styles.css" th:href="@{/css/styles.css}">
     <meta charset="UTF-8">
 </head>
@@ -11,26 +11,27 @@
     <section class="auth-card">
         <div class="auth-header">
             <a href="#" th:href="@{/}" class="auth-logo">Bank Admin</a>
-            <span>Админ панель</span>
-            <h1>Войти</h1>
+            <span th:text="#{admin.login.subtitle}">Admin panel</span>
+            <h1 th:text="#{auth.login.heading}">Sign in</h1>
         </div>
 
         <form class="auth-form" method="post" th:action="@{/admin/login}">
+            <input type="hidden" name="_csrf" th:value="${csrfToken}">
             <div class="auth-errors" th:if="${adminLoginError}">
-                <p th:text="${adminLoginError}">Ошибка</p>
+                <p th:text="${adminLoginError}">Error</p>
             </div>
 
             <div class="auth-field">
-                <label for="login">Логин</label>
-                <input id="login" name="login" type="text" th:value="${adminLogin}" placeholder="admin" required>
+                <label for="login" th:text="#{auth.login.username}">Login</label>
+                <input id="login" name="login" type="text" th:value="${adminLogin}" placeholder="admin@openbank.kz" required>
             </div>
 
             <div class="auth-field">
-                <label for="password">Пароль</label>
-                <input id="password" name="password" type="password" placeholder="12345" required>
+                <label for="password" th:text="#{auth.password}">Password</label>
+                <input id="password" name="password" type="password" placeholder="admin12345" required>
             </div>
 
-            <button class="auth-submit-button" type="submit">Войти</button>
+            <button class="auth-submit-button" type="submit" th:text="#{auth.login.submit}">Sign in</button>
         </form>
     </section>
 </main>

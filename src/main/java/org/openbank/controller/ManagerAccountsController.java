@@ -1,6 +1,7 @@
 package org.openbank.controller;
 
 import org.openbank.service.AccountService;
+import org.openbank.service.MessageService;
 import org.openbank.view.BankViewService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,10 +18,12 @@ public class ManagerAccountsController {
 
   private final AccountService accountService;
   private final BankViewService bankViewService;
+  private final MessageService messageService;
 
-  public ManagerAccountsController(AccountService accountService, BankViewService bankViewService) {
+  public ManagerAccountsController(AccountService accountService, BankViewService bankViewService, MessageService messageService) {
     this.accountService = accountService;
     this.bankViewService = bankViewService;
+    this.messageService = messageService;
   }
 
   @GetMapping("/manager/accounts")
@@ -33,7 +36,7 @@ public class ManagerAccountsController {
   public String approveAccount(@PathVariable("accountId") Long accountId, RedirectAttributes redirectAttributes) {
     try {
       accountService.approveAccount(accountId);
-      redirectAttributes.addFlashAttribute("managerAccountSuccess", "Заявка на счет одобрена.");
+      redirectAttributes.addFlashAttribute("managerAccountSuccess", messageService.get("manager.accounts.approve.success"));
     } catch (IllegalArgumentException e) {
       redirectAttributes.addFlashAttribute("managerAccountError", e.getMessage());
     }
@@ -45,7 +48,7 @@ public class ManagerAccountsController {
   public String rejectAccount(@PathVariable("accountId") Long accountId, RedirectAttributes redirectAttributes) {
     try {
       accountService.rejectAccount(accountId);
-      redirectAttributes.addFlashAttribute("managerAccountSuccess", "Заявка на счет отклонена.");
+      redirectAttributes.addFlashAttribute("managerAccountSuccess", messageService.get("manager.accounts.reject.success"));
     } catch (IllegalArgumentException e) {
       redirectAttributes.addFlashAttribute("managerAccountError", e.getMessage());
     }

@@ -17,6 +17,7 @@
       <li><a href="#" th:href="@{/admin}" th:text="#{nav.adminPanel}">Панель</a></li>
       <li>
         <form class="header-logout-form" method="post" th:action="@{/admin/logout}">
+            <input type="hidden" name="_csrf" th:value="${csrfToken}">
           <button class="header-auth-link" type="submit" th:text="#{nav.logout}">Выйти</button>
         </form>
       </li>

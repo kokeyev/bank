@@ -21,6 +21,7 @@
         </div>
 
         <form class="deposit-open-form" method="post" th:action="@{/deposits/capital}" th:object="${openDepositRequest}">
+            <input type="hidden" name="_csrf" th:value="${csrfToken}">
             <div class="deposit-message deposit-message-success" th:if="${depositSuccess}" th:text="${depositSuccess}">Депозит открыт.</div>
             <div class="deposit-message deposit-message-error" th:if="${depositError}" th:text="${depositError}">Не удалось открыть депозит.</div>
             <div class="deposit-message" th:if="${accountOptions == null || accountOptions.isEmpty()}" th:text="#{deposits.needAccount}">Войдите в аккаунт и откройте счет, чтобы открыть депозит.</div>

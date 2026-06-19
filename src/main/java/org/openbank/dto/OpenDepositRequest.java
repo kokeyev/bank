@@ -1,11 +1,20 @@
 package org.openbank.dto;
 
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotNull;
+
 import java.math.BigDecimal;
 
 public class OpenDepositRequest {
 
+  @NotNull(message = "{validation.senderAccount.required}")
   private Long sourceAccountId;
+
+  @NotNull(message = "{validation.depositType.required}")
   private Long depositTypeId;
+
+  @NotNull(message = "{validation.amount.required}")
+  @DecimalMin(value = "0.01", message = "{validation.amount.positive}")
   private BigDecimal amount;
   private Boolean autoRenewal;
   private Boolean reinvestInterest;

@@ -19,6 +19,7 @@
             <p th:text="#{settings.language.description}">Выберите язык, на котором будет отображаться приложение.</p>
 
             <form class="settings-form" method="post" th:action="@{/settings/language}">
+            <input type="hidden" name="_csrf" th:value="${csrfToken}">
             <div class="language-options">
                 <label>
                     <input type="radio" name="language" value="ru" th:checked="${selectedLanguage == null || selectedLanguage == 'ru'}">
@@ -42,6 +43,7 @@
             <p th:text="#{settings.contact.description}">Обновите номер телефона и почту для уведомлений банка.</p>
 
             <form class="settings-form" method="post" th:action="@{/settings/contact}">
+            <input type="hidden" name="_csrf" th:value="${csrfToken}">
                 <div class="settings-message settings-message-success" th:if="${contactSuccess}" th:text="${contactSuccess}">
                     Контактные данные обновлены.
                 </div>
@@ -69,6 +71,7 @@
             <p th:text="#{settings.account.description}">Управление текущей сессией и аккаунтом пользователя.</p>
 
             <form class="settings-form" method="post" th:action="@{/settings/password}">
+            <input type="hidden" name="_csrf" th:value="${csrfToken}">
                 <div class="settings-message settings-message-success" th:if="${passwordSuccess}" th:text="${passwordSuccess}">
                     Пароль обновлен.
                 </div>
@@ -97,9 +100,11 @@
 
             <div class="settings-actions">
                 <form method="post" th:action="@{/logout}">
+            <input type="hidden" name="_csrf" th:value="${csrfToken}">
                     <button type="submit" class="logout-button" th:text="#{settings.account.logout}">Выйти с аккаунта</button>
                 </form>
                 <form method="post" th:action="@{/settings/deactivate}">
+            <input type="hidden" name="_csrf" th:value="${csrfToken}">
                     <button type="submit" class="delete-account-button" th:text="#{settings.account.deactivate}">Деактивировать аккаунт</button>
                 </form>
             </div>

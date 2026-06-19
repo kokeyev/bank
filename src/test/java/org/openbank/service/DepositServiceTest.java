@@ -3,7 +3,6 @@ package org.openbank.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.openbank.dao.account.AccountDao;
@@ -17,6 +16,10 @@ import org.openbank.model.Deposit;
 import org.openbank.model.DepositType;
 import org.openbank.model.status.AccountStatus;
 import org.openbank.model.status.DepositStatus;
+import org.openbank.service.strategy.deposit.CapitalDepositStrategy;
+import org.openbank.service.strategy.deposit.DepositProductStrategyResolver;
+import org.openbank.service.strategy.deposit.KopilkaDepositStrategy;
+import org.openbank.service.strategy.deposit.StrategyDepositStrategy;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -56,11 +59,17 @@ class DepositServiceTest {
   @Mock
   private Connection connection;
 
-  @InjectMocks
   private DepositService service;
 
   @BeforeEach
   void runCallbacks() {
+    DepositProductStrategyResolver strategyResolver = new DepositProductStrategyResolver(List.of(
+        new KopilkaDepositStrategy(),
+        new StrategyDepositStrategy(),
+        new CapitalDepositStrategy()
+    ));
+    service = new DepositService(depositDao, depositTypeDao, accountDao, currencyDao, transactionDao, transactionRunner, strategyResolver);
+
     when(transactionRunner.run(anyString(), any())).thenAnswer(invocation -> {
       DatabaseTransactionRunner.TransactionCallback<?> callback = invocation.getArgument(1);
       return callback.execute(connection);
@@ -81,6 +90,24 @@ class DepositServiceTest {
     service.openDeposit(7L, request);
 
     verify(depositDao).createDeposit(eq(connection), eq(7L), eq(5L), eq(false), eq(true), eq(DepositStatus.PENDING), any(), eq(new BigDecimal("1000")));
+  }
+
+  @Test
+  void openCapitalDepositForcesProductSettings() {
+    OpenDepositRequest request = openRequest(1L, 5L, new BigDecimal("1000"));
+    request.setAutoRenewal(true);
+    request.setReinvestInterest(false);
+    Account account = account(1L, 7L, 1L, new BigDecimal("2000"));
+    DepositType type = depositType(5L, "Капитал", false, new BigDecimal("100"));
+    when(depositTypeDao.getDepositTypeById(5L)).thenReturn(Optional.of(type));
+    when(accountDao.getAccountByIdForUpdate(connection, 1L)).thenReturn(Optional.of(account));
+    when(accountDao.withdraw(connection, 1L, new BigDecimal("1000"))).thenReturn(true);
+    when(depositDao.createDeposit(eq(connection), eq(7L), eq(5L), eq(true), eq(false), eq(DepositStatus.PENDING), any(), eq(new BigDecimal("1000")))).thenReturn(true);
+    when(transactionDao.createNewTransaction(eq(connection), eq(1L), eq(null), any(), eq(new BigDecimal("1000")), eq(1L), eq(BigDecimal.ZERO), anyString(), eq("DEPOSIT_OPEN"))).thenReturn(true);
+
+    service.openDeposit(7L, request);
+
+    verify(depositDao).createDeposit(eq(connection), eq(7L), eq(5L), eq(true), eq(false), eq(DepositStatus.PENDING), any(), eq(new BigDecimal("1000")));
   }
 
   @Test

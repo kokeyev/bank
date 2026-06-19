@@ -13,25 +13,13 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
-/**
- * Provides deposit dao impl operations.
- */
 @Repository
 public class DepositDaoImpl implements DepositDao {
 
   private final ConnectionPool connectionPool;
-
-  /**
-   * Handles deposit dao impl.
-   */
   public DepositDaoImpl(ConnectionPool connectionPool) {
     this.connectionPool = connectionPool;
   }
-
-  /**
-   * Handles create deposit.
-   */
   @Override
   public boolean createDeposit(Long userId, Long depositTypeId, Boolean reinvestInterest, Boolean autoRenewal, DepositStatus status, LocalDate startDate, BigDecimal currentAmount) {
     Connection connection = null;
@@ -43,10 +31,6 @@ public class DepositDaoImpl implements DepositDao {
       connectionPool.releaseConnection(connection);
     }
   }
-
-  /**
-   * Handles create deposit.
-   */
   @Override
   public boolean createDeposit(Connection connection, Long userId, Long depositTypeId, Boolean reinvestInterest, Boolean autoRenewal, DepositStatus status, LocalDate startDate, BigDecimal currentAmount) {
     String sql = """
@@ -68,10 +52,6 @@ public class DepositDaoImpl implements DepositDao {
       throw new BankDataAccessException("Не удалось создать депозит", e);
     }
   }
-
-  /**
-   * Handles get deposit by id.
-   */
   @Override
   public Optional<Deposit> getDepositById(Long depositId) {
     String sql = """
@@ -100,10 +80,6 @@ public class DepositDaoImpl implements DepositDao {
       connectionPool.releaseConnection(connection);
     }
   }
-
-  /**
-   * Handles get deposit by id for update.
-   */
   @Override
   public Optional<Deposit> getDepositByIdForUpdate(Connection connection, Long depositId) {
     String sql = """
@@ -126,10 +102,6 @@ public class DepositDaoImpl implements DepositDao {
       throw new BankDataAccessException("Не удалось получить депозит", e);
     }
   }
-
-  /**
-   * Handles get deposits by user id.
-   */
   @Override
   public List<Deposit> getDepositsByUserId(Long userId) {
     List<Deposit> deposits = new ArrayList<>();
@@ -160,10 +132,6 @@ public class DepositDaoImpl implements DepositDao {
       connectionPool.releaseConnection(connection);
     }
   }
-
-  /**
-   * Handles get deposits by status.
-   */
   @Override
   public List<Deposit> getDepositsByStatus(DepositStatus status) {
     List<Deposit> deposits = new ArrayList<>();
@@ -195,10 +163,6 @@ public class DepositDaoImpl implements DepositDao {
       connectionPool.releaseConnection(connection);
     }
   }
-
-  /**
-   * Handles top up deposit.
-   */
   @Override
   public boolean topUpDeposit(Connection connection, Long depositId, BigDecimal amount) {
     String sql = """
@@ -215,10 +179,6 @@ public class DepositDaoImpl implements DepositDao {
       throw new BankDataAccessException("Не удалось пополнить депозит", e);
     }
   }
-
-  /**
-   * Handles withdraw from deposit.
-   */
   @Override
   public boolean withdrawFromDeposit(Connection connection, Long depositId, BigDecimal amount) {
     String sql = """
@@ -236,10 +196,6 @@ public class DepositDaoImpl implements DepositDao {
       throw new BankDataAccessException("Не удалось снять деньги с депозита", e);
     }
   }
-
-  /**
-   * Handles set status.
-   */
   @Override
   public boolean setStatus(Long depositId, DepositStatus status) {
     Connection connection = null;
@@ -251,10 +207,6 @@ public class DepositDaoImpl implements DepositDao {
       connectionPool.releaseConnection(connection);
     }
   }
-
-  /**
-   * Handles set status.
-   */
   @Override
   public boolean setStatus(Connection connection, Long depositId, DepositStatus status) {
     String sql = """
@@ -271,10 +223,6 @@ public class DepositDaoImpl implements DepositDao {
       throw new BankDataAccessException("Не удалось изменить статус депозита", e);
     }
   }
-
-  /**
-   * Handles update start date.
-   */
   @Override
   public boolean updateStartDate(Connection connection, Long depositId, LocalDate startDate) {
     String sql = """
@@ -291,10 +239,6 @@ public class DepositDaoImpl implements DepositDao {
       throw new BankDataAccessException("Не удалось обновить дату депозита", e);
     }
   }
-
-  /**
-   * Handles get pending deposits.
-   */
   @Override
   public List<Deposit> getPendingDeposits() {
     List<Deposit> deposits = new ArrayList<>();
@@ -325,10 +269,6 @@ public class DepositDaoImpl implements DepositDao {
       connectionPool.releaseConnection(connection);
     }
   }
-
-  /**
-   * Handles accept deposit.
-   */
   @Override
   public boolean acceptDeposit(Long depositId) {
     String sql = """

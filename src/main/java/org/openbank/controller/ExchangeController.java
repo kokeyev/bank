@@ -1,20 +1,25 @@
 package org.openbank.controller;
 
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
+import org.openbank.dto.ExchangeCalculationRequest;
+import org.openbank.dto.TransferBetweenAccountsRequest;
 import org.openbank.model.Currency;
 import org.openbank.model.User;
 import org.openbank.view.BankViewService;
 import org.openbank.service.CurrentUserService;
 import org.openbank.service.ExchangeCurrencyService;
+import org.openbank.service.MessageService;
 import org.openbank.service.TransactionService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,12 +30,14 @@ public class ExchangeController {
   private final CurrentUserService currentUserService;
   private final TransactionService transactionService;
   private final BankViewService bankViewService;
+  private final MessageService messageService;
 
-  public ExchangeController(ExchangeCurrencyService exchangeCurrencyService, CurrentUserService currentUserService, TransactionService transactionService, BankViewService bankViewService) {
+  public ExchangeController(ExchangeCurrencyService exchangeCurrencyService, CurrentUserService currentUserService, TransactionService transactionService, BankViewService bankViewService, MessageService messageService) {
     this.exchangeCurrencyService = exchangeCurrencyService;
     this.currentUserService = currentUserService;
     this.transactionService = transactionService;
     this.bankViewService = bankViewService;
+    this.messageService = messageService;
   }
 
   @GetMapping("/exchange")
@@ -40,9 +47,15 @@ public class ExchangeController {
   }
 
   @PostMapping("/exchange/calculate")
-  public String calculate(@RequestParam("fromCurrencyId") Long fromCurrencyId, @RequestParam("toCurrencyId") Long toCurrencyId, @RequestParam("amount") BigDecimal amount, HttpSession session, Model model) {
+  public String calculate(@Valid @ModelAttribute ExchangeCalculationRequest request, BindingResult bindingResult, HttpSession session, Model model) {
+    if (bindingResult.hasErrors()) {
+      model.addAttribute("exchangeError", firstError(bindingResult));
+      addExchangeModel(session, model);
+      return "exchange/index";
+    }
+
     try {
-      BigDecimal result = exchangeCurrencyService.calculate(fromCurrencyId, toCurrencyId, amount);
+      var result = exchangeCurrencyService.calculate(request.getFromCurrencyId(), request.getToCurrencyId(), request.getAmount());
       model.addAttribute("calculationResult", bankViewService.formatMoney(result));
     } catch (IllegalArgumentException e) {
       model.addAttribute("exchangeError", e.getMessage());
@@ -52,15 +65,20 @@ public class ExchangeController {
   }
 
   @PostMapping("/exchange")
-  public String exchangeMoney(@RequestParam("senderAccountId") Long senderAccountId, @RequestParam("receiverAccountId") Long receiverAccountId, @RequestParam("amount") BigDecimal amount, HttpSession session, RedirectAttributes redirectAttributes) {
+  public String exchangeMoney(@Valid @ModelAttribute TransferBetweenAccountsRequest request, BindingResult bindingResult, HttpSession session, RedirectAttributes redirectAttributes) {
     Optional<User> currentUser = currentUserService.getCurrentUser(session);
     if (currentUser.isEmpty()) {
       return "redirect:/login?loginRequired=true";
     }
 
+    if (bindingResult.hasErrors()) {
+      redirectAttributes.addFlashAttribute("exchangeError", firstError(bindingResult));
+      return "redirect:/exchange";
+    }
+
     try {
-      transactionService.makeTransactionExchangeCurrencies(senderAccountId, receiverAccountId, amount);
-      redirectAttributes.addFlashAttribute("exchangeSuccess", "Обмен выполнен.");
+      transactionService.makeTransactionExchangeCurrencies(request.getSenderAccountId(), request.getReceiverAccountId(), request.getAmount());
+      redirectAttributes.addFlashAttribute("exchangeSuccess", messageService.get("transfers.exchange.success"));
     } catch (IllegalArgumentException e) {
       redirectAttributes.addFlashAttribute("exchangeError", e.getMessage());
     }
@@ -73,6 +91,11 @@ public class ExchangeController {
     model.addAttribute("currencies", currencies);
     model.addAttribute("accountOptions", currentUserId(session).map(bankViewService::getTransferAccountOptions).orElse(List.of()));
     model.addAttribute("missingCurrencies", currentUserId(session).map(userId -> bankViewService.getMissingCurrencyNames(userId, currencies)).orElse(List.of()));
+  }
+
+  private String firstError(BindingResult bindingResult) {
+    FieldError error = bindingResult.getFieldErrors().getFirst();
+    return error.getDefaultMessage();
   }
 
   private Optional<Long> currentUserId(HttpSession session) {

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Заявки на кредиты</title>
+    <title th:text="#{manager.loans.title}">Loan requests</title>
     <link rel="stylesheet" href="../../static/css/styles.css" th:href="@{/css/styles.css}">
     <meta charset="UTF-8">
 </head>
@@ -11,7 +11,7 @@
 
 <main class="loans-page">
 
-    <h1>Заявки на кредиты</h1>
+    <h1 th:text="#{manager.loans.title}">Loan requests</h1>
 
     <div class="loan-message loan-message-success" th:if="${managerLoanSuccess}" th:text="${managerLoanSuccess}">Предложение создано.</div>
     <div class="loan-message loan-message-error" th:if="${managerLoanError}" th:text="${managerLoanError}">Ошибка.</div>
@@ -19,12 +19,12 @@
         <p th:each="error : ${managerLoanErrors}" th:text="${error}">Ошибка.</p>
     </div>
 
-    <div class="accounts-empty-state" th:if="${pendingLoans == null || pendingLoans.isEmpty()}">
-        <p>Нет заявок в статусе PENDING.</p>
+    <div class="accounts-empty-state" th:if="${pendingLoansPage == null || pendingLoansPage.items.isEmpty()}">
+        <p th:text="#{manager.loans.empty}">No pending requests.</p>
     </div>
 
-    <div class="manager-loans-list" th:if="${pendingLoans != null && !pendingLoans.isEmpty()}">
-        <section class="manager-loan-card" th:each="loan : ${pendingLoans}">
+    <div class="manager-loans-list" th:if="${pendingLoansPage != null && !pendingLoansPage.items.isEmpty()}">
+        <section class="manager-loan-card" th:each="loan : ${pendingLoansPage.items}">
             <div class="client-loan-topline">
                 <div>
                     <div class="client-loan-name" th:text="${loan.typeName}">На любые цели</div>
@@ -33,35 +33,43 @@
                 <div class="client-loan-amount" th:text="${loan.amount}">1 000 000.00 ₸</div>
             </div>
 
-            <form class="manager-offer-form" method="post" th:action="@{/manager/loans/{loanId}/offers(loanId=${loan.loanId})}">
+            <form class="manager-offer-form" method="post" th:action="@{/manager/loans/{loanId}/offers(loanId=${loan.loanId},page=${pendingLoansPage.currentPage})}">
+            <input type="hidden" name="_csrf" th:value="${csrfToken}">
                 <div class="loan-form-field">
-                    <label th:for="'amount-' + ${loan.loanId}">Сумма предложения</label>
+                    <label th:for="'amount-' + ${loan.loanId}" th:text="#{manager.loans.offerAmount}">Offer amount</label>
                     <input th:id="'amount-' + ${loan.loanId}" name="amount" type="number" min="0.01" step="0.01" placeholder="0" required>
                 </div>
 
                 <div class="loan-form-field">
-                    <label th:for="'rate-' + ${loan.loanId}">Ставка</label>
+                    <label th:for="'rate-' + ${loan.loanId}" th:text="#{accounts.rate}">Rate</label>
                     <input th:id="'rate-' + ${loan.loanId}" name="rate" type="number" min="0.01" step="0.01" placeholder="18" required>
                 </div>
 
                 <div class="loan-form-field">
-                    <label th:for="'duration-' + ${loan.loanId}">Срок, месяцев</label>
+                    <label th:for="'duration-' + ${loan.loanId}" th:text="#{manager.loans.durationMonths}">Term, months</label>
                     <input th:id="'duration-' + ${loan.loanId}" name="duration" type="number" min="1" step="1" placeholder="60" required>
                 </div>
 
                 <div class="loan-form-field">
-                    <label th:for="'payment-' + ${loan.loanId}">Ежемесячный платеж</label>
-                    <input th:id="'payment-' + ${loan.loanId}" name="monthlyPayment" type="number" min="0.01" step="0.01" placeholder="Рассчитать автоматически">
+                    <label th:for="'payment-' + ${loan.loanId}" th:text="#{manager.loans.monthlyPayment}">Monthly payment</label>
+                    <input th:id="'payment-' + ${loan.loanId}" name="monthlyPayment" type="number" min="0.01" step="0.01" th:placeholder="#{manager.loans.autoCalculate}">
                 </div>
 
-                <button class="loan-submit-button" type="submit">Создать предложение</button>
+                <button class="loan-submit-button" type="submit" th:text="#{manager.loans.createOffer}">Create offer</button>
             </form>
 
             <form class="manager-offer-form" method="post" th:action="@{/manager/loans/{loanId}/reject(loanId=${loan.loanId})}">
-                <button class="loan-secondary-button" type="submit">Отклонить заявку</button>
+            <input type="hidden" name="_csrf" th:value="${csrfToken}">
+                <button class="loan-secondary-button" type="submit" th:text="#{manager.loans.rejectRequest}">Reject request</button>
             </form>
         </section>
     </div>
+
+    <nav class="pagination" th:if="${pendingLoansPage != null && pendingLoansPage.totalPages > 1}">
+        <a th:if="${pendingLoansPage.hasPrevious}" th:href="@{/manager/loans(page=${pendingLoansPage.currentPage - 1})}" th:text="#{pagination.previous}">Previous</a>
+        <span th:text="${pendingLoansPage.currentPage + ' / ' + pendingLoansPage.totalPages}">1 / 1</span>
+        <a th:if="${pendingLoansPage.hasNext}" th:href="@{/manager/loans(page=${pendingLoansPage.currentPage + 1})}" th:text="#{pagination.next}">Next</a>
+    </nav>
 
 </main>
 

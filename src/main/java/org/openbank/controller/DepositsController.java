@@ -1,13 +1,16 @@
 package org.openbank.controller;
 
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import org.openbank.dto.OpenDepositRequest;
 import org.openbank.model.User;
 import org.openbank.view.BankViewService;
 import org.openbank.service.CurrentUserService;
 import org.openbank.service.DepositService;
+import org.openbank.service.MessageService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,11 +28,13 @@ public class DepositsController {
   private final CurrentUserService currentUserService;
   private final DepositService depositService;
   private final BankViewService bankViewService;
+  private final MessageService messageService;
 
-  public DepositsController(CurrentUserService currentUserService, DepositService depositService, BankViewService bankViewService) {
+  public DepositsController(CurrentUserService currentUserService, DepositService depositService, BankViewService bankViewService, MessageService messageService) {
     this.currentUserService = currentUserService;
     this.depositService = depositService;
     this.bankViewService = bankViewService;
+    this.messageService = messageService;
   }
 
   @GetMapping("/deposits")
@@ -45,8 +50,8 @@ public class DepositsController {
   }
 
   @PostMapping("/deposits/kopilka")
-  public String createKopilkaDeposit(@ModelAttribute OpenDepositRequest request, HttpSession session, Model model) {
-    return openDeposit(KOPILKA, "deposits/kopilka", request, session, model);
+  public String createKopilkaDeposit(@Valid @ModelAttribute OpenDepositRequest request, BindingResult bindingResult, HttpSession session, Model model) {
+    return openDeposit(KOPILKA, "deposits/kopilka", request, bindingResult, session, model);
   }
 
   @GetMapping("/deposits/strategy")
@@ -57,8 +62,8 @@ public class DepositsController {
   }
 
   @PostMapping("/deposits/strategy")
-  public String createStrategyDeposit(@ModelAttribute OpenDepositRequest request, HttpSession session, Model model) {
-    return openDeposit(STRATEGY, "deposits/strategy", request, session, model);
+  public String createStrategyDeposit(@Valid @ModelAttribute OpenDepositRequest request, BindingResult bindingResult, HttpSession session, Model model) {
+    return openDeposit(STRATEGY, "deposits/strategy", request, bindingResult, session, model);
   }
 
   @GetMapping("/deposits/capital")
@@ -71,21 +76,26 @@ public class DepositsController {
   }
 
   @PostMapping("/deposits/capital")
-  public String createCapitalDeposit(@ModelAttribute OpenDepositRequest request, HttpSession session, Model model) {
-    return openDeposit(CAPITAL, "deposits/capital", request, session, model);
+  public String createCapitalDeposit(@Valid @ModelAttribute OpenDepositRequest request, BindingResult bindingResult, HttpSession session, Model model) {
+    return openDeposit(CAPITAL, "deposits/capital", request, bindingResult, session, model);
   }
 
-  private String openDeposit(String productName, String template, OpenDepositRequest request, HttpSession session, Model model) {
+  private String openDeposit(String productName, String template, OpenDepositRequest request, BindingResult bindingResult, HttpSession session, Model model) {
     Optional<User> currentUser = currentUserService.getCurrentUser(session);
 
     if (currentUser.isEmpty()) {
       return "redirect:/login?loginRequired=true";
     }
 
+    if (bindingResult.hasErrors()) {
+      addDepositFormModel(session, model, productName, request);
+      return template;
+    }
+
     try {
       depositService.openDeposit(currentUser.get().getUserId(), request);
       addDepositFormModel(session, model, productName, new OpenDepositRequest());
-      model.addAttribute("depositSuccess", "Заявка на депозит отправлена менеджеру.");
+      model.addAttribute("depositSuccess", messageService.get("deposits.request.success"));
     } catch (IllegalArgumentException e) {
       addDepositFormModel(session, model, productName, request);
       model.addAttribute("depositError", e.getMessage());

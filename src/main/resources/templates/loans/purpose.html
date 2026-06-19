@@ -21,6 +21,7 @@
         </div>
 
         <form class="loan-application-form" method="post" th:action="@{/loans/purpose}" th:object="${loanApplicationRequest}">
+            <input type="hidden" name="_csrf" th:value="${csrfToken}">
             <div class="loan-message loan-message-success" th:if="${loanSuccess}" th:text="${loanSuccess}">Заявка отправлена.</div>
             <div class="loan-message loan-message-error" th:if="${loanError}" th:text="${loanError}">Ошибка.</div>
 

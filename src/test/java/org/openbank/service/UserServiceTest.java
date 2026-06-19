@@ -63,6 +63,27 @@ class UserServiceTest {
   }
 
   @Test
+  void createManagerStoresPendingManagerRole() {
+    when(passwordHasher.hash("password123")).thenReturn("hash");
+
+    service.createManager(validRequest());
+
+    ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
+    verify(userDao).createNewUser(captor.capture());
+    assertEquals("MANAGER", captor.getValue().getRole());
+    assertEquals(UserStatus.PENDING.name(), captor.getValue().getStatus());
+  }
+
+  @Test
+  void authenticateReturnsEmptyForBlankInputAndMissingUser() {
+    assertTrue(service.authenticate(" ", "password123").isEmpty());
+    assertTrue(service.authenticate("aru@example.com", " ").isEmpty());
+    when(userDao.getUserByEmailAddress("aru@example.com")).thenReturn(Optional.empty());
+
+    assertTrue(service.authenticate("aru@example.com", "password123").isEmpty());
+  }
+
+  @Test
   void authenticateAcceptsActiveUserWithMatchingPassword() {
     User user = user(1L, "CLIENT", UserStatus.ACTIVE.name());
     when(userDao.getUserByEmailAddress("aru@example.com")).thenReturn(Optional.of(user));
@@ -82,6 +103,36 @@ class UserServiceTest {
   }
 
   @Test
+  void authenticateRejectsWrongPassword() {
+    User user = user(1L, "CLIENT", UserStatus.ACTIVE.name());
+    when(userDao.getUserByEmailAddress("aru@example.com")).thenReturn(Optional.of(user));
+    when(passwordHasher.matches("wrong", "hash")).thenReturn(false);
+
+    assertTrue(service.authenticate("aru@example.com", "wrong").isEmpty());
+  }
+
+  @Test
+  void authenticateManagerRequiresManagerRoleAndActiveStatus() {
+    User manager = user(1L, "MANAGER", UserStatus.ACTIVE.name());
+    when(userDao.getUserByEmailAddress("manager@example.com")).thenReturn(Optional.of(manager));
+    when(passwordHasher.matches("password123", "hash")).thenReturn(true);
+
+    assertTrue(service.authenticateManager("manager@example.com", "password123").isPresent());
+
+    User client = user(2L, "CLIENT", UserStatus.ACTIVE.name());
+    when(userDao.getUserByEmailAddress("client@example.com")).thenReturn(Optional.of(client));
+    when(passwordHasher.matches("password123", "hash")).thenReturn(true);
+
+    assertTrue(service.authenticateManager("client@example.com", "password123").isEmpty());
+
+    User inactiveManager = user(3L, "MANAGER", UserStatus.PENDING.name());
+    when(userDao.getUserByEmailAddress("pending@example.com")).thenReturn(Optional.of(inactiveManager));
+    when(passwordHasher.matches("password123", "hash")).thenReturn(true);
+
+    assertTrue(service.authenticateManager("pending@example.com", "password123").isEmpty());
+  }
+
+  @Test
   void changePasswordValidatesCurrentPasswordAndUpdatesHash() {
     User currentUser = user(1L, "CLIENT", UserStatus.ACTIVE.name());
     PasswordChangeRequest request = new PasswordChangeRequest();
@@ -97,6 +148,20 @@ class UserServiceTest {
   }
 
   @Test
+  void changePasswordCollectsValidationErrors() {
+    User currentUser = user(1L, "CLIENT", UserStatus.ACTIVE.name());
+    PasswordChangeRequest request = new PasswordChangeRequest();
+    request.setCurrentPassword("");
+    request.setNewPassword("short");
+    request.setConfirmPassword("different");
+    when(passwordHasher.matches("", "hash")).thenReturn(false);
+
+    assertThrows(ContactUpdateException.class, () -> service.changePassword(currentUser, request));
+
+    verify(userDao, never()).changePasswordHashOfUserById(any(), any());
+  }
+
+  @Test
   void updateContactDetailsRejectsDuplicateEmail() {
     User currentUser = user(1L, "CLIENT", UserStatus.ACTIVE.name());
     UpdateContactRequest request = new UpdateContactRequest();
@@ -105,6 +170,42 @@ class UserServiceTest {
     when(userDao.existsByEmailAddress("new@example.com")).thenReturn(true);
 
     assertThrows(ContactUpdateException.class, () -> service.updateContactDetails(currentUser, request));
+  }
+
+  @Test
+  void updateContactDetailsRejectsEmptyAndDuplicatePhone() {
+    User currentUser = user(1L, "CLIENT", UserStatus.ACTIVE.name());
+    UpdateContactRequest emptyRequest = new UpdateContactRequest();
+    emptyRequest.setPhone("");
+    emptyRequest.setEmail("");
+
+    assertThrows(ContactUpdateException.class, () -> service.updateContactDetails(currentUser, emptyRequest));
+
+    UpdateContactRequest duplicatePhone = new UpdateContactRequest();
+    duplicatePhone.setPhone("+77009998877");
+    duplicatePhone.setEmail(currentUser.getEmailAddress());
+    when(userDao.existsByPhoneNumber("+77009998877")).thenReturn(true);
+
+    assertThrows(ContactUpdateException.class, () -> service.updateContactDetails(currentUser, duplicatePhone));
+  }
+
+  @Test
+  void updateContactDetailsChangesPhoneAndEmail() {
+    User currentUser = user(1L, "CLIENT", UserStatus.ACTIVE.name());
+    User updatedUser = user(1L, "CLIENT", UserStatus.ACTIVE.name());
+    updatedUser.setPhoneNumber("+77009998877");
+    updatedUser.setEmailAddress("new@example.com");
+    UpdateContactRequest request = new UpdateContactRequest();
+    request.setPhone("+77009998877");
+    request.setEmail("NEW@example.com");
+    when(userDao.getUserById(1L)).thenReturn(Optional.of(updatedUser));
+
+    User result = service.updateContactDetails(currentUser, request);
+
+    assertEquals("+77009998877", result.getPhoneNumber());
+    assertEquals("new@example.com", result.getEmailAddress());
+    verify(userDao).changePhoneNumberOfUserById(1L, "+77009998877");
+    verify(userDao).changeEmailAddressOfUserById(1L, "new@example.com");
   }
 
   private CreateUserRequest validRequest() {

@@ -61,7 +61,16 @@ Online Bank is a Spring MVC web application for a Java Web Development capstone 
 The application uses PostgreSQL by default.
 
 1. Create a database named `bank`.
-2. Run the SQL files from `src/main/sql_scripts/createTablesScripts` in this order:
+2. Run the full init script:
+
+```bash
+cd src/main/sql_scripts
+psql -d bank -f init_database.sql
+```
+
+The init script creates the schema and loads seed data for currencies, deposit products, loan products, an active demo client, an active demo manager, and one demo client account.
+
+If you want to run only the schema manually, run the SQL files from `src/main/sql_scripts/createTablesScripts` in this order:
    - `currencies.sql`
    - `users.sql`
    - `accounts.sql`
@@ -70,7 +79,8 @@ The application uses PostgreSQL by default.
    - `loan_types.sql`
    - `loans.sql`
    - `transactions.sql`
-3. Check database settings in `src/main/resources/application.properties`.
+3. For reference data only, run `src/main/sql_scripts/seedDataScripts/001_seed_reference_data.sql`.
+4. Check database settings in `src/main/resources/application.properties`.
 
 Default local settings:
 
@@ -80,6 +90,18 @@ db.username=postgres
 db.password=1234
 db.pool.size=10
 ```
+
+Demo credentials after running the seed script:
+
+- Client: `client@openbank.kz` / `client12345`
+- Manager: `manager@openbank.kz` / `manager12345`
+- Admin panel: `admin@openbank.kz` / `admin12345`
+
+Database notes:
+
+- Currency names are unique in the schema.
+- Seed scripts are idempotent for reference data and demo records.
+- CVV is stored only because this course project simulates issued cards and displays demo card details inside the bank cabinet. The app has no merchant acquiring, online purchase, or external card authorization flow. In a production banking system, CVV must not be stored after authorization/issuance; it should be removed from persistent storage or replaced with a compliant card-provider/tokenization design.
 
 ## How To Run
 
@@ -115,7 +137,7 @@ Deploy the generated WAR file from `target/` to a Jakarta Servlet container such
 
 ## Design Patterns
 
-- **Strategy**: deposit and loan products have different rules for amount, duration, rates, top-up, withdrawal, and offers. The service layer applies these rules depending on the selected product.
+- **Strategy**: `DepositProductStrategy` and `LoanProductStrategy` define product-specific business rules. Concrete classes such as `KopilkaDepositStrategy`, `CapitalDepositStrategy`, `PurposeLoanStrategy`, and `MortgageLoanStrategy` are selected through resolver classes and used by the services for validation, interest, renewal, withdrawal, monthly payment, penalty, and schedule rules.
 - **Command-style transaction runner**: `DatabaseTransactionRunner` receives a database action and runs it inside one JDBC transaction. This keeps commit, rollback, and connection cleanup in one place.
 - **Interceptor**: `LoginRequiredInterceptor` checks access before protected pages are opened.
 
@@ -125,3 +147,4 @@ Deploy the generated WAR file from `target/` to a Jakarta Servlet container such
 - SQL queries use `PreparedStatement`.
 - The app supports Russian, Kazakh, and English interface texts.
 - Tests cover Service and DAO logic.
+- POST forms include a session CSRF token checked by `CsrfInterceptor`.

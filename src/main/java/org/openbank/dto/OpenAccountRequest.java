@@ -9,15 +9,15 @@ import java.math.BigDecimal;
 
 public class OpenAccountRequest {
 
-  @NotBlank(message = "Account name is required")
-  @Size(max = 100, message = "Account name must be shorter than 100 characters")
+  @NotBlank(message = "{validation.accountName.required}")
+  @Size(max = 100, message = "{validation.accountName.size}")
   private String accountName;
 
-  @NotBlank(message = "Currency is required")
+  @NotBlank(message = "{validation.currency.required}")
   private String currency;
 
-  @NotNull(message = "Transaction limit is required")
-  @DecimalMin(value = "0.00", message = "Transaction limit cannot be negative")
+  @NotNull(message = "{validation.transactionLimit.required}")
+  @DecimalMin(value = "0.00", message = "{validation.transactionLimit.min}")
   private BigDecimal transactionLimit;
 
   public String getAccountName() {
