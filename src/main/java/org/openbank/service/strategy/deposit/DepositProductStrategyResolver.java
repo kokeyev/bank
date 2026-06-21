@@ -33,6 +33,7 @@ public class DepositProductStrategyResolver {
     if (strategy == null) {
       throw new IllegalArgumentException("Тип депозита не найден");
     }
+
     return strategy;
   }
 }

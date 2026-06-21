@@ -137,13 +137,10 @@ Deploy the generated WAR file from `target/` to a Jakarta Servlet container such
 
 ## Design Patterns
 
-- **Strategy**: `DepositProductStrategy` and `LoanProductStrategy` define product-specific business rules. Concrete classes such as `KopilkaDepositStrategy`, `CapitalDepositStrategy`, `PurposeLoanStrategy`, and `MortgageLoanStrategy` are selected through resolver classes and used by the services for validation, interest, renewal, withdrawal, monthly payment, penalty, and schedule rules.
-- **Command-style transaction runner**: `DatabaseTransactionRunner` receives a database action and runs it inside one JDBC transaction. This keeps commit, rollback, and connection cleanup in one place.
-- **Interceptor**: `LoginRequiredInterceptor` checks access before protected pages are opened.
 
 ## Notes
 
-- Passwords are stored as salted PBKDF2 hashes.
+- Passwords are stored as salted hashes.
 - SQL queries use `PreparedStatement`.
 - The app supports Russian, Kazakh, and English interface texts.
 - Tests cover Service and DAO logic.
