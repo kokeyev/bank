@@ -28,6 +28,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 @Controller
 public class AdminController {
@@ -65,17 +66,19 @@ public class AdminController {
 
   @PostMapping("/admin/login")
   public String login(@RequestParam("login") String login, @RequestParam("password") String password, HttpSession session, Model model) {
-    return userService.authenticateAdmin(login, password)
-        .map(admin -> {
-          staffSessionService.loginAdmin(session, admin);
-          return "redirect:/admin";
-        })
-        .orElseGet(() -> {
-      model.addAttribute("adminLoginError", messageService.get("auth.login.invalid"));
-      model.addAttribute("adminLogin", login);
+    Optional<User> admin = userService.authenticateAdmin(login, password);
+    if (admin.isPresent()) {
+      staffSessionService.loginAdmin(
+          session,
+          admin.get()
+      );
 
-      return "admin/login";
-        });
+      return "redirect:/admin";
+    }
+    model.addAttribute("adminLoginError", messageService.get("auth.login.invalid"));
+    model.addAttribute("adminLogin", login);
+
+    return "admin/login";
   }
 
   @PostMapping("/admin/logout")

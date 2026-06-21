@@ -48,13 +48,7 @@ public class AccountsController {
   }
 
   @GetMapping({"/", "/accounts"})
-  public String accounts(
-      @RequestParam(value = "depositsPage", defaultValue = "1") int depositsPage,
-      @RequestParam(value = "loansPage", defaultValue = "1") int loansPage,
-      @RequestParam(value = "transactionsPage", defaultValue = "1") int transactionsPage,
-      HttpSession session,
-      Model model
-  ) {
+  public String accounts(@RequestParam(value = "depositsPage", defaultValue = "1") int depositsPage, @RequestParam(value = "loansPage", defaultValue = "1") int loansPage, @RequestParam(value = "transactionsPage", defaultValue = "1") int transactionsPage, HttpSession session, Model model) {
 
     Optional<User> currentUser = currentUserService.getCurrentUser(session);
     if (currentUser.isPresent()) {
