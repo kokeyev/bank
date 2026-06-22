@@ -27,6 +27,12 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class CurrencyDaoImplTest {
 
+  private static final Long CURRENCY_ID = 1L;
+  private static final String CURRENCY_NAME = "KZT";
+  private static final String SQL_ERROR_MESSAGE = "database down";
+  private static final BigDecimal UPDATED_RATE_TO_KZT = new BigDecimal("510.50");
+  private static final int UPDATED_ROW_COUNT = 1;
+
   @Mock
   private ConnectionPool connectionPool;
 
@@ -52,36 +58,36 @@ class CurrencyDaoImplTest {
   void getCurrencyByNameMapsResultSet() throws SQLException {
     when(statement.executeQuery()).thenReturn(resultSet);
     when(resultSet.next()).thenReturn(true);
-    when(resultSet.getLong("currency_id")).thenReturn(1L);
-    when(resultSet.getString("name")).thenReturn("KZT");
+    when(resultSet.getLong("currency_id")).thenReturn(CURRENCY_ID);
+    when(resultSet.getString("name")).thenReturn(CURRENCY_NAME);
     when(resultSet.getBigDecimal("rate_to_kzt")).thenReturn(BigDecimal.ONE);
 
-    Optional<Currency> currency = dao.getCurrencyByName("KZT");
+    Optional<Currency> currency = dao.getCurrencyByName(CURRENCY_NAME);
 
     assertTrue(currency.isPresent());
-    assertEquals(1L, currency.get().getCurrencyId());
-    assertEquals("KZT", currency.get().getName());
+    assertEquals(CURRENCY_ID, currency.get().getCurrencyId());
+    assertEquals(CURRENCY_NAME, currency.get().getName());
     assertEquals(BigDecimal.ONE, currency.get().getRateToKzt());
-    verify(statement).setString(1, "KZT");
+    verify(statement).setString(1, CURRENCY_NAME);
     verify(connectionPool).releaseConnection(connection);
   }
 
   @Test
   void updateCurrencyRateReturnsTrueWhenRowUpdated() throws SQLException {
-    when(statement.executeUpdate()).thenReturn(1);
+    when(statement.executeUpdate()).thenReturn(UPDATED_ROW_COUNT);
 
-    boolean updated = dao.updateCurrencyRate(1L, new BigDecimal("510.50"));
+    boolean updated = dao.updateCurrencyRate(CURRENCY_ID, UPDATED_RATE_TO_KZT);
 
     assertTrue(updated);
-    verify(statement).setBigDecimal(1, new BigDecimal("510.50"));
-    verify(statement).setLong(2, 1L);
+    verify(statement).setBigDecimal(1, UPDATED_RATE_TO_KZT);
+    verify(statement).setLong(2, CURRENCY_ID);
   }
 
   @Test
   void getCurrencyByIdWrapsSqlException() throws SQLException {
-    when(connection.prepareStatement(anyString())).thenThrow(new SQLException("database down"));
+    when(connection.prepareStatement(anyString())).thenThrow(new SQLException(SQL_ERROR_MESSAGE));
 
-    assertThrows(BankDataAccessException.class, () -> dao.getCurrencyById(1L));
+    assertThrows(BankDataAccessException.class, () -> dao.getCurrencyById(CURRENCY_ID));
     verify(connectionPool).releaseConnection(connection);
   }
 }

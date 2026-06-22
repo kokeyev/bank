@@ -32,6 +32,18 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class AccountDaoImplTest {
 
+  private static final Long ACCOUNT_ID = 5L;
+  private static final Long USER_ID = 7L;
+  private static final Long CURRENCY_ID = 1L;
+  private static final String CARD_NUMBER = "4000000000000002";
+  private static final String CVV = "123";
+  private static final String ACCOUNT_NAME = "Main";
+  private static final String SQL_ERROR_MESSAGE = "write failed";
+  private static final LocalDate EXPIRY_DATE = LocalDate.of(2030, 1, 1);
+  private static final BigDecimal BALANCE = new BigDecimal("1500");
+  private static final BigDecimal TRANSACTION_LIMIT = new BigDecimal("100000");
+  private static final int UPDATED_ROW_COUNT = 1;
+
   @Mock
   private ConnectionPool connectionPool;
 
@@ -55,31 +67,30 @@ class AccountDaoImplTest {
 
   @Test
   void createNewAccountBindsAllFields() throws SQLException {
-    LocalDate expiryDate = LocalDate.of(2030, 1, 1);
-    when(statement.executeUpdate()).thenReturn(1);
+    when(statement.executeUpdate()).thenReturn(UPDATED_ROW_COUNT);
 
     boolean result = testingInstance.createNewAccount(
-        7L,
-        "4000000000000002",
-        "123",
-        expiryDate,
+        USER_ID,
+        CARD_NUMBER,
+        CVV,
+        EXPIRY_DATE,
         BigDecimal.ZERO,
-        1L,
+        CURRENCY_ID,
         AccountStatus.PENDING,
-        new BigDecimal("100000"),
-        "Main",
+        TRANSACTION_LIMIT,
+        ACCOUNT_NAME,
         false
     );
 
-    verify(statement).setLong(1, 7L);
-    verify(statement).setString(2, "4000000000000002");
-    verify(statement).setString(3, "123");
-    verify(statement).setDate(4, Date.valueOf(expiryDate));
+    verify(statement).setLong(1, USER_ID);
+    verify(statement).setString(2, CARD_NUMBER);
+    verify(statement).setString(3, CVV);
+    verify(statement).setDate(4, Date.valueOf(EXPIRY_DATE));
     verify(statement).setBigDecimal(5, BigDecimal.ZERO);
-    verify(statement).setLong(6, 1L);
+    verify(statement).setLong(6, CURRENCY_ID);
     verify(statement).setString(7, AccountStatus.PENDING.name());
-    verify(statement).setBigDecimal(8, new BigDecimal("100000"));
-    verify(statement).setString(9, "Main");
+    verify(statement).setBigDecimal(8, TRANSACTION_LIMIT);
+    verify(statement).setString(9, ACCOUNT_NAME);
     verify(statement).setBoolean(10, false);
     assertTrue(result);
   }
@@ -90,35 +101,35 @@ class AccountDaoImplTest {
     when(resultSet.next()).thenReturn(true);
     accountRow();
 
-    Optional<Account> account = testingInstance.getAccountById(5L);
+    Optional<Account> account = testingInstance.getAccountById(ACCOUNT_ID);
 
     assertTrue(account.isPresent());
-    assertEquals(5L, account.get().getAccountId());
-    assertEquals("4000000000000002", account.get().getCardNumber());
+    assertEquals(ACCOUNT_ID, account.get().getAccountId());
+    assertEquals(CARD_NUMBER, account.get().getCardNumber());
     assertEquals(AccountStatus.ACTIVE.name(), account.get().getStatus());
-    verify(statement).setLong(1, 5L);
+    verify(statement).setLong(1, ACCOUNT_ID);
   }
 
   @Test
   void withdrawWrapsSqlException() throws SQLException {
-    when(statement.executeUpdate()).thenThrow(new SQLException("write failed"));
+    when(statement.executeUpdate()).thenThrow(new SQLException(SQL_ERROR_MESSAGE));
 
-    Executable executable = () -> testingInstance.withdraw(5L, BigDecimal.TEN);
+    Executable executable = () -> testingInstance.withdraw(ACCOUNT_ID, BigDecimal.TEN);
 
     assertThrows(BankDataAccessException.class, executable);
   }
 
   private void accountRow() throws SQLException {
-    when(resultSet.getLong("account_id")).thenReturn(5L);
-    when(resultSet.getLong("user_id")).thenReturn(7L);
-    when(resultSet.getString("card_number")).thenReturn("4000000000000002");
-    when(resultSet.getString("cvv")).thenReturn("123");
-    when(resultSet.getDate("expiry_date")).thenReturn(Date.valueOf(LocalDate.of(2030, 1, 1)));
-    when(resultSet.getBigDecimal("balance")).thenReturn(new BigDecimal("1500"));
-    when(resultSet.getLong("currency_id")).thenReturn(1L);
+    when(resultSet.getLong("account_id")).thenReturn(ACCOUNT_ID);
+    when(resultSet.getLong("user_id")).thenReturn(USER_ID);
+    when(resultSet.getString("card_number")).thenReturn(CARD_NUMBER);
+    when(resultSet.getString("cvv")).thenReturn(CVV);
+    when(resultSet.getDate("expiry_date")).thenReturn(Date.valueOf(EXPIRY_DATE));
+    when(resultSet.getBigDecimal("balance")).thenReturn(BALANCE);
+    when(resultSet.getLong("currency_id")).thenReturn(CURRENCY_ID);
     when(resultSet.getString("status")).thenReturn(AccountStatus.ACTIVE.name());
-    when(resultSet.getBigDecimal("transaction_limit")).thenReturn(new BigDecimal("100000"));
-    when(resultSet.getString("name")).thenReturn("Main");
+    when(resultSet.getBigDecimal("transaction_limit")).thenReturn(TRANSACTION_LIMIT);
+    when(resultSet.getString("name")).thenReturn(ACCOUNT_NAME);
     when(resultSet.getBoolean("is_main")).thenReturn(true);
   }
 }

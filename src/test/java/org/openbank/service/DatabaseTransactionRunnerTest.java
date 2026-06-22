@@ -20,6 +20,11 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class DatabaseTransactionRunnerTest {
 
+  private static final String FAILURE_MESSAGE = "failed";
+  private static final String SUCCESS_RESULT = "ok";
+  private static final String SQL_ERROR_MESSAGE = "broken";
+  private static final String RUNTIME_ERROR_MESSAGE = "bad state";
+
   @Mock
   private ConnectionPool connectionPool;
 
@@ -36,9 +41,9 @@ class DatabaseTransactionRunnerTest {
 
   @Test
   void runCommitsAndReleasesConnectionOnSuccess() throws SQLException {
-    String result = runner.run("failed", activeConnection -> "ok");
+    String result = runner.run(FAILURE_MESSAGE, activeConnection -> SUCCESS_RESULT);
 
-    assertEquals("ok", result);
+    assertEquals(SUCCESS_RESULT, result);
     verify(connection).setAutoCommit(false);
     verify(connection).commit();
     verify(connection).setAutoCommit(true);
@@ -47,8 +52,8 @@ class DatabaseTransactionRunnerTest {
 
   @Test
   void runRollsBackAndWrapsSqlException() throws SQLException {
-    assertThrows(BankTransactionException.class, () -> runner.run("failed", activeConnection -> {
-      throw new SQLException("broken");
+    assertThrows(BankTransactionException.class, () -> runner.run(FAILURE_MESSAGE, activeConnection -> {
+      throw new SQLException(SQL_ERROR_MESSAGE);
     }));
 
     verify(connection).rollback();
@@ -58,8 +63,8 @@ class DatabaseTransactionRunnerTest {
 
   @Test
   void runRollsBackAndRethrowsRuntimeException() throws SQLException {
-    assertThrows(IllegalStateException.class, () -> runner.run("failed", activeConnection -> {
-      throw new IllegalStateException("bad state");
+    assertThrows(IllegalStateException.class, () -> runner.run(FAILURE_MESSAGE, activeConnection -> {
+      throw new IllegalStateException(RUNTIME_ERROR_MESSAGE);
     }));
 
     verify(connection).rollback();

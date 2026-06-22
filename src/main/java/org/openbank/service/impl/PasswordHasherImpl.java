@@ -1,7 +1,7 @@
 package org.openbank.service.impl;
 
 import org.openbank.service.PasswordHasher;
-import org.openbank.service.Messages;
+import org.openbank.service.MessageService;
 import org.springframework.stereotype.Component;
 
 import java.security.MessageDigest;
@@ -12,6 +12,11 @@ import java.util.Base64;
 public class PasswordHasherImpl implements PasswordHasher {
 
   private final SecureRandom secureRandom = new SecureRandom();
+  private final MessageService messageService;
+
+  public PasswordHasherImpl(MessageService messageService) {
+    this.messageService = messageService;
+  }
 
   public String hash(String password) {
     byte[] salt = new byte[16];
@@ -40,7 +45,7 @@ public class PasswordHasherImpl implements PasswordHasher {
       digest.update(salt);
       return digest.digest(password.getBytes());
     } catch (Exception e) {
-      throw new IllegalStateException(Messages.get("password.error.processing"), e);
+      throw new IllegalStateException(messageService.get("password.error.processing"), e);
     }
   }
 }

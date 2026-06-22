@@ -18,39 +18,51 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class ExchangeCurrencyServiceTest {
 
+  private static final Long FROM_CURRENCY_ID = 1L;
+  private static final Long TO_CURRENCY_ID = 2L;
+  private static final BigDecimal FROM_RATE_TO_KZT = new BigDecimal("500");
+  private static final BigDecimal TO_RATE_TO_KZT = new BigDecimal("250");
+  private static final BigDecimal AMOUNT_TO_CONVERT = new BigDecimal("10");
+  private static final BigDecimal CONVERTED_AMOUNT = new BigDecimal("20.00");
+  private static final BigDecimal SAME_CURRENCY_AMOUNT = new BigDecimal("42");
+  private static final BigDecimal UPDATED_RATE_TO_KZT = new BigDecimal("510");
+
   @Mock
   private CurrencyDao currencyDao;
+
+  @Mock
+  private MessageService messageService;
 
   @InjectMocks
   private ExchangeCurrencyServiceImpl service;
 
   @Test
   void calculateConvertsThroughKztRates() {
-    when(currencyDao.getCurrencyRateToKztById(1L)).thenReturn(new BigDecimal("500"));
-    when(currencyDao.getCurrencyRateToKztById(2L)).thenReturn(new BigDecimal("250"));
+    when(currencyDao.getCurrencyRateToKztById(FROM_CURRENCY_ID)).thenReturn(FROM_RATE_TO_KZT);
+    when(currencyDao.getCurrencyRateToKztById(TO_CURRENCY_ID)).thenReturn(TO_RATE_TO_KZT);
 
-    BigDecimal result = service.calculate(1L, 2L, new BigDecimal("10"));
+    BigDecimal result = service.calculate(FROM_CURRENCY_ID, TO_CURRENCY_ID, AMOUNT_TO_CONVERT);
 
-    assertEquals(new BigDecimal("20.00"), result);
+    assertEquals(CONVERTED_AMOUNT, result);
   }
 
   @Test
   void calculateReturnsAmountForSameCurrency() {
-    assertEquals(new BigDecimal("42"), service.calculate(1L, 1L, new BigDecimal("42")));
+    assertEquals(SAME_CURRENCY_AMOUNT, service.calculate(FROM_CURRENCY_ID, FROM_CURRENCY_ID, SAME_CURRENCY_AMOUNT));
   }
 
   @Test
   void calculateRejectsMissingCurrency() {
-    assertThrows(IllegalArgumentException.class, () -> service.calculate(null, 1L, BigDecimal.TEN));
+    assertThrows(IllegalArgumentException.class, () -> service.calculate(null, FROM_CURRENCY_ID, BigDecimal.TEN));
   }
 
   @Test
   void updateRateValidatesAndDelegates() {
-    when(currencyDao.updateCurrencyRate(1L, new BigDecimal("510"))).thenReturn(true);
+    when(currencyDao.updateCurrencyRate(FROM_CURRENCY_ID, UPDATED_RATE_TO_KZT)).thenReturn(true);
 
-    boolean updated = service.updateRate(1L, new BigDecimal("510"));
+    boolean updated = service.updateRate(FROM_CURRENCY_ID, UPDATED_RATE_TO_KZT);
 
     assertEquals(true, updated);
-    verify(currencyDao).updateCurrencyRate(1L, new BigDecimal("510"));
+    verify(currencyDao).updateCurrencyRate(FROM_CURRENCY_ID, UPDATED_RATE_TO_KZT);
   }
 }

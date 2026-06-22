@@ -2,7 +2,7 @@ package org.openbank.service.impl;
 
 import org.openbank.service.AccountService;
 import org.openbank.service.BankCardGenerator;
-import org.openbank.service.Messages;
+import org.openbank.service.MessageService;
 import org.openbank.dao.AccountDao;
 import org.openbank.dao.CurrencyDao;
 import org.openbank.exception.BankDataAccessException;
@@ -24,18 +24,21 @@ public class AccountServiceImpl implements AccountService {
   private final AccountDao accountDao;
   private final CurrencyDao currencyDao;
   private final BankCardGenerator bankCardGenerator;
-  public AccountServiceImpl(AccountDao accountDao, CurrencyDao currencyDao, BankCardGenerator bankCardGenerator) {
+  private final MessageService messageService;
+
+  public AccountServiceImpl(AccountDao accountDao, CurrencyDao currencyDao, BankCardGenerator bankCardGenerator, MessageService messageService) {
     this.accountDao = accountDao;
     this.currencyDao = currencyDao;
     this.bankCardGenerator = bankCardGenerator;
+    this.messageService = messageService;
   }
 
   public boolean createNewAccount(Long userId, String currencyName, BigDecimal transactionLimit, String name) {
-    validateText(name, Messages.get("validation.accountName.required"));
-    validateText(currencyName, Messages.get("validation.currency.required"));
-    validatePositiveOrZero(transactionLimit, Messages.get("account.validation.limit.negative"));
+    validateText(name, messageService.get("validation.accountName.required"));
+    validateText(currencyName, messageService.get("validation.currency.required"));
+    validatePositiveOrZero(transactionLimit, messageService.get("account.validation.limit.negative"));
 
-    Currency currency = currencyDao.getCurrencyByName(currencyName).orElseThrow(() -> new BankDataAccessException(Messages.get("error.currency.notFound")));
+    Currency currency = currencyDao.getCurrencyByName(currencyName).orElseThrow(() -> new BankDataAccessException(messageService.get("error.currency.notFound")));
 
     String cardNumber = generateUniqueCardNumber();
     String cvv = bankCardGenerator.generateCvv();
@@ -74,21 +77,21 @@ public class AccountServiceImpl implements AccountService {
   public boolean withdraw(Long accountId, BigDecimal amountToWithdraw) {
     Account account = checkAccountExists(accountId);
 
-    validatePositiveOrZero(amountToWithdraw, Messages.get("account.validation.withdraw.negative"));
-    validatePositiveOrZero(account.getBalance().subtract(amountToWithdraw), Messages.get("account.validation.insufficientFunds"));
-    validatePositiveOrZero(account.getTransactionLimit().subtract(amountToWithdraw), Messages.get("account.validation.withdraw.limitExceeded"));
+    validatePositiveOrZero(amountToWithdraw, messageService.get("account.validation.withdraw.negative"));
+    validatePositiveOrZero(account.getBalance().subtract(amountToWithdraw), messageService.get("account.validation.insufficientFunds"));
+    validatePositiveOrZero(account.getTransactionLimit().subtract(amountToWithdraw), messageService.get("account.validation.withdraw.limitExceeded"));
     accountDao.withdraw(accountId, amountToWithdraw);
 
     return true;
   }
 
   public boolean updateTransactionLimit(Long userId, Long accountId, BigDecimal transactionLimit) {
-    validatePositiveOrZero(transactionLimit, Messages.get("account.validation.limit.negative"));
+    validatePositiveOrZero(transactionLimit, messageService.get("account.validation.limit.negative"));
     Account account = checkAccountExists(accountId);
     validateAccountBelongsToUser(account, userId);
 
     if (!AccountStatus.ACTIVE.name().equals(account.getStatus())) {
-      throw new IllegalArgumentException(Messages.get("account.validation.limit.activeOnly"));
+      throw new IllegalArgumentException(messageService.get("account.validation.limit.activeOnly"));
     }
 
     return accountDao.updateTransactionLimit(accountId, transactionLimit);
@@ -99,7 +102,7 @@ public class AccountServiceImpl implements AccountService {
     validateAccountBelongsToUser(account, userId);
 
     if (!AccountStatus.ACTIVE.name().equals(account.getStatus())) {
-      throw new IllegalArgumentException(Messages.get("account.validation.deactivate.activeOnly"));
+      throw new IllegalArgumentException(messageService.get("account.validation.deactivate.activeOnly"));
     }
 
     boolean updated = accountDao.setStatusToAccount(accountId, AccountStatus.DEACTIVATED);
@@ -115,7 +118,7 @@ public class AccountServiceImpl implements AccountService {
     validateAccountBelongsToUser(account, userId);
 
     if (!AccountStatus.ACTIVE.name().equals(account.getStatus())) {
-      throw new IllegalArgumentException(Messages.get("account.validation.main.activeOnly"));
+      throw new IllegalArgumentException(messageService.get("account.validation.main.activeOnly"));
     }
 
     accountDao.clearMainAccount(userId);
@@ -126,13 +129,13 @@ public class AccountServiceImpl implements AccountService {
     Account account = checkAccountExists(accountId);
 
     if (!AccountStatus.PENDING.name().equals(account.getStatus())) {
-      throw new IllegalArgumentException(Messages.get("account.validation.approve.pendingOnly"));
+      throw new IllegalArgumentException(messageService.get("account.validation.approve.pendingOnly"));
     }
 
     long activeAccounts = accountDao.countAccountsByUserIdAndStatus(account.getUserId(), AccountStatus.ACTIVE);
     if (activeAccounts >= MAX_ACTIVE_ACCOUNTS) {
       accountDao.setStatusToAccount(accountId, AccountStatus.PENDING, AccountStatus.REJECTED);
-      throw new IllegalArgumentException(Messages.get("account.validation.maxActiveAccounts"));
+      throw new IllegalArgumentException(messageService.get("account.validation.maxActiveAccounts"));
     }
 
     boolean approved = accountDao.setStatusToAccount(accountId, AccountStatus.PENDING, AccountStatus.ACTIVE);
@@ -148,7 +151,7 @@ public class AccountServiceImpl implements AccountService {
     Account account = checkAccountExists(accountId);
 
     if (!AccountStatus.PENDING.name().equals(account.getStatus())) {
-      throw new IllegalArgumentException(Messages.get("account.validation.reject.pendingOnly"));
+      throw new IllegalArgumentException(messageService.get("account.validation.reject.pendingOnly"));
     }
 
     return accountDao.setStatusToAccount(accountId, AccountStatus.PENDING, AccountStatus.REJECTED);
@@ -157,8 +160,8 @@ public class AccountServiceImpl implements AccountService {
   public boolean topUp(Long accountId, BigDecimal amountToTopUp) {
     Account account = checkAccountExists(accountId);
 
-    validatePositiveOrZero(amountToTopUp, Messages.get("account.validation.withdraw.negative"));
-    validatePositiveOrZero(account.getTransactionLimit().subtract(amountToTopUp), Messages.get("account.validation.topUp.limitExceeded"));
+    validatePositiveOrZero(amountToTopUp, messageService.get("account.validation.withdraw.negative"));
+    validatePositiveOrZero(account.getTransactionLimit().subtract(amountToTopUp), messageService.get("account.validation.topUp.limitExceeded"));
     accountDao.topUp(accountId, amountToTopUp);
 
     return true;
@@ -189,14 +192,14 @@ public class AccountServiceImpl implements AccountService {
   private Account checkAccountExists(Long accountId) {
     Optional<Account> account = accountDao.getAccountById(accountId);
     if (account.isEmpty()) {
-      throw new IllegalArgumentException(Messages.get("error.account.notFound"));
+      throw new IllegalArgumentException(messageService.get("error.account.notFound"));
     }
     return account.get();
   }
 
   private void validateAccountBelongsToUser(Account account, Long userId) {
     if (!account.getUserId().equals(userId)) {
-      throw new IllegalArgumentException(Messages.get("account.validation.notOwner"));
+      throw new IllegalArgumentException(messageService.get("account.validation.notOwner"));
     }
   }
 

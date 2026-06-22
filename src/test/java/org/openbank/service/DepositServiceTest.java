@@ -39,6 +39,31 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class DepositServiceTest {
 
+  private static final Long ACCOUNT_ID = 1L;
+  private static final Long USER_ID = 7L;
+  private static final Long CURRENCY_ID = 1L;
+  private static final Long DEPOSIT_ID = 9L;
+  private static final Long DEPOSIT_TYPE_ID = 5L;
+  private static final String KOPILKA_PRODUCT_NAME = "Копилка";
+  private static final String CAPITAL_PRODUCT_NAME = "Капитал";
+  private static final String STRATEGY_PRODUCT_NAME = "Стратегия";
+  private static final String CARD_NUMBER = "4000000000000002";
+  private static final String CVV = "123";
+  private static final String ACCOUNT_NAME = "Main";
+  private static final String DEPOSIT_OPEN_TYPE = "DEPOSIT_OPEN";
+  private static final String DEPOSIT_WITHDRAWAL_TYPE = "DEPOSIT_WITHDRAWAL";
+  private static final String DEPOSIT_INTEREST_TYPE = "DEPOSIT_INTEREST";
+  private static final BigDecimal OPEN_AMOUNT = new BigDecimal("1000");
+  private static final BigDecimal ACCOUNT_BALANCE = new BigDecimal("2000");
+  private static final BigDecimal MINIMUM_AMOUNT = new BigDecimal("100");
+  private static final BigDecimal CURRENT_DEPOSIT_AMOUNT = new BigDecimal("1200");
+  private static final BigDecimal INTEREST_RATE = new BigDecimal("12");
+  private static final BigDecimal MONTHLY_INTEREST = new BigDecimal("12.00");
+  private static final BigDecimal ACCOUNT_LIMIT = new BigDecimal("100000");
+  private static final int EXPECTED_UPDATED_COUNT = 1;
+  private static final int EXPIRED_DEPOSIT_MONTHS = 13;
+  private static final int DEPOSIT_DURATION_MONTHS = 12;
+
   @Mock
   private DepositDao depositDao;
 
@@ -79,93 +104,93 @@ class DepositServiceTest {
 
   @Test
   void openDepositWithdrawsMoneyAndCreatesPendingDeposit() {
-    OpenDepositRequest request = openRequest(1L, 5L, new BigDecimal("1000"));
-    Account account = account(1L, 7L, 1L, new BigDecimal("2000"));
-    DepositType type = depositType(5L, "Копилка", true, new BigDecimal("100"));
-    when(depositTypeDao.getDepositTypeById(5L)).thenReturn(Optional.of(type));
-    when(accountDao.getAccountByIdForUpdate(connection, 1L)).thenReturn(Optional.of(account));
-    when(accountDao.withdraw(connection, 1L, new BigDecimal("1000"))).thenReturn(true);
-    when(depositDao.createDeposit(eq(connection), eq(7L), eq(5L), eq(false), eq(true), eq(DepositStatus.PENDING), any(), eq(new BigDecimal("1000")))).thenReturn(true);
-    when(transactionDao.createNewTransaction(eq(connection), eq(1L), eq(null), any(), eq(new BigDecimal("1000")), eq(1L), eq(BigDecimal.ZERO), anyString(), eq("DEPOSIT_OPEN"))).thenReturn(true);
+    OpenDepositRequest request = openRequest(ACCOUNT_ID, DEPOSIT_TYPE_ID, OPEN_AMOUNT);
+    Account account = account(ACCOUNT_ID, USER_ID, CURRENCY_ID, ACCOUNT_BALANCE);
+    DepositType type = depositType(DEPOSIT_TYPE_ID, KOPILKA_PRODUCT_NAME, true, MINIMUM_AMOUNT);
+    when(depositTypeDao.getDepositTypeById(DEPOSIT_TYPE_ID)).thenReturn(Optional.of(type));
+    when(accountDao.getAccountByIdForUpdate(connection, ACCOUNT_ID)).thenReturn(Optional.of(account));
+    when(accountDao.withdraw(connection, ACCOUNT_ID, OPEN_AMOUNT)).thenReturn(true);
+    when(depositDao.createDeposit(eq(connection), eq(USER_ID), eq(DEPOSIT_TYPE_ID), eq(false), eq(true), eq(DepositStatus.PENDING), any(), eq(OPEN_AMOUNT))).thenReturn(true);
+    when(transactionDao.createNewTransaction(eq(connection), eq(ACCOUNT_ID), eq(null), any(), eq(OPEN_AMOUNT), eq(CURRENCY_ID), eq(BigDecimal.ZERO), anyString(), eq(DEPOSIT_OPEN_TYPE))).thenReturn(true);
 
-    service.openDeposit(7L, request);
+    service.openDeposit(USER_ID, request);
 
-    verify(depositDao).createDeposit(eq(connection), eq(7L), eq(5L), eq(false), eq(true), eq(DepositStatus.PENDING), any(), eq(new BigDecimal("1000")));
+    verify(depositDao).createDeposit(eq(connection), eq(USER_ID), eq(DEPOSIT_TYPE_ID), eq(false), eq(true), eq(DepositStatus.PENDING), any(), eq(OPEN_AMOUNT));
   }
 
   @Test
   void openCapitalDepositForcesProductSettings() {
-    OpenDepositRequest request = openRequest(1L, 5L, new BigDecimal("1000"));
+    OpenDepositRequest request = openRequest(ACCOUNT_ID, DEPOSIT_TYPE_ID, OPEN_AMOUNT);
     request.setAutoRenewal(true);
     request.setReinvestInterest(false);
-    Account account = account(1L, 7L, 1L, new BigDecimal("2000"));
-    DepositType type = depositType(5L, "Капитал", false, new BigDecimal("100"));
-    when(depositTypeDao.getDepositTypeById(5L)).thenReturn(Optional.of(type));
-    when(accountDao.getAccountByIdForUpdate(connection, 1L)).thenReturn(Optional.of(account));
-    when(accountDao.withdraw(connection, 1L, new BigDecimal("1000"))).thenReturn(true);
-    when(depositDao.createDeposit(eq(connection), eq(7L), eq(5L), eq(true), eq(false), eq(DepositStatus.PENDING), any(), eq(new BigDecimal("1000")))).thenReturn(true);
-    when(transactionDao.createNewTransaction(eq(connection), eq(1L), eq(null), any(), eq(new BigDecimal("1000")), eq(1L), eq(BigDecimal.ZERO), anyString(), eq("DEPOSIT_OPEN"))).thenReturn(true);
+    Account account = account(ACCOUNT_ID, USER_ID, CURRENCY_ID, ACCOUNT_BALANCE);
+    DepositType type = depositType(DEPOSIT_TYPE_ID, CAPITAL_PRODUCT_NAME, false, MINIMUM_AMOUNT);
+    when(depositTypeDao.getDepositTypeById(DEPOSIT_TYPE_ID)).thenReturn(Optional.of(type));
+    when(accountDao.getAccountByIdForUpdate(connection, ACCOUNT_ID)).thenReturn(Optional.of(account));
+    when(accountDao.withdraw(connection, ACCOUNT_ID, OPEN_AMOUNT)).thenReturn(true);
+    when(depositDao.createDeposit(eq(connection), eq(USER_ID), eq(DEPOSIT_TYPE_ID), eq(true), eq(false), eq(DepositStatus.PENDING), any(), eq(OPEN_AMOUNT))).thenReturn(true);
+    when(transactionDao.createNewTransaction(eq(connection), eq(ACCOUNT_ID), eq(null), any(), eq(OPEN_AMOUNT), eq(CURRENCY_ID), eq(BigDecimal.ZERO), anyString(), eq(DEPOSIT_OPEN_TYPE))).thenReturn(true);
 
-    service.openDeposit(7L, request);
+    service.openDeposit(USER_ID, request);
 
-    verify(depositDao).createDeposit(eq(connection), eq(7L), eq(5L), eq(true), eq(false), eq(DepositStatus.PENDING), any(), eq(new BigDecimal("1000")));
+    verify(depositDao).createDeposit(eq(connection), eq(USER_ID), eq(DEPOSIT_TYPE_ID), eq(true), eq(false), eq(DepositStatus.PENDING), any(), eq(OPEN_AMOUNT));
   }
 
   @Test
   void topUpDepositRejectsCapitalProduct() {
-    Account account = account(1L, 7L, 1L, new BigDecimal("2000"));
-    Deposit deposit = deposit(9L, 7L, 5L, DepositStatus.ACTIVE.name(), new BigDecimal("1000"));
-    DepositType capital = depositType(5L, "Капитал", false, new BigDecimal("100"));
-    when(accountDao.getAccountByIdForUpdate(connection, 1L)).thenReturn(Optional.of(account));
-    when(depositDao.getDepositByIdForUpdate(connection, 9L)).thenReturn(Optional.of(deposit));
-    when(depositTypeDao.getDepositTypeById(5L)).thenReturn(Optional.of(capital));
+    Account account = account(ACCOUNT_ID, USER_ID, CURRENCY_ID, ACCOUNT_BALANCE);
+    Deposit deposit = deposit(DEPOSIT_ID, USER_ID, DEPOSIT_TYPE_ID, DepositStatus.ACTIVE.name(), OPEN_AMOUNT);
+    DepositType capital = depositType(DEPOSIT_TYPE_ID, CAPITAL_PRODUCT_NAME, false, MINIMUM_AMOUNT);
+    when(accountDao.getAccountByIdForUpdate(connection, ACCOUNT_ID)).thenReturn(Optional.of(account));
+    when(depositDao.getDepositByIdForUpdate(connection, DEPOSIT_ID)).thenReturn(Optional.of(deposit));
+    when(depositTypeDao.getDepositTypeById(DEPOSIT_TYPE_ID)).thenReturn(Optional.of(capital));
 
-    assertThrows(IllegalArgumentException.class, () -> service.topUpDeposit(7L, 1L, 9L, BigDecimal.TEN));
+    assertThrows(IllegalArgumentException.class, () -> service.topUpDeposit(USER_ID, ACCOUNT_ID, DEPOSIT_ID, BigDecimal.TEN));
   }
 
   @Test
   void withdrawFromDepositMovesMoneyToTargetAccount() {
-    Account account = account(1L, 7L, 1L, BigDecimal.ZERO);
-    Deposit deposit = deposit(9L, 7L, 5L, DepositStatus.ACTIVE.name(), new BigDecimal("1000"));
-    DepositType type = depositType(5L, "Копилка", true, new BigDecimal("100"));
-    when(depositDao.getDepositByIdForUpdate(connection, 9L)).thenReturn(Optional.of(deposit));
-    when(depositTypeDao.getDepositTypeById(5L)).thenReturn(Optional.of(type));
-    when(accountDao.getAccountByIdForUpdate(connection, 1L)).thenReturn(Optional.of(account));
-    when(depositDao.withdrawFromDeposit(connection, 9L, new BigDecimal("100"))).thenReturn(true);
-    when(accountDao.topUp(connection, 1L, new BigDecimal("100"))).thenReturn(true);
-    when(transactionDao.createNewTransaction(eq(connection), eq(null), eq(1L), any(), eq(new BigDecimal("100")), eq(1L), eq(BigDecimal.ZERO), anyString(), eq("DEPOSIT_WITHDRAWAL"))).thenReturn(true);
+    Account account = account(ACCOUNT_ID, USER_ID, CURRENCY_ID, BigDecimal.ZERO);
+    Deposit deposit = deposit(DEPOSIT_ID, USER_ID, DEPOSIT_TYPE_ID, DepositStatus.ACTIVE.name(), OPEN_AMOUNT);
+    DepositType type = depositType(DEPOSIT_TYPE_ID, KOPILKA_PRODUCT_NAME, true, MINIMUM_AMOUNT);
+    when(depositDao.getDepositByIdForUpdate(connection, DEPOSIT_ID)).thenReturn(Optional.of(deposit));
+    when(depositTypeDao.getDepositTypeById(DEPOSIT_TYPE_ID)).thenReturn(Optional.of(type));
+    when(accountDao.getAccountByIdForUpdate(connection, ACCOUNT_ID)).thenReturn(Optional.of(account));
+    when(depositDao.withdrawFromDeposit(connection, DEPOSIT_ID, MINIMUM_AMOUNT)).thenReturn(true);
+    when(accountDao.topUp(connection, ACCOUNT_ID, MINIMUM_AMOUNT)).thenReturn(true);
+    when(transactionDao.createNewTransaction(eq(connection), eq(null), eq(ACCOUNT_ID), any(), eq(MINIMUM_AMOUNT), eq(CURRENCY_ID), eq(BigDecimal.ZERO), anyString(), eq(DEPOSIT_WITHDRAWAL_TYPE))).thenReturn(true);
 
-    service.withdrawFromDeposit(7L, 9L, 1L, new BigDecimal("100"));
+    service.withdrawFromDeposit(USER_ID, DEPOSIT_ID, ACCOUNT_ID, MINIMUM_AMOUNT);
 
-    verify(accountDao).topUp(connection, 1L, new BigDecimal("100"));
+    verify(accountDao).topUp(connection, ACCOUNT_ID, MINIMUM_AMOUNT);
   }
 
   @Test
   void accrueInterestTopsUpReinvestedDeposits() {
-    Deposit deposit = deposit(9L, 7L, 5L, DepositStatus.ACTIVE.name(), new BigDecimal("1200"));
-    DepositType type = depositType(5L, "Стратегия", false, BigDecimal.ZERO);
-    type.setRate(new BigDecimal("12"));
+    Deposit deposit = deposit(DEPOSIT_ID, USER_ID, DEPOSIT_TYPE_ID, DepositStatus.ACTIVE.name(), CURRENT_DEPOSIT_AMOUNT);
+    DepositType type = depositType(DEPOSIT_TYPE_ID, STRATEGY_PRODUCT_NAME, false, BigDecimal.ZERO);
+    type.setRate(INTEREST_RATE);
     when(depositDao.getDepositsByStatus(DepositStatus.ACTIVE)).thenReturn(List.of(deposit));
-    when(depositTypeDao.getDepositTypeById(5L)).thenReturn(Optional.of(type));
-    when(depositDao.topUpDeposit(connection, 9L, new BigDecimal("12.00"))).thenReturn(true);
-    when(transactionDao.createNewTransaction(eq(connection), eq(null), eq(null), any(), eq(new BigDecimal("12.00")), eq(1L), eq(BigDecimal.ZERO), anyString(), eq("DEPOSIT_INTEREST"))).thenReturn(true);
+    when(depositTypeDao.getDepositTypeById(DEPOSIT_TYPE_ID)).thenReturn(Optional.of(type));
+    when(depositDao.topUpDeposit(connection, DEPOSIT_ID, MONTHLY_INTEREST)).thenReturn(true);
+    when(transactionDao.createNewTransaction(eq(connection), eq(null), eq(null), any(), eq(MONTHLY_INTEREST), eq(CURRENCY_ID), eq(BigDecimal.ZERO), anyString(), eq(DEPOSIT_INTEREST_TYPE))).thenReturn(true);
 
-    assertEquals(1, service.accrueInterestForActiveDeposits());
+    assertEquals(EXPECTED_UPDATED_COUNT, service.accrueInterestForActiveDeposits());
   }
 
   @Test
   void processExpiredDepositsRenewsAutoRenewalDeposits() {
-    Deposit deposit = deposit(9L, 7L, 5L, DepositStatus.ACTIVE.name(), new BigDecimal("1200"));
+    Deposit deposit = deposit(DEPOSIT_ID, USER_ID, DEPOSIT_TYPE_ID, DepositStatus.ACTIVE.name(), CURRENT_DEPOSIT_AMOUNT);
     deposit.setAutoRenewal(true);
-    deposit.setStartDate(LocalDate.now().minusMonths(13));
-    DepositType type = depositType(5L, "Стратегия", false, BigDecimal.ZERO);
-    type.setDuration(12);
+    deposit.setStartDate(LocalDate.now().minusMonths(EXPIRED_DEPOSIT_MONTHS));
+    DepositType type = depositType(DEPOSIT_TYPE_ID, STRATEGY_PRODUCT_NAME, false, BigDecimal.ZERO);
+    type.setDuration(DEPOSIT_DURATION_MONTHS);
     when(depositDao.getDepositsByStatus(DepositStatus.ACTIVE)).thenReturn(List.of(deposit));
-    when(depositTypeDao.getDepositTypeById(5L)).thenReturn(Optional.of(type));
-    when(depositDao.updateStartDate(eq(connection), eq(9L), any())).thenReturn(true);
+    when(depositTypeDao.getDepositTypeById(DEPOSIT_TYPE_ID)).thenReturn(Optional.of(type));
+    when(depositDao.updateStartDate(eq(connection), eq(DEPOSIT_ID), any())).thenReturn(true);
 
-    assertEquals(1, service.processExpiredDeposits());
-    verify(depositDao).updateStartDate(eq(connection), eq(9L), any());
+    assertEquals(EXPECTED_UPDATED_COUNT, service.processExpiredDeposits());
+    verify(depositDao).updateStartDate(eq(connection), eq(DEPOSIT_ID), any());
   }
 
   private OpenDepositRequest openRequest(Long accountId, Long depositTypeId, BigDecimal amount) {
@@ -179,7 +204,7 @@ class DepositServiceTest {
   }
 
   private Account account(Long accountId, Long userId, Long currencyId, BigDecimal balance) {
-    return new Account(accountId, userId, "4000000000000002", "123", LocalDate.now().plusYears(1), balance, currencyId, AccountStatus.ACTIVE.name(), new BigDecimal("100000"), "Main", true);
+    return new Account(accountId, userId, CARD_NUMBER, CVV, LocalDate.now().plusYears(1), balance, currencyId, AccountStatus.ACTIVE.name(), ACCOUNT_LIMIT, ACCOUNT_NAME, true);
   }
 
   private Deposit deposit(Long depositId, Long userId, Long depositTypeId, String status, BigDecimal amount) {
@@ -187,6 +212,6 @@ class DepositServiceTest {
   }
 
   private DepositType depositType(Long depositTypeId, String name, Boolean withdrawal, BigDecimal minimumAmount) {
-    return new DepositType(depositTypeId, name, BigDecimal.TEN, 12, withdrawal, minimumAmount, 1L);
+    return new DepositType(depositTypeId, name, BigDecimal.TEN, DEPOSIT_DURATION_MONTHS, withdrawal, minimumAmount, CURRENCY_ID);
   }
 }

@@ -30,6 +30,18 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class LoanDaoImplTest {
 
+  private static final Long LOAN_ID = 15L;
+  private static final Long USER_ID = 7L;
+  private static final Long LOAN_TYPE_ID = 2L;
+  private static final Long PARENT_LOAN_ID = 10L;
+  private static final BigDecimal OFFER_AMOUNT = new BigDecimal("1000000");
+  private static final BigDecimal OFFER_RATE = new BigDecimal("21.5");
+  private static final BigDecimal MONTHLY_PAYMENT = new BigDecimal("52000");
+  private static final int OFFER_DURATION = 24;
+  private static final int UPDATED_ROW_COUNT = 1;
+  private static final String SQL_ERROR_MESSAGE = "update failed";
+  private static final LocalDate START_DATE = LocalDate.of(2026, 1, 1);
+
   @Mock
   private ConnectionPool connectionPool;
 
@@ -64,12 +76,12 @@ class LoanDaoImplTest {
     when(connection.prepareStatement(anyString())).thenReturn(statement);
     when(statement.executeQuery()).thenReturn(resultSet);
     when(resultSet.next()).thenReturn(true, false);
-    loanRow(15L, 7L, 2L, null, LoanStatus.PENDING);
+    loanRow(LOAN_ID, USER_ID, LOAN_TYPE_ID, null, LoanStatus.PENDING);
 
     List<Loan> loans = dao.getPendingLoans();
 
-    assertEquals(1, loans.size());
-    assertEquals(15L, loans.getFirst().getLoanId());
+    assertEquals(UPDATED_ROW_COUNT, loans.size());
+    assertEquals(LOAN_ID, loans.getFirst().getLoanId());
     assertEquals(LoanStatus.PENDING.name(), loans.getFirst().getStatus());
     verify(statement).setString(1, LoanStatus.PENDING.name());
     verify(connectionPool).releaseConnection(connection);
@@ -78,27 +90,27 @@ class LoanDaoImplTest {
   @Test
   void createOfferBindsManagerCalculatedFields() throws SQLException {
     when(connection.prepareStatement(anyString())).thenReturn(statement);
-    when(statement.executeUpdate()).thenReturn(1);
+    when(statement.executeUpdate()).thenReturn(UPDATED_ROW_COUNT);
 
     boolean created = dao.createOffer(
-        10L,
-        7L,
-        2L,
-        new BigDecimal("1000000"),
-        new BigDecimal("21.5"),
-        24,
-        new BigDecimal("52000")
+        PARENT_LOAN_ID,
+        USER_ID,
+        LOAN_TYPE_ID,
+        OFFER_AMOUNT,
+        OFFER_RATE,
+        OFFER_DURATION,
+        MONTHLY_PAYMENT
     );
 
     assertTrue(created);
-    verify(statement).setLong(1, 7L);
-    verify(statement).setLong(2, 2L);
-    verify(statement).setLong(3, 10L);
-    verify(statement).setBigDecimal(4, new BigDecimal("1000000"));
-    verify(statement).setBigDecimal(5, new BigDecimal("21.5"));
-    verify(statement).setInt(6, 24);
+    verify(statement).setLong(1, USER_ID);
+    verify(statement).setLong(2, LOAN_TYPE_ID);
+    verify(statement).setLong(3, PARENT_LOAN_ID);
+    verify(statement).setBigDecimal(4, OFFER_AMOUNT);
+    verify(statement).setBigDecimal(5, OFFER_RATE);
+    verify(statement).setInt(6, OFFER_DURATION);
     verify(statement).setString(7, LoanStatus.OFFERED.name());
-    verify(statement).setBigDecimal(8, new BigDecimal("52000"));
+    verify(statement).setBigDecimal(8, MONTHLY_PAYMENT);
   }
 
   @Test
@@ -106,17 +118,17 @@ class LoanDaoImplTest {
     when(connection.prepareStatement(anyString())).thenReturn(statement, activateStatement, rejectSiblingsStatement, closeParentStatement);
     when(statement.executeQuery()).thenReturn(resultSet);
     when(resultSet.next()).thenReturn(true);
-    loanRow(15L, 7L, 2L, 10L, LoanStatus.OFFERED);
+    loanRow(LOAN_ID, USER_ID, LOAN_TYPE_ID, PARENT_LOAN_ID, LoanStatus.OFFERED);
 
-    assertTrue(dao.acceptOffer(7L, 15L));
+    assertTrue(dao.acceptOffer(USER_ID, LOAN_ID));
 
     verify(connection).setAutoCommit(false);
     verify(activateStatement).setString(1, LoanStatus.ACTIVE.name());
-    verify(activateStatement).setLong(3, 15L);
+    verify(activateStatement).setLong(3, LOAN_ID);
     verify(rejectSiblingsStatement).setString(1, LoanStatus.REFUSED.name());
-    verify(rejectSiblingsStatement).setLong(2, 10L);
+    verify(rejectSiblingsStatement).setLong(2, PARENT_LOAN_ID);
     verify(closeParentStatement).setString(1, LoanStatus.CLOSED.name());
-    verify(closeParentStatement).setLong(2, 10L);
+    verify(closeParentStatement).setLong(2, PARENT_LOAN_ID);
     verify(connection).commit();
     verify(connection).setAutoCommit(true);
   }
@@ -126,12 +138,12 @@ class LoanDaoImplTest {
     when(connection.prepareStatement(anyString())).thenReturn(statement, activateStatement);
     when(statement.executeQuery()).thenReturn(resultSet);
     when(resultSet.next()).thenReturn(true);
-    loanRow(15L, 7L, 2L, null, LoanStatus.OFFERED);
+    loanRow(LOAN_ID, USER_ID, LOAN_TYPE_ID, null, LoanStatus.OFFERED);
 
-    assertTrue(dao.acceptOffer(7L, 15L));
+    assertTrue(dao.acceptOffer(USER_ID, LOAN_ID));
 
     verify(activateStatement).setString(1, LoanStatus.ACTIVE.name());
-    verify(activateStatement).setLong(3, 15L);
+    verify(activateStatement).setLong(3, LOAN_ID);
     verify(connection).commit();
   }
 
@@ -141,7 +153,7 @@ class LoanDaoImplTest {
     when(statement.executeQuery()).thenReturn(resultSet);
     when(resultSet.next()).thenReturn(false);
 
-    assertEquals(false, dao.acceptOffer(7L, 15L));
+    assertEquals(false, dao.acceptOffer(USER_ID, LOAN_ID));
 
     verify(connection).rollback();
     verify(connectionPool).releaseConnection(connection);
@@ -153,15 +165,15 @@ class LoanDaoImplTest {
     when(statement.executeQuery()).thenReturn(resultSet);
     when(resultSet.next()).thenReturn(false);
 
-    assertTrue(dao.getLoanById(15L).isEmpty());
+    assertTrue(dao.getLoanById(LOAN_ID).isEmpty());
   }
 
   @Test
   void payLoanWrapsSqlException() throws SQLException {
     when(connection.prepareStatement(anyString())).thenReturn(statement);
-    when(statement.executeUpdate()).thenThrow(new SQLException("update failed"));
+    when(statement.executeUpdate()).thenThrow(new SQLException(SQL_ERROR_MESSAGE));
 
-    assertThrows(BankDataAccessException.class, () -> dao.payLoan(15L, BigDecimal.TEN));
+    assertThrows(BankDataAccessException.class, () -> dao.payLoan(LOAN_ID, BigDecimal.TEN));
   }
 
   private void loanRow(Long loanId, Long userId, Long loanTypeId, Long parentLoanId, LoanStatus status) throws SQLException {
@@ -170,11 +182,11 @@ class LoanDaoImplTest {
     when(resultSet.getLong("loan_type_id")).thenReturn(loanTypeId);
     when(resultSet.getLong("parent_loan_id")).thenReturn(parentLoanId == null ? 0L : parentLoanId);
     when(resultSet.wasNull()).thenReturn(parentLoanId == null);
-    when(resultSet.getBigDecimal("remaining_amount")).thenReturn(new BigDecimal("1000000"));
-    when(resultSet.getBigDecimal("rate")).thenReturn(new BigDecimal("21.5"));
-    when(resultSet.getObject("duration")).thenReturn(24);
+    when(resultSet.getBigDecimal("remaining_amount")).thenReturn(OFFER_AMOUNT);
+    when(resultSet.getBigDecimal("rate")).thenReturn(OFFER_RATE);
+    when(resultSet.getObject("duration")).thenReturn(OFFER_DURATION);
     when(resultSet.getString("status")).thenReturn(status.name());
-    when(resultSet.getDate("start_date")).thenReturn(Date.valueOf(LocalDate.of(2026, 1, 1)));
-    when(resultSet.getBigDecimal("monthly_payment")).thenReturn(new BigDecimal("52000"));
+    when(resultSet.getDate("start_date")).thenReturn(Date.valueOf(START_DATE));
+    when(resultSet.getBigDecimal("monthly_payment")).thenReturn(MONTHLY_PAYMENT);
   }
 }

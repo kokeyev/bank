@@ -26,6 +26,25 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class AccountServiceTest {
 
+  private static final Long ACCOUNT_ID = 1L;
+  private static final Long PENDING_ACCOUNT_ID = 11L;
+  private static final Long USER_ID = 7L;
+  private static final Long OTHER_USER_ID = 99L;
+  private static final Long PENDING_USER_ID = 3L;
+  private static final Long CURRENCY_ID = 1L;
+  private static final String CURRENCY_NAME = "KZT";
+  private static final String ACCOUNT_NAME = "Main";
+  private static final String FIRST_CARD_NUMBER = "4000000000000002";
+  private static final String SECOND_CARD_NUMBER = "4000000000000010";
+  private static final String CVV = "123";
+  private static final LocalDate EXPIRY_DATE = LocalDate.of(2030, 1, 1);
+  private static final BigDecimal TRANSACTION_LIMIT = new BigDecimal("100000");
+  private static final BigDecimal BALANCE_50 = new BigDecimal("50");
+  private static final BigDecimal BALANCE_100 = new BigDecimal("100");
+  private static final BigDecimal WITHDRAW_AMOUNT_60 = new BigDecimal("60");
+  private static final long NO_ACTIVE_ACCOUNTS = 0L;
+  private static final long MAX_ACTIVE_ACCOUNTS = 10L;
+
   @Mock
   private AccountDao accountDao;
 
@@ -35,98 +54,101 @@ class AccountServiceTest {
   @Mock
   private BankCardGenerator bankCardGenerator;
 
+  @Mock
+  private MessageService messageService;
+
   @InjectMocks
   private AccountServiceImpl service;
 
   @Test
   void createNewAccountGeneratesUniqueCardAndCreatesPendingAccount() {
-    Currency kzt = new Currency(1L, "KZT", BigDecimal.ONE);
-    when(currencyDao.getCurrencyByName("KZT")).thenReturn(Optional.of(kzt));
-    when(bankCardGenerator.generateCardNumber()).thenReturn("4000000000000002");
-    when(bankCardGenerator.generateCvv()).thenReturn("123");
-    when(bankCardGenerator.generateExpiryDate()).thenReturn(LocalDate.of(2030, 1, 1));
-    when(accountDao.getAccountByCardNumber("4000000000000002")).thenReturn(Optional.empty());
+    Currency kzt = new Currency(CURRENCY_ID, CURRENCY_NAME, BigDecimal.ONE);
+    when(currencyDao.getCurrencyByName(CURRENCY_NAME)).thenReturn(Optional.of(kzt));
+    when(bankCardGenerator.generateCardNumber()).thenReturn(FIRST_CARD_NUMBER);
+    when(bankCardGenerator.generateCvv()).thenReturn(CVV);
+    when(bankCardGenerator.generateExpiryDate()).thenReturn(EXPIRY_DATE);
+    when(accountDao.getAccountByCardNumber(FIRST_CARD_NUMBER)).thenReturn(Optional.empty());
 
-    service.createNewAccount(7L, "KZT", new BigDecimal("100000"), "Main");
+    service.createNewAccount(USER_ID, CURRENCY_NAME, TRANSACTION_LIMIT, ACCOUNT_NAME);
 
     verify(accountDao).createNewAccount(
-        eq(7L),
-        eq("4000000000000002"),
-        eq("123"),
-        eq(LocalDate.of(2030, 1, 1)),
+        eq(USER_ID),
+        eq(FIRST_CARD_NUMBER),
+        eq(CVV),
+        eq(EXPIRY_DATE),
         eq(BigDecimal.ZERO),
-        eq(1L),
+        eq(CURRENCY_ID),
         eq(AccountStatus.PENDING),
-        eq(new BigDecimal("100000")),
-        eq("Main"),
+        eq(TRANSACTION_LIMIT),
+        eq(ACCOUNT_NAME),
         eq(false)
     );
   }
 
   @Test
   void createNewAccountRetriesWhenGeneratedCardAlreadyExists() {
-    Currency kzt = new Currency(1L, "KZT", BigDecimal.ONE);
-    when(currencyDao.getCurrencyByName("KZT")).thenReturn(Optional.of(kzt));
-    when(bankCardGenerator.generateCardNumber()).thenReturn("4000000000000002", "4000000000000010");
-    when(bankCardGenerator.generateCvv()).thenReturn("123");
-    when(bankCardGenerator.generateExpiryDate()).thenReturn(LocalDate.of(2030, 1, 1));
-    when(accountDao.getAccountByCardNumber("4000000000000002")).thenReturn(Optional.of(activeAccount(BigDecimal.TEN, BigDecimal.TEN)));
-    when(accountDao.getAccountByCardNumber("4000000000000010")).thenReturn(Optional.empty());
+    Currency kzt = new Currency(CURRENCY_ID, CURRENCY_NAME, BigDecimal.ONE);
+    when(currencyDao.getCurrencyByName(CURRENCY_NAME)).thenReturn(Optional.of(kzt));
+    when(bankCardGenerator.generateCardNumber()).thenReturn(FIRST_CARD_NUMBER, SECOND_CARD_NUMBER);
+    when(bankCardGenerator.generateCvv()).thenReturn(CVV);
+    when(bankCardGenerator.generateExpiryDate()).thenReturn(EXPIRY_DATE);
+    when(accountDao.getAccountByCardNumber(FIRST_CARD_NUMBER)).thenReturn(Optional.of(activeAccount(BigDecimal.TEN, BigDecimal.TEN)));
+    when(accountDao.getAccountByCardNumber(SECOND_CARD_NUMBER)).thenReturn(Optional.empty());
 
-    service.createNewAccount(7L, "KZT", BigDecimal.TEN, "Main");
+    service.createNewAccount(USER_ID, CURRENCY_NAME, BigDecimal.TEN, ACCOUNT_NAME);
 
     verify(accountDao).createNewAccount(
-        eq(7L),
-        eq("4000000000000010"),
-        eq("123"),
-        eq(LocalDate.of(2030, 1, 1)),
+        eq(USER_ID),
+        eq(SECOND_CARD_NUMBER),
+        eq(CVV),
+        eq(EXPIRY_DATE),
         eq(BigDecimal.ZERO),
-        eq(1L),
+        eq(CURRENCY_ID),
         eq(AccountStatus.PENDING),
         eq(BigDecimal.TEN),
-        eq("Main"),
+        eq(ACCOUNT_NAME),
         eq(false)
     );
   }
 
   @Test
   void withdrawRejectsInsufficientBalance() {
-    Account account = activeAccount(new BigDecimal("50"), new BigDecimal("100"));
-    when(accountDao.getAccountById(1L)).thenReturn(Optional.of(account));
+    Account account = activeAccount(BALANCE_50, BALANCE_100);
+    when(accountDao.getAccountById(ACCOUNT_ID)).thenReturn(Optional.of(account));
 
-    assertThrows(IllegalArgumentException.class, () -> service.withdraw(1L, new BigDecimal("60")));
+    assertThrows(IllegalArgumentException.class, () -> service.withdraw(ACCOUNT_ID, WITHDRAW_AMOUNT_60));
     verify(accountDao, never()).withdraw(any(), any());
   }
 
   @Test
   void approveFirstAccountMakesItMain() {
-    Account account = pendingAccount(11L, 3L);
-    when(accountDao.getAccountById(11L)).thenReturn(Optional.of(account));
-    when(accountDao.countAccountsByUserIdAndStatus(3L, AccountStatus.ACTIVE)).thenReturn(0L);
-    when(accountDao.setStatusToAccount(11L, AccountStatus.PENDING, AccountStatus.ACTIVE)).thenReturn(true);
+    Account account = pendingAccount(PENDING_ACCOUNT_ID, PENDING_USER_ID);
+    when(accountDao.getAccountById(PENDING_ACCOUNT_ID)).thenReturn(Optional.of(account));
+    when(accountDao.countAccountsByUserIdAndStatus(PENDING_USER_ID, AccountStatus.ACTIVE)).thenReturn(NO_ACTIVE_ACCOUNTS);
+    when(accountDao.setStatusToAccount(PENDING_ACCOUNT_ID, AccountStatus.PENDING, AccountStatus.ACTIVE)).thenReturn(true);
 
-    service.approveAccount(11L);
+    service.approveAccount(PENDING_ACCOUNT_ID);
 
-    verify(accountDao).clearMainAccount(3L);
-    verify(accountDao).setMainAccount(11L);
+    verify(accountDao).clearMainAccount(PENDING_USER_ID);
+    verify(accountDao).setMainAccount(PENDING_ACCOUNT_ID);
   }
 
   @Test
   void approveAccountRejectsWhenClientAlreadyHasMaximumActiveAccounts() {
-    Account account = pendingAccount(11L, 3L);
-    when(accountDao.getAccountById(11L)).thenReturn(Optional.of(account));
-    when(accountDao.countAccountsByUserIdAndStatus(3L, AccountStatus.ACTIVE)).thenReturn(10L);
+    Account account = pendingAccount(PENDING_ACCOUNT_ID, PENDING_USER_ID);
+    when(accountDao.getAccountById(PENDING_ACCOUNT_ID)).thenReturn(Optional.of(account));
+    when(accountDao.countAccountsByUserIdAndStatus(PENDING_USER_ID, AccountStatus.ACTIVE)).thenReturn(MAX_ACTIVE_ACCOUNTS);
 
-    assertThrows(IllegalArgumentException.class, () -> service.approveAccount(11L));
+    assertThrows(IllegalArgumentException.class, () -> service.approveAccount(PENDING_ACCOUNT_ID));
 
-    verify(accountDao).setStatusToAccount(11L, AccountStatus.PENDING, AccountStatus.REJECTED);
+    verify(accountDao).setStatusToAccount(PENDING_ACCOUNT_ID, AccountStatus.PENDING, AccountStatus.REJECTED);
   }
 
   @Test
   void updateTransactionLimitRejectsAccountOwnedByAnotherUser() {
-    when(accountDao.getAccountById(1L)).thenReturn(Optional.of(activeAccount(BigDecimal.TEN, BigDecimal.TEN)));
+    when(accountDao.getAccountById(ACCOUNT_ID)).thenReturn(Optional.of(activeAccount(BigDecimal.TEN, BigDecimal.TEN)));
 
-    assertThrows(IllegalArgumentException.class, () -> service.updateTransactionLimit(99L, 1L, BigDecimal.ONE));
+    assertThrows(IllegalArgumentException.class, () -> service.updateTransactionLimit(OTHER_USER_ID, ACCOUNT_ID, BigDecimal.ONE));
 
     verify(accountDao, never()).updateTransactionLimit(any(), any());
   }
@@ -134,41 +156,41 @@ class AccountServiceTest {
   @Test
   void deactivateMainAccountClearsMainAccount() {
     Account account = activeAccount(BigDecimal.TEN, BigDecimal.TEN);
-    when(accountDao.getAccountById(1L)).thenReturn(Optional.of(account));
-    when(accountDao.setStatusToAccount(1L, AccountStatus.DEACTIVATED)).thenReturn(true);
+    when(accountDao.getAccountById(ACCOUNT_ID)).thenReturn(Optional.of(account));
+    when(accountDao.setStatusToAccount(ACCOUNT_ID, AccountStatus.DEACTIVATED)).thenReturn(true);
 
-    service.deactivateAccount(7L, 1L);
+    service.deactivateAccount(USER_ID, ACCOUNT_ID);
 
-    verify(accountDao).clearMainAccount(7L);
+    verify(accountDao).clearMainAccount(USER_ID);
   }
 
   @Test
   void makeMainAccountClearsOldMainAndSetsNewMain() {
     Account account = activeAccount(BigDecimal.TEN, BigDecimal.TEN);
-    when(accountDao.getAccountById(1L)).thenReturn(Optional.of(account));
-    when(accountDao.setMainAccount(1L)).thenReturn(true);
+    when(accountDao.getAccountById(ACCOUNT_ID)).thenReturn(Optional.of(account));
+    when(accountDao.setMainAccount(ACCOUNT_ID)).thenReturn(true);
 
-    service.makeMainAccount(7L, 1L);
+    service.makeMainAccount(USER_ID, ACCOUNT_ID);
 
-    verify(accountDao).clearMainAccount(7L);
-    verify(accountDao).setMainAccount(1L);
+    verify(accountDao).clearMainAccount(USER_ID);
+    verify(accountDao).setMainAccount(ACCOUNT_ID);
   }
 
   @Test
   void topUpRejectsAmountAboveTransactionLimit() {
     Account account = activeAccount(BigDecimal.TEN, BigDecimal.ONE);
-    when(accountDao.getAccountById(1L)).thenReturn(Optional.of(account));
+    when(accountDao.getAccountById(ACCOUNT_ID)).thenReturn(Optional.of(account));
 
-    assertThrows(IllegalArgumentException.class, () -> service.topUp(1L, BigDecimal.TEN));
+    assertThrows(IllegalArgumentException.class, () -> service.topUp(ACCOUNT_ID, BigDecimal.TEN));
 
     verify(accountDao, never()).topUp(any(), any());
   }
 
   private Account activeAccount(BigDecimal balance, BigDecimal limit) {
-    return new Account(1L, 7L, "4000000000000002", "123", LocalDate.now().plusYears(1), balance, 1L, AccountStatus.ACTIVE.name(), limit, "Main", true);
+    return new Account(ACCOUNT_ID, USER_ID, FIRST_CARD_NUMBER, CVV, LocalDate.now().plusYears(1), balance, CURRENCY_ID, AccountStatus.ACTIVE.name(), limit, ACCOUNT_NAME, true);
   }
 
   private Account pendingAccount(Long accountId, Long userId) {
-    return new Account(accountId, userId, "4000000000000002", "123", LocalDate.now().plusYears(1), BigDecimal.ZERO, 1L, AccountStatus.PENDING.name(), BigDecimal.TEN, "Main", false);
+    return new Account(accountId, userId, FIRST_CARD_NUMBER, CVV, LocalDate.now().plusYears(1), BigDecimal.ZERO, CURRENCY_ID, AccountStatus.PENDING.name(), BigDecimal.TEN, ACCOUNT_NAME, false);
   }
 }

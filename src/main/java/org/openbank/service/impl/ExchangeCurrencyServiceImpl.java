@@ -1,7 +1,7 @@
 package org.openbank.service.impl;
 
 import org.openbank.service.ExchangeCurrencyService;
-import org.openbank.service.Messages;
+import org.openbank.service.MessageService;
 import org.openbank.dao.CurrencyDao;
 import org.openbank.model.Currency;
 import org.springframework.stereotype.Service;
@@ -14,8 +14,11 @@ import java.util.List;
 public class ExchangeCurrencyServiceImpl implements ExchangeCurrencyService {
 
   private final CurrencyDao currencyDao;
-  public ExchangeCurrencyServiceImpl(CurrencyDao currencyDao) {
+  private final MessageService messageService;
+
+  public ExchangeCurrencyServiceImpl(CurrencyDao currencyDao, MessageService messageService) {
     this.currencyDao = currencyDao;
+    this.messageService = messageService;
   }
 
   public List<Currency> getAllCurrencies() {
@@ -24,10 +27,10 @@ public class ExchangeCurrencyServiceImpl implements ExchangeCurrencyService {
 
   public BigDecimal calculate(Long fromCurrencyId, Long toCurrencyId, BigDecimal amount) {
     if (fromCurrencyId == null || toCurrencyId == null) {
-      throw new IllegalArgumentException(Messages.get("exchange.validation.currencies.required"));
+      throw new IllegalArgumentException(messageService.get("exchange.validation.currencies.required"));
     }
     if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-      throw new IllegalArgumentException(Messages.get("validation.amount.positive"));
+      throw new IllegalArgumentException(messageService.get("validation.amount.positive"));
     }
     if (fromCurrencyId.equals(toCurrencyId)) {
       return amount;
@@ -40,10 +43,10 @@ public class ExchangeCurrencyServiceImpl implements ExchangeCurrencyService {
 
   public boolean updateRate(Long currencyId, BigDecimal rateToKzt) {
     if (currencyId == null) {
-      throw new IllegalArgumentException(Messages.get("validation.currency.required"));
+      throw new IllegalArgumentException(messageService.get("validation.currency.required"));
     }
     if (rateToKzt == null || rateToKzt.compareTo(BigDecimal.ZERO) <= 0) {
-      throw new IllegalArgumentException(Messages.get("exchange.validation.rate.positive"));
+      throw new IllegalArgumentException(messageService.get("exchange.validation.rate.positive"));
     }
     return currencyDao.updateCurrencyRate(currencyId, rateToKzt);
   }

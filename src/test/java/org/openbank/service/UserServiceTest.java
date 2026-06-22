@@ -30,6 +30,35 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
 
+  private static final Long USER_ID = 1L;
+  private static final Long CLIENT_ID = 2L;
+  private static final Long PENDING_MANAGER_ID = 3L;
+  private static final String NAME = "Aruzhan";
+  private static final String SURNAME = "Sadyk";
+  private static final String PHONE_NUMBER = "+77001112233";
+  private static final String DUPLICATE_PHONE_NUMBER = "+77009998877";
+  private static final String EMAIL = "aru@example.com";
+  private static final String RAW_EMAIL = "ARU@example.com";
+  private static final String EMAIL_WITH_SPACES = " ARU@example.com ";
+  private static final String MANAGER_EMAIL = "manager@example.com";
+  private static final String CLIENT_EMAIL = "client@example.com";
+  private static final String PENDING_EMAIL = "pending@example.com";
+  private static final String NEW_EMAIL = "new@example.com";
+  private static final String RAW_NEW_EMAIL = "NEW@example.com";
+  private static final String CLIENT_ROLE = "CLIENT";
+  private static final String MANAGER_ROLE = "MANAGER";
+  private static final String PASSWORD = "password123";
+  private static final String PASSWORD_HASH = "hash";
+  private static final String WRONG_PASSWORD = "wrong";
+  private static final String OLD_PASSWORD = "old-password";
+  private static final String NEW_PASSWORD = "new-password";
+  private static final String NEW_PASSWORD_HASH = "new-hash";
+  private static final String SHORT_PASSWORD = "short";
+  private static final String DIFFERENT_PASSWORD = "different";
+  private static final String BLANK_LOGIN = " ";
+  private static final String BLANK_PASSWORD = " ";
+  private static final String EMPTY_VALUE = "";
+
   @Mock
   private UserDao userDao;
 
@@ -41,23 +70,23 @@ class UserServiceTest {
 
   @Test
   void createUserNormalizesEmailAndStoresHashedPassword() {
-    when(passwordHasher.hash("password123")).thenReturn("hash");
+    when(passwordHasher.hash(PASSWORD)).thenReturn(PASSWORD_HASH);
 
     service.createUser(validRequest());
 
     ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
     verify(userDao).createNewUser(captor.capture());
-    assertEquals("aru@example.com", captor.getValue().getEmailAddress());
-    assertEquals("CLIENT", captor.getValue().getRole());
+    assertEquals(EMAIL, captor.getValue().getEmailAddress());
+    assertEquals(CLIENT_ROLE, captor.getValue().getRole());
     assertEquals(UserStatus.ACTIVE.name(), captor.getValue().getStatus());
-    assertEquals("hash", captor.getValue().getPasswordHash());
+    assertEquals(PASSWORD_HASH, captor.getValue().getPasswordHash());
   }
 
   @Test
   void createUserRejectsDuplicatePhoneAndEmail() {
     CreateUserRequest request = validRequest();
-    when(userDao.existsByPhoneNumber("+77001112233")).thenReturn(true);
-    when(userDao.existsByEmailAddress("aru@example.com")).thenReturn(true);
+    when(userDao.existsByPhoneNumber(PHONE_NUMBER)).thenReturn(true);
+    when(userDao.existsByEmailAddress(EMAIL)).thenReturn(true);
 
     assertThrows(UserRegistrationException.class, () -> service.createUser(request));
     verify(userDao, never()).createNewUser(any());
@@ -65,97 +94,97 @@ class UserServiceTest {
 
   @Test
   void createManagerStoresPendingManagerRole() {
-    when(passwordHasher.hash("password123")).thenReturn("hash");
+    when(passwordHasher.hash(PASSWORD)).thenReturn(PASSWORD_HASH);
 
     service.createManager(validRequest());
 
     ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
     verify(userDao).createNewUser(captor.capture());
-    assertEquals("MANAGER", captor.getValue().getRole());
+    assertEquals(MANAGER_ROLE, captor.getValue().getRole());
     assertEquals(UserStatus.PENDING.name(), captor.getValue().getStatus());
   }
 
   @Test
   void authenticateReturnsEmptyForBlankInputAndMissingUser() {
-    assertTrue(service.authenticate(" ", "password123").isEmpty());
-    assertTrue(service.authenticate("aru@example.com", " ").isEmpty());
-    when(userDao.getUserByEmailAddress("aru@example.com")).thenReturn(Optional.empty());
+    assertTrue(service.authenticate(BLANK_LOGIN, PASSWORD).isEmpty());
+    assertTrue(service.authenticate(EMAIL, BLANK_PASSWORD).isEmpty());
+    when(userDao.getUserByEmailAddress(EMAIL)).thenReturn(Optional.empty());
 
-    assertTrue(service.authenticate("aru@example.com", "password123").isEmpty());
+    assertTrue(service.authenticate(EMAIL, PASSWORD).isEmpty());
   }
 
   @Test
   void authenticateAcceptsActiveUserWithMatchingPassword() {
-    User user = user(1L, "CLIENT", UserStatus.ACTIVE.name());
-    when(userDao.getUserByEmailAddress("aru@example.com")).thenReturn(Optional.of(user));
-    when(passwordHasher.matches("password123", "hash")).thenReturn(true);
+    User user = user(USER_ID, CLIENT_ROLE, UserStatus.ACTIVE.name());
+    when(userDao.getUserByEmailAddress(EMAIL)).thenReturn(Optional.of(user));
+    when(passwordHasher.matches(PASSWORD, PASSWORD_HASH)).thenReturn(true);
 
-    Optional<User> authenticated = service.authenticate(" ARU@example.com ", "password123");
+    Optional<User> authenticated = service.authenticate(EMAIL_WITH_SPACES, PASSWORD);
 
     assertTrue(authenticated.isPresent());
   }
 
   @Test
   void authenticateRejectsInactiveUser() {
-    User user = user(1L, "CLIENT", UserStatus.DEACTIVATED.name());
-    when(userDao.getUserByPhoneNumber("+77001112233")).thenReturn(Optional.of(user));
+    User user = user(USER_ID, CLIENT_ROLE, UserStatus.DEACTIVATED.name());
+    when(userDao.getUserByPhoneNumber(PHONE_NUMBER)).thenReturn(Optional.of(user));
 
-    assertTrue(service.authenticate("+77001112233", "password123").isEmpty());
+    assertTrue(service.authenticate(PHONE_NUMBER, PASSWORD).isEmpty());
   }
 
   @Test
   void authenticateRejectsWrongPassword() {
-    User user = user(1L, "CLIENT", UserStatus.ACTIVE.name());
-    when(userDao.getUserByEmailAddress("aru@example.com")).thenReturn(Optional.of(user));
-    when(passwordHasher.matches("wrong", "hash")).thenReturn(false);
+    User user = user(USER_ID, CLIENT_ROLE, UserStatus.ACTIVE.name());
+    when(userDao.getUserByEmailAddress(EMAIL)).thenReturn(Optional.of(user));
+    when(passwordHasher.matches(WRONG_PASSWORD, PASSWORD_HASH)).thenReturn(false);
 
-    assertTrue(service.authenticate("aru@example.com", "wrong").isEmpty());
+    assertTrue(service.authenticate(EMAIL, WRONG_PASSWORD).isEmpty());
   }
 
   @Test
   void authenticateManagerRequiresManagerRoleAndActiveStatus() {
-    User manager = user(1L, "MANAGER", UserStatus.ACTIVE.name());
-    when(userDao.getUserByEmailAddress("manager@example.com")).thenReturn(Optional.of(manager));
-    when(passwordHasher.matches("password123", "hash")).thenReturn(true);
+    User manager = user(USER_ID, MANAGER_ROLE, UserStatus.ACTIVE.name());
+    when(userDao.getUserByEmailAddress(MANAGER_EMAIL)).thenReturn(Optional.of(manager));
+    when(passwordHasher.matches(PASSWORD, PASSWORD_HASH)).thenReturn(true);
 
-    assertTrue(service.authenticateManager("manager@example.com", "password123").isPresent());
+    assertTrue(service.authenticateManager(MANAGER_EMAIL, PASSWORD).isPresent());
 
-    User client = user(2L, "CLIENT", UserStatus.ACTIVE.name());
-    when(userDao.getUserByEmailAddress("client@example.com")).thenReturn(Optional.of(client));
-    when(passwordHasher.matches("password123", "hash")).thenReturn(true);
+    User client = user(CLIENT_ID, CLIENT_ROLE, UserStatus.ACTIVE.name());
+    when(userDao.getUserByEmailAddress(CLIENT_EMAIL)).thenReturn(Optional.of(client));
+    when(passwordHasher.matches(PASSWORD, PASSWORD_HASH)).thenReturn(true);
 
-    assertTrue(service.authenticateManager("client@example.com", "password123").isEmpty());
+    assertTrue(service.authenticateManager(CLIENT_EMAIL, PASSWORD).isEmpty());
 
-    User inactiveManager = user(3L, "MANAGER", UserStatus.PENDING.name());
-    when(userDao.getUserByEmailAddress("pending@example.com")).thenReturn(Optional.of(inactiveManager));
-    when(passwordHasher.matches("password123", "hash")).thenReturn(true);
+    User inactiveManager = user(PENDING_MANAGER_ID, MANAGER_ROLE, UserStatus.PENDING.name());
+    when(userDao.getUserByEmailAddress(PENDING_EMAIL)).thenReturn(Optional.of(inactiveManager));
+    when(passwordHasher.matches(PASSWORD, PASSWORD_HASH)).thenReturn(true);
 
-    assertTrue(service.authenticateManager("pending@example.com", "password123").isEmpty());
+    assertTrue(service.authenticateManager(PENDING_EMAIL, PASSWORD).isEmpty());
   }
 
   @Test
   void changePasswordValidatesCurrentPasswordAndUpdatesHash() {
-    User currentUser = user(1L, "CLIENT", UserStatus.ACTIVE.name());
+    User currentUser = user(USER_ID, CLIENT_ROLE, UserStatus.ACTIVE.name());
     PasswordChangeRequest request = new PasswordChangeRequest();
-    request.setCurrentPassword("old-password");
-    request.setNewPassword("new-password");
-    request.setConfirmPassword("new-password");
-    when(passwordHasher.matches("old-password", "hash")).thenReturn(true);
-    when(passwordHasher.hash("new-password")).thenReturn("new-hash");
+    request.setCurrentPassword(OLD_PASSWORD);
+    request.setNewPassword(NEW_PASSWORD);
+    request.setConfirmPassword(NEW_PASSWORD);
+    when(passwordHasher.matches(OLD_PASSWORD, PASSWORD_HASH)).thenReturn(true);
+    when(passwordHasher.hash(NEW_PASSWORD)).thenReturn(NEW_PASSWORD_HASH);
 
     service.changePassword(currentUser, request);
 
-    verify(userDao).changePasswordHashOfUserById(1L, "new-hash");
+    verify(userDao).changePasswordHashOfUserById(USER_ID, NEW_PASSWORD_HASH);
   }
 
   @Test
   void changePasswordCollectsValidationErrors() {
-    User currentUser = user(1L, "CLIENT", UserStatus.ACTIVE.name());
+    User currentUser = user(USER_ID, CLIENT_ROLE, UserStatus.ACTIVE.name());
     PasswordChangeRequest request = new PasswordChangeRequest();
-    request.setCurrentPassword("");
-    request.setNewPassword("short");
-    request.setConfirmPassword("different");
-    when(passwordHasher.matches("", "hash")).thenReturn(false);
+    request.setCurrentPassword(EMPTY_VALUE);
+    request.setNewPassword(SHORT_PASSWORD);
+    request.setConfirmPassword(DIFFERENT_PASSWORD);
+    when(passwordHasher.matches(EMPTY_VALUE, PASSWORD_HASH)).thenReturn(false);
 
     assertThrows(ContactUpdateException.class, () -> service.changePassword(currentUser, request));
 
@@ -164,63 +193,63 @@ class UserServiceTest {
 
   @Test
   void updateContactDetailsRejectsDuplicateEmail() {
-    User currentUser = user(1L, "CLIENT", UserStatus.ACTIVE.name());
+    User currentUser = user(USER_ID, CLIENT_ROLE, UserStatus.ACTIVE.name());
     UpdateContactRequest request = new UpdateContactRequest();
     request.setPhone(currentUser.getPhoneNumber());
-    request.setEmail("new@example.com");
-    when(userDao.existsByEmailAddress("new@example.com")).thenReturn(true);
+    request.setEmail(NEW_EMAIL);
+    when(userDao.existsByEmailAddress(NEW_EMAIL)).thenReturn(true);
 
     assertThrows(ContactUpdateException.class, () -> service.updateContactDetails(currentUser, request));
   }
 
   @Test
   void updateContactDetailsRejectsEmptyAndDuplicatePhone() {
-    User currentUser = user(1L, "CLIENT", UserStatus.ACTIVE.name());
+    User currentUser = user(USER_ID, CLIENT_ROLE, UserStatus.ACTIVE.name());
     UpdateContactRequest emptyRequest = new UpdateContactRequest();
-    emptyRequest.setPhone("");
-    emptyRequest.setEmail("");
+    emptyRequest.setPhone(EMPTY_VALUE);
+    emptyRequest.setEmail(EMPTY_VALUE);
 
     assertThrows(ContactUpdateException.class, () -> service.updateContactDetails(currentUser, emptyRequest));
 
     UpdateContactRequest duplicatePhone = new UpdateContactRequest();
-    duplicatePhone.setPhone("+77009998877");
+    duplicatePhone.setPhone(DUPLICATE_PHONE_NUMBER);
     duplicatePhone.setEmail(currentUser.getEmailAddress());
-    when(userDao.existsByPhoneNumber("+77009998877")).thenReturn(true);
+    when(userDao.existsByPhoneNumber(DUPLICATE_PHONE_NUMBER)).thenReturn(true);
 
     assertThrows(ContactUpdateException.class, () -> service.updateContactDetails(currentUser, duplicatePhone));
   }
 
   @Test
   void updateContactDetailsChangesPhoneAndEmail() {
-    User currentUser = user(1L, "CLIENT", UserStatus.ACTIVE.name());
-    User updatedUser = user(1L, "CLIENT", UserStatus.ACTIVE.name());
-    updatedUser.setPhoneNumber("+77009998877");
-    updatedUser.setEmailAddress("new@example.com");
+    User currentUser = user(USER_ID, CLIENT_ROLE, UserStatus.ACTIVE.name());
+    User updatedUser = user(USER_ID, CLIENT_ROLE, UserStatus.ACTIVE.name());
+    updatedUser.setPhoneNumber(DUPLICATE_PHONE_NUMBER);
+    updatedUser.setEmailAddress(NEW_EMAIL);
     UpdateContactRequest request = new UpdateContactRequest();
-    request.setPhone("+77009998877");
-    request.setEmail("NEW@example.com");
-    when(userDao.getUserById(1L)).thenReturn(Optional.of(updatedUser));
+    request.setPhone(DUPLICATE_PHONE_NUMBER);
+    request.setEmail(RAW_NEW_EMAIL);
+    when(userDao.getUserById(USER_ID)).thenReturn(Optional.of(updatedUser));
 
     User result = service.updateContactDetails(currentUser, request);
 
-    assertEquals("+77009998877", result.getPhoneNumber());
-    assertEquals("new@example.com", result.getEmailAddress());
-    verify(userDao).changePhoneNumberOfUserById(1L, "+77009998877");
-    verify(userDao).changeEmailAddressOfUserById(1L, "new@example.com");
+    assertEquals(DUPLICATE_PHONE_NUMBER, result.getPhoneNumber());
+    assertEquals(NEW_EMAIL, result.getEmailAddress());
+    verify(userDao).changePhoneNumberOfUserById(USER_ID, DUPLICATE_PHONE_NUMBER);
+    verify(userDao).changeEmailAddressOfUserById(USER_ID, NEW_EMAIL);
   }
 
   private CreateUserRequest validRequest() {
     CreateUserRequest request = new CreateUserRequest();
-    request.setName("Aruzhan");
-    request.setSurname("Sadyk");
-    request.setPhone("+77001112233");
-    request.setEmail("ARU@example.com");
-    request.setPassword("password123");
-    request.setConfirmPassword("password123");
+    request.setName(NAME);
+    request.setSurname(SURNAME);
+    request.setPhone(PHONE_NUMBER);
+    request.setEmail(RAW_EMAIL);
+    request.setPassword(PASSWORD);
+    request.setConfirmPassword(PASSWORD);
     return request;
   }
 
   private User user(Long id, String role, String status) {
-    return new User(id, "Aruzhan", "Sadyk", "+77001112233", "aru@example.com", role, status, LocalDate.now(), null, "hash");
+    return new User(id, NAME, SURNAME, PHONE_NUMBER, EMAIL, role, status, LocalDate.now(), null, PASSWORD_HASH);
   }
 }
