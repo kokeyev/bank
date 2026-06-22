@@ -3,9 +3,11 @@ package org.openbank.dao;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.function.Executable;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.openbank.dao.account.AccountDaoImpl;
+import org.openbank.dao.impl.AccountDaoImpl;
 import org.openbank.db.ConnectionPool;
 import org.openbank.exception.BankDataAccessException;
 import org.openbank.model.Account;
@@ -42,11 +44,11 @@ class AccountDaoImplTest {
   @Mock
   private ResultSet resultSet;
 
-  private AccountDaoImpl dao;
+  @InjectMocks
+  private AccountDaoImpl testingInstance;
 
   @BeforeEach
   void setUp() throws SQLException {
-    dao = new AccountDaoImpl(connectionPool);
     when(connectionPool.getConnection()).thenReturn(connection);
     when(connection.prepareStatement(anyString())).thenReturn(statement);
   }
@@ -56,7 +58,7 @@ class AccountDaoImplTest {
     LocalDate expiryDate = LocalDate.of(2030, 1, 1);
     when(statement.executeUpdate()).thenReturn(1);
 
-    boolean created = dao.createNewAccount(
+    boolean result = testingInstance.createNewAccount(
         7L,
         "4000000000000002",
         "123",
@@ -69,7 +71,6 @@ class AccountDaoImplTest {
         false
     );
 
-    assertTrue(created);
     verify(statement).setLong(1, 7L);
     verify(statement).setString(2, "4000000000000002");
     verify(statement).setString(3, "123");
@@ -80,6 +81,7 @@ class AccountDaoImplTest {
     verify(statement).setBigDecimal(8, new BigDecimal("100000"));
     verify(statement).setString(9, "Main");
     verify(statement).setBoolean(10, false);
+    assertTrue(result);
   }
 
   @Test
@@ -88,7 +90,7 @@ class AccountDaoImplTest {
     when(resultSet.next()).thenReturn(true);
     accountRow();
 
-    Optional<Account> account = dao.getAccountById(5L);
+    Optional<Account> account = testingInstance.getAccountById(5L);
 
     assertTrue(account.isPresent());
     assertEquals(5L, account.get().getAccountId());
@@ -101,7 +103,9 @@ class AccountDaoImplTest {
   void withdrawWrapsSqlException() throws SQLException {
     when(statement.executeUpdate()).thenThrow(new SQLException("write failed"));
 
-    assertThrows(BankDataAccessException.class, () -> dao.withdraw(5L, BigDecimal.TEN));
+    Executable executable = () -> testingInstance.withdraw(5L, BigDecimal.TEN);
+
+    assertThrows(BankDataAccessException.class, executable);
   }
 
   private void accountRow() throws SQLException {

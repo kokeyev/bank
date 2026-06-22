@@ -1,4 +1,4 @@
-package org.openbank.dao.transaction;
+package org.openbank.dao;
 
 import org.openbank.model.Transaction;
 

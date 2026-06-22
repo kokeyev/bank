@@ -1,6 +1,7 @@
 package org.openbank.service;
 
 import org.junit.jupiter.api.Test;
+import org.openbank.service.impl.PasswordHasherImpl;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -8,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PasswordHasherTest {
 
-  private final PasswordHasher passwordHasher = new PasswordHasher();
+  private final PasswordHasher passwordHasher = new PasswordHasherImpl();
 
   @Test
   void hashCreatesSaltedHashThatMatchesOriginalPassword() {

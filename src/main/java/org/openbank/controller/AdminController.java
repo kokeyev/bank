@@ -2,8 +2,8 @@ package org.openbank.controller;
 
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
-import org.openbank.dao.deposittype.DepositTypeDao;
-import org.openbank.dao.loantype.LoanTypeDao;
+import org.openbank.dao.DepositTypeDao;
+import org.openbank.dao.LoanTypeDao;
 import org.openbank.dto.AdminFeeUpdateRequest;
 import org.openbank.dto.CurrencyRateUpdateRequest;
 import org.openbank.dto.DepositRateUpdateRequest;
@@ -26,7 +26,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 

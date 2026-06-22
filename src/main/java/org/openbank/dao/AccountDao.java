@@ -1,4 +1,4 @@
-package org.openbank.dao.account;
+package org.openbank.dao;
 
 import org.openbank.model.Account;
 import org.openbank.model.status.AccountStatus;

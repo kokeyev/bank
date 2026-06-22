@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.openbank.dao.currency.CurrencyDaoImpl;
+import org.openbank.dao.impl.CurrencyDaoImpl;
 import org.openbank.db.ConnectionPool;
 import org.openbank.exception.BankDataAccessException;
 import org.openbank.model.Currency;

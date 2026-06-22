@@ -4,6 +4,8 @@ import jakarta.servlet.http.HttpSession;
 import org.junit.jupiter.api.Test;
 import org.openbank.controller.SessionKeys;
 import org.openbank.model.User;
+import org.openbank.service.impl.CurrentUserServiceImpl;
+import org.openbank.service.impl.StaffSessionServiceImpl;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -20,7 +22,7 @@ class SessionServiceTest {
   void currentUserServiceRemovesStaleSessionUser() {
     UserService userService = mock(UserService.class);
     HttpSession session = mock(HttpSession.class);
-    CurrentUserService currentUserService = new CurrentUserService(userService);
+    CurrentUserService currentUserService = new CurrentUserServiceImpl(userService);
     when(session.getAttribute(SessionKeys.CURRENT_USER_ID)).thenReturn(5L);
     when(userService.getUserById(5L)).thenReturn(Optional.empty());
 
@@ -31,7 +33,7 @@ class SessionServiceTest {
   @Test
   void currentUserServiceStoresUserIdOnLogin() {
     HttpSession session = mock(HttpSession.class);
-    CurrentUserService currentUserService = new CurrentUserService(mock(UserService.class));
+    CurrentUserService currentUserService = new CurrentUserServiceImpl(mock(UserService.class));
     User user = new User(5L, "A", "B", "+7", "a@b.kz", "CLIENT", "ACTIVE", LocalDate.now(), null, "hash");
 
     currentUserService.login(session, user);
@@ -41,7 +43,7 @@ class SessionServiceTest {
 
   @Test
   void staffSessionServiceStoresAdminAndManagerSessions() {
-    StaffSessionService staffSessionService = new StaffSessionService();
+    StaffSessionService staffSessionService = new StaffSessionServiceImpl();
     HttpSession session = mock(HttpSession.class);
     User admin = new User(7L, "A", "B", "+7", "admin@b.kz", "ADMIN", "ACTIVE", LocalDate.now(), null, "hash");
     User manager = new User(8L, "M", "B", "+7", "m@b.kz", "MANAGER", "ACTIVE", LocalDate.now(), null, "hash");

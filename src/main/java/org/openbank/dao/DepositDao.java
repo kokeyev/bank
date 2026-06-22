@@ -1,4 +1,4 @@
-package org.openbank.dao.deposit;
+package org.openbank.dao;
 
 import org.openbank.model.Deposit;
 import org.openbank.model.status.DepositStatus;

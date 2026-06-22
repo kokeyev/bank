@@ -5,17 +5,18 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.openbank.dao.account.AccountDao;
-import org.openbank.dao.currency.CurrencyDao;
-import org.openbank.dao.deposit.DepositDao;
-import org.openbank.dao.deposittype.DepositTypeDao;
-import org.openbank.dao.transaction.TransactionDao;
+import org.openbank.dao.AccountDao;
+import org.openbank.dao.CurrencyDao;
+import org.openbank.dao.DepositDao;
+import org.openbank.dao.DepositTypeDao;
+import org.openbank.dao.TransactionDao;
 import org.openbank.dto.OpenDepositRequest;
 import org.openbank.model.Account;
 import org.openbank.model.Deposit;
 import org.openbank.model.DepositType;
 import org.openbank.model.status.AccountStatus;
 import org.openbank.model.status.DepositStatus;
+import org.openbank.service.impl.DepositServiceImpl;
 import org.openbank.service.strategy.deposit.CapitalDepositStrategy;
 import org.openbank.service.strategy.deposit.DepositProductStrategyResolver;
 import org.openbank.service.strategy.deposit.KopilkaDepositStrategy;
@@ -68,7 +69,7 @@ class DepositServiceTest {
         new StrategyDepositStrategy(),
         new CapitalDepositStrategy()
     ));
-    service = new DepositService(depositDao, depositTypeDao, accountDao, currencyDao, transactionDao, transactionRunner, strategyResolver);
+    service = new DepositServiceImpl(depositDao, depositTypeDao, accountDao, currencyDao, transactionDao, transactionRunner, strategyResolver);
 
     when(transactionRunner.run(anyString(), any())).thenAnswer(invocation -> {
       DatabaseTransactionRunner.TransactionCallback<?> callback = invocation.getArgument(1);

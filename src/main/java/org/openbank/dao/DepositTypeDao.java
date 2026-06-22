@@ -1,4 +1,4 @@
-package org.openbank.dao.deposittype;
+package org.openbank.dao;
 
 import org.openbank.model.DepositType;
 

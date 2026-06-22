@@ -1,5 +1,6 @@
-package org.openbank.dao.currency;
+package org.openbank.dao.impl;
 
+import org.openbank.dao.CurrencyDao;
 import org.openbank.exception.BankDataAccessException;
 
 import org.openbank.db.ConnectionPool;

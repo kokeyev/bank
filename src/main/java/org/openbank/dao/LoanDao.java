@@ -1,10 +1,9 @@
-package org.openbank.dao.loan;
+package org.openbank.dao;
 
 import org.openbank.model.Loan;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 

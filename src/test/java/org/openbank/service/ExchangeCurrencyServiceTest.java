@@ -5,7 +5,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.openbank.dao.currency.CurrencyDao;
+import org.openbank.dao.CurrencyDao;
+import org.openbank.service.impl.ExchangeCurrencyServiceImpl;
 
 import java.math.BigDecimal;
 
@@ -21,7 +22,7 @@ class ExchangeCurrencyServiceTest {
   private CurrencyDao currencyDao;
 
   @InjectMocks
-  private ExchangeCurrencyService service;
+  private ExchangeCurrencyServiceImpl service;
 
   @Test
   void calculateConvertsThroughKztRates() {

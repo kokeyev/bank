@@ -1,6 +1,7 @@
 package org.openbank.service;
 
 import org.junit.jupiter.api.Test;
+import org.openbank.service.impl.BankCardGeneratorImpl;
 
 import java.time.LocalDate;
 
@@ -10,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BankCardGeneratorTest {
 
-  private final BankCardGenerator generator = new BankCardGenerator();
+  private final BankCardGenerator generator = new BankCardGeneratorImpl();
 
   @Test
   void generatedCardNumberHasSixteenDigitsAndPassesCheck() {

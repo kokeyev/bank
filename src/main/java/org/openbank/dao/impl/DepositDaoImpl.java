@@ -1,5 +1,6 @@
-package org.openbank.dao.deposit;
+package org.openbank.dao.impl;
 
+import org.openbank.dao.DepositDao;
 import org.openbank.exception.BankDataAccessException;
 
 import org.openbank.db.ConnectionPool;

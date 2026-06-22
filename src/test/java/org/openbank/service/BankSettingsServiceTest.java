@@ -1,6 +1,7 @@
 package org.openbank.service;
 
 import org.junit.jupiter.api.Test;
+import org.openbank.service.impl.BankSettingsServiceImpl;
 
 import java.math.BigDecimal;
 
@@ -9,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class BankSettingsServiceTest {
 
-  private final BankSettingsService service = new BankSettingsService();
+  private final BankSettingsService service = new BankSettingsServiceImpl();
 
   @Test
   void calculateTransferFeeUsesConfiguredPercent() {

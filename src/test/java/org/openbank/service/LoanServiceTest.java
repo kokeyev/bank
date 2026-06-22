@@ -5,13 +5,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.openbank.dao.loan.LoanDao;
-import org.openbank.dao.loantype.LoanTypeDao;
+import org.openbank.dao.LoanDao;
+import org.openbank.dao.LoanTypeDao;
 import org.openbank.dto.LoanApplicationRequest;
 import org.openbank.dto.LoanOfferRequest;
 import org.openbank.model.Loan;
 import org.openbank.model.LoanType;
 import org.openbank.model.status.LoanStatus;
+import org.openbank.service.impl.LoanServiceImpl;
 import org.openbank.service.strategy.loan.AutoLoanStrategy;
 import org.openbank.service.strategy.loan.LoanProductStrategyResolver;
 import org.openbank.service.strategy.loan.MortgageLoanStrategy;
@@ -45,7 +46,7 @@ class LoanServiceTest {
         new AutoLoanStrategy(),
         new MortgageLoanStrategy()
     ));
-    service = new LoanService(loanDao, loanTypeDao, strategyResolver);
+    service = new LoanServiceImpl(loanDao, loanTypeDao, strategyResolver);
   }
 
   @Test

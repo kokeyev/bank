@@ -1,9 +1,10 @@
-package org.openbank.dao.deposittype;
+package org.openbank.dao.impl;
 
+import org.openbank.dao.LoanTypeDao;
 import org.openbank.exception.BankDataAccessException;
 
 import org.openbank.db.ConnectionPool;
-import org.openbank.model.DepositType;
+import org.openbank.model.LoanType;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
@@ -14,20 +15,17 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
 @Repository
-public class DepositTypeDaoImpl implements DepositTypeDao {
+public class LoanTypeDaoImpl implements LoanTypeDao {
 
   private final ConnectionPool connectionPool;
-
-  public DepositTypeDaoImpl(ConnectionPool connectionPool) {
+  public LoanTypeDaoImpl(ConnectionPool connectionPool) {
     this.connectionPool = connectionPool;
   }
-
   @Override
-  public boolean createNewDepositType(String name, BigDecimal rate, Integer duration, Boolean withdrawal, BigDecimal minimumAmount, Long currencyId) {
+  public boolean createNewTypeOfLoan(String name, BigDecimal rate, Integer duration, BigDecimal minimumAmount, BigDecimal maximumAmount, Long currencyId) {
     String sql = """
-        insert into deposit_types (name, rate, duration, withdrawal, minimum_amount, currency_id)
+        insert into loan_types (name, rate, duration, minimum_amount, maximum_amount, currency_id)
         values (?, ?, ?, ?, ?, ?)
         """;
 
@@ -39,26 +37,25 @@ public class DepositTypeDaoImpl implements DepositTypeDao {
         statement.setString(1, name);
         statement.setBigDecimal(2, rate);
         statement.setInt(3, duration);
-        statement.setBoolean(4, withdrawal);
-        statement.setBigDecimal(5, minimumAmount);
+        statement.setBigDecimal(4, minimumAmount);
+        statement.setBigDecimal(5, maximumAmount);
         statement.setLong(6, currencyId);
 
         int rowsAffected = statement.executeUpdate();
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось создать тип депозита", e);
+      throw new BankDataAccessException("Не удалось создать тип кредита", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
   }
-
   @Override
-  public Optional<DepositType> getDepositTypeById(Long depositTypeId) {
+  public Optional<LoanType> getLoanTypeById(Long loanTypeId) {
     String sql = """
-        select deposit_type_id, name, rate, duration, withdrawal, minimum_amount, currency_id
-        from deposit_types
-        where deposit_type_id = ?
+        select loan_type_id, name, rate, duration, minimum_amount, maximum_amount, currency_id
+        from loan_types
+        where loan_type_id = ?
         """;
 
     Connection connection = null;
@@ -66,7 +63,7 @@ public class DepositTypeDaoImpl implements DepositTypeDao {
     try {
       connection = connectionPool.getConnection();
       try (PreparedStatement statement = connection.prepareStatement(sql)) {
-        statement.setLong(1, depositTypeId);
+        statement.setLong(1, loanTypeId);
         try (ResultSet resultSet = statement.executeQuery()) {
           if (resultSet.next()) {
             return Optional.of(map(resultSet));
@@ -76,19 +73,18 @@ public class DepositTypeDaoImpl implements DepositTypeDao {
         return Optional.empty();
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось получить тип депозита", e);
+      throw new BankDataAccessException("Не удалось получить тип кредита", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
   }
-
   @Override
-  public List<DepositType> getAllDepositTypes() {
-    List<DepositType> depositTypes = new ArrayList<>();
+  public List<LoanType> getAllLoanTypes() {
+    List<LoanType> loanTypes = new ArrayList<>();
 
     String sql = """
-        select deposit_type_id, name, rate, duration, withdrawal, minimum_amount, currency_id
-        from deposit_types
+        select loan_type_id, name, rate, duration, minimum_amount, maximum_amount, currency_id
+        from loan_types
         order by name
         """;
 
@@ -99,25 +95,24 @@ public class DepositTypeDaoImpl implements DepositTypeDao {
       try (PreparedStatement statement = connection.prepareStatement(sql)) {
         try (ResultSet resultSet = statement.executeQuery()) {
           while (resultSet.next()) {
-            depositTypes.add(map(resultSet));
+            loanTypes.add(map(resultSet));
           }
         }
 
-        return depositTypes;
+        return loanTypes;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось получить типы депозитов", e);
+      throw new BankDataAccessException("Не удалось получить типы кредитов", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
   }
-
   @Override
-  public boolean changeRateOfDepositType(Long depositTypeId, BigDecimal newRate) {
+  public boolean changeRateOfLoanType(Long loanTypeId, BigDecimal newRate) {
     String sql = """
-        update deposit_types
+        update loan_types
         set rate = ?
-        where deposit_type_id = ?
+        where loan_type_id = ?
         """;
 
     Connection connection = null;
@@ -126,26 +121,24 @@ public class DepositTypeDaoImpl implements DepositTypeDao {
       connection = connectionPool.getConnection();
       try (PreparedStatement statement = connection.prepareStatement(sql)) {
         statement.setBigDecimal(1, newRate);
-        statement.setLong(2, depositTypeId);
-
-        int rowsAffected = statement.executeUpdate();
-        return rowsAffected > 0;
+        statement.setLong(2, loanTypeId);
+        return statement.executeUpdate() > 0;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось изменить ставку типа депозита", e);
+      throw new BankDataAccessException("Не удалось изменить ставку типа кредита", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
   }
 
-  private DepositType map(ResultSet resultSet) throws SQLException {
-    return new DepositType(
-        resultSet.getLong("deposit_type_id"),
+  private LoanType map(ResultSet resultSet) throws SQLException {
+    return new LoanType(
+        resultSet.getLong("loan_type_id"),
         resultSet.getString("name"),
         resultSet.getBigDecimal("rate"),
         resultSet.getInt("duration"),
-        resultSet.getBoolean("withdrawal"),
         resultSet.getBigDecimal("minimum_amount"),
+        resultSet.getBigDecimal("maximum_amount"),
         resultSet.getLong("currency_id")
     );
   }

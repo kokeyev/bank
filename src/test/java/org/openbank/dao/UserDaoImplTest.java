@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.openbank.dao.user.UserDaoImpl;
+import org.openbank.dao.impl.UserDaoImpl;
 import org.openbank.db.ConnectionPool;
 import org.openbank.model.User;
 import org.openbank.model.status.UserStatus;

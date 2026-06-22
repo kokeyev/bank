@@ -6,17 +6,18 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.openbank.dao.account.AccountDao;
-import org.openbank.dao.currency.CurrencyDao;
-import org.openbank.dao.loan.LoanDao;
-import org.openbank.dao.transaction.TransactionDao;
-import org.openbank.dao.user.UserDao;
+import org.openbank.dao.AccountDao;
+import org.openbank.dao.CurrencyDao;
+import org.openbank.dao.LoanDao;
+import org.openbank.dao.TransactionDao;
+import org.openbank.dao.UserDao;
 import org.openbank.model.Account;
 import org.openbank.model.Currency;
 import org.openbank.model.Loan;
 import org.openbank.model.User;
 import org.openbank.model.status.AccountStatus;
 import org.openbank.model.status.LoanStatus;
+import org.openbank.service.impl.TransactionServiceImpl;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -59,7 +60,7 @@ class TransactionServiceTest {
   private Connection connection;
 
   @InjectMocks
-  private TransactionService service;
+  private TransactionServiceImpl service;
 
   @BeforeEach
   void runCallbacks() {

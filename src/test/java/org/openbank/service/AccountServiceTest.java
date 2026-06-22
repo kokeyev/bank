@@ -5,11 +5,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.openbank.dao.account.AccountDao;
-import org.openbank.dao.currency.CurrencyDao;
+import org.openbank.dao.AccountDao;
+import org.openbank.dao.CurrencyDao;
 import org.openbank.model.Account;
 import org.openbank.model.Currency;
 import org.openbank.model.status.AccountStatus;
+import org.openbank.service.impl.AccountServiceImpl;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -35,7 +36,7 @@ class AccountServiceTest {
   private BankCardGenerator bankCardGenerator;
 
   @InjectMocks
-  private AccountService service;
+  private AccountServiceImpl service;
 
   @Test
   void createNewAccountGeneratesUniqueCardAndCreatesPendingAccount() {

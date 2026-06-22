@@ -1,4 +1,4 @@
-package org.openbank.dao.user;
+package org.openbank.dao;
 
 import org.openbank.model.User;
 

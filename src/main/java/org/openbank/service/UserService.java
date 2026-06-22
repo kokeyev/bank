@@ -1,359 +1,51 @@
 package org.openbank.service;
 
-import org.openbank.dao.user.UserDao;
 import org.openbank.dto.CreateUserRequest;
 import org.openbank.dto.PasswordChangeRequest;
 import org.openbank.dto.UpdateContactRequest;
-import org.openbank.exception.ContactUpdateException;
-import org.openbank.exception.UserRegistrationException;
 import org.openbank.model.User;
-import org.openbank.model.status.UserStatus;
-import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 
 /**
- * Manages user registration, staff registration, authentication, and profile changes.
- *
- * <p>Passwords are always stored through {@link PasswordHasher}; login methods return empty results
- * instead of exposing whether the login, role, status, or password check failed.</p>
+ * Defines user registration, authentication, and profile operations.
  */
-@Service
-public class UserService {
+public interface UserService {
 
-  private static final String DEFAULT_ROLE = "CLIENT";
-  private static final String MANAGER_ROLE = "MANAGER";
-  private static final String ADMIN_ROLE = "ADMIN";
+  /** Registers an active client account. */
+  void createUser(CreateUserRequest request);
 
-  private final UserDao userDao;
-  private final PasswordHasher passwordHasher;
-  public UserService(UserDao userDao, PasswordHasher passwordHasher) {
-    this.userDao = userDao;
-    this.passwordHasher = passwordHasher;
-  }
+  /** Registers a manager account awaiting approval. */
+  void createManager(CreateUserRequest request);
 
-  /**
-   * Registers an active client account.
-   *
-   * @param request registration form values
-   * @throws UserRegistrationException when required fields, uniqueness, or password confirmation fail
-   */
-  public void createUser(CreateUserRequest request) {
-    List<String> errors = validate(request);
+  /** Loads a user by database id. */
+  Optional<User> getUserById(Long userId);
 
-    if (!errors.isEmpty()) {
-      throw new UserRegistrationException(errors);
-    }
+  /** Authenticates an active client. */
+  Optional<User> authenticate(String login, String password);
 
-    User user = new User();
-    user.setName(clean(request.getName()));
-    user.setSurname(clean(request.getSurname()));
-    user.setPhoneNumber(clean(request.getPhone()));
-    user.setEmailAddress(clean(request.getEmail()).toLowerCase(Locale.ROOT));
-    user.setRole(DEFAULT_ROLE);
-    user.setStatus(UserStatus.ACTIVE.name());
-    user.setDateCreated(LocalDate.now());
-    user.setPasswordHash(passwordHasher.hash(request.getPassword()));
+  /** Authenticates an active manager. */
+  Optional<User> authenticateManager(String login, String password);
 
-    userDao.createNewUser(user);
-  }
+  /** Authenticates an active admin. */
+  Optional<User> authenticateAdmin(String login, String password);
 
-  /**
-   * Registers a manager account that must be approved by an admin before use.
-   *
-   * @param request registration form values
-   * @throws UserRegistrationException when required fields, uniqueness, or password confirmation fail
-   */
-  public void createManager(CreateUserRequest request) {
-    List<String> errors = validate(request);
+  /** Returns manager registrations waiting for approval. */
+  List<User> getPendingManagers();
 
-    if (!errors.isEmpty()) {
-      throw new UserRegistrationException(errors);
-    }
+  /** Activates a pending manager account. */
+  boolean approveManager(Long managerId);
 
-    User user = new User();
-    user.setName(clean(request.getName()));
-    user.setSurname(clean(request.getSurname()));
-    user.setPhoneNumber(clean(request.getPhone()));
-    user.setEmailAddress(clean(request.getEmail()).toLowerCase(Locale.ROOT));
-    user.setRole(MANAGER_ROLE);
-    user.setStatus(UserStatus.PENDING.name());
-    user.setDateCreated(LocalDate.now());
-    user.setPasswordHash(passwordHasher.hash(request.getPassword()));
+  /** Rejects a manager registration. */
+  boolean rejectManager(Long managerId);
 
-    userDao.createNewUser(user);
-  }
+  /** Changes a user's password after validation. */
+  void changePassword(User currentUser, PasswordChangeRequest request);
 
-  /**
-   * Loads a user by database id.
-   *
-   * @param userId user primary key
-   * @return user when present
-   */
-  public Optional<User> getUserById(Long userId) {
-    return userDao.getUserById(userId);
-  }
+  /** Deactivates a user account. */
+  void deactivateUser(Long userId);
 
-  /**
-   * Authenticates an active client by email or phone number.
-   *
-   * @param login email address or phone number
-   * @param password raw password from the login form
-   * @return authenticated active user, or empty when credentials/status are invalid
-   */
-  public Optional<User> authenticate(String login, String password) {
-    if (isBlank(login) || isBlank(password)) {
-      return Optional.empty();
-    }
-
-    String cleanedLogin = clean(login);
-    Optional<User> user = cleanedLogin.contains("@")
-        ? userDao.getUserByEmailAddress(cleanedLogin.toLowerCase(Locale.ROOT))
-        : userDao.getUserByPhoneNumber(cleanedLogin);
-
-    if (user.isEmpty() || !UserStatus.ACTIVE.name().equals(user.get().getStatus()) || !passwordHasher.matches(password, user.get().getPasswordHash())) {
-      return Optional.empty();
-    }
-
-    return user;
-  }
-
-  /**
-   * Authenticates an active manager by email or phone number.
-   *
-   * @param login email address or phone number
-   * @param password raw password from the manager login form
-   * @return authenticated active manager, or empty when credentials, role, or status are invalid
-   */
-  public Optional<User> authenticateManager(String login, String password) {
-    Optional<User> user = authenticateStaff(login, password);
-
-    if (user.isEmpty() || !MANAGER_ROLE.equals(user.get().getRole()) || !UserStatus.ACTIVE.name().equals(user.get().getStatus())) {
-      return Optional.empty();
-    }
-
-    return user;
-  }
-
-  /**
-   * Authenticates an active admin stored in the users table.
-   *
-   * @param login email address or phone number
-   * @param password raw password from the admin login form
-   * @return authenticated active admin, or empty when credentials, role, or status are invalid
-   */
-  public Optional<User> authenticateAdmin(String login, String password) {
-    Optional<User> user = authenticateStaff(login, password);
-
-    if (user.isEmpty() || !ADMIN_ROLE.equals(user.get().getRole()) || !UserStatus.ACTIVE.name().equals(user.get().getStatus())) {
-      return Optional.empty();
-    }
-
-    return user;
-  }
-
-  /**
-   * Loads manager registrations waiting for admin approval.
-   *
-   * @return users with manager role and pending status
-   */
-  public List<User> getPendingManagers() {
-    return userDao.getUsersByRoleAndStatus(MANAGER_ROLE, UserStatus.PENDING.name());
-  }
-
-  /**
-   * Activates a pending manager account.
-   *
-   * @param managerId manager user id
-   * @return {@code true} when the status update succeeds
-   */
-  public boolean approveManager(Long managerId) {
-    return userDao.changeStatusOfUserById(managerId, UserStatus.ACTIVE.name());
-  }
-
-  /**
-   * Rejects a manager registration by deactivating the user.
-   *
-   * @param managerId manager user id
-   * @return {@code true} when the status update succeeds
-   */
-  public boolean rejectManager(Long managerId) {
-    return userDao.changeStatusOfUserById(managerId, UserStatus.DEACTIVATED.name());
-  }
-
-  /**
-   * Changes a user's password after checking the current password and confirmation.
-   *
-   * @param currentUser user requesting the password change
-   * @param request current password, new password, and confirmation
-   * @throws ContactUpdateException when any password validation check fails
-   */
-  public void changePassword(User currentUser, PasswordChangeRequest request) {
-    List<String> errors = new ArrayList<>();
-
-    if (isBlank(request.getCurrentPassword())) {
-      errors.add("Введите текущий пароль.");
-    }
-    if (isBlank(request.getNewPassword())) {
-      errors.add("Введите новый пароль.");
-    }
-    if (!isBlank(request.getNewPassword()) && request.getNewPassword().length() < 8) {
-      errors.add("Новый пароль должен содержать минимум 8 символов.");
-    }
-    if (!safeEquals(request.getNewPassword(), request.getConfirmPassword())) {
-      errors.add("Новые пароли не совпадают.");
-    }
-    if (!passwordHasher.matches(request.getCurrentPassword(), currentUser.getPasswordHash())) {
-      errors.add("Текущий пароль указан неверно.");
-    }
-
-    if (!errors.isEmpty()) {
-      throw new ContactUpdateException(errors);
-    }
-
-    userDao.changePasswordHashOfUserById(currentUser.getUserId(), passwordHasher.hash(request.getNewPassword()));
-  }
-
-  /**
-   * Deactivates a user account.
-   *
-   * @param userId user to deactivate
-   * @throws IllegalStateException when the DAO does not update the record
-   */
-  public void deactivateUser(Long userId) {
-    if (!userDao.changeStatusOfUserById(userId, UserStatus.DEACTIVATED.name())) {
-      throw new IllegalStateException("Не удалось деактивировать аккаунт");
-    }
-  }
-
-  /**
-   * Updates phone and email contact details after uniqueness checks.
-   *
-   * @param currentUser current database user
-   * @param request new phone and email values
-   * @return refreshed user record after update
-   * @throws ContactUpdateException when values are blank, unchanged, invalid, or already used
-   * @throws IllegalStateException when the user cannot be reloaded after update
-   */
-  public User updateContactDetails(User currentUser, UpdateContactRequest request) {
-    String newPhone = clean(request.getPhone());
-    String newEmail = clean(request.getEmail()).toLowerCase(Locale.ROOT);
-    List<String> errors = validateContactUpdate(currentUser, newPhone, newEmail);
-
-    if (!errors.isEmpty()) {
-      throw new ContactUpdateException(errors);
-    }
-
-    boolean changed = false;
-
-    if (!newPhone.isEmpty() && !newPhone.equals(currentUser.getPhoneNumber())) {
-      userDao.changePhoneNumberOfUserById(currentUser.getUserId(), newPhone);
-      changed = true;
-    }
-
-    if (!newEmail.isEmpty() && !newEmail.equals(currentUser.getEmailAddress())) {
-      userDao.changeEmailAddressOfUserById(currentUser.getUserId(), newEmail);
-      changed = true;
-    }
-
-    if (!changed) {
-      throw new ContactUpdateException(List.of("Введите новый номер телефона или новую почту."));
-    }
-
-    return userDao.getUserById(currentUser.getUserId())
-        .orElseThrow(() -> new IllegalStateException("Пользователь не найден"));
-  }
-
-  private List<String> validate(CreateUserRequest request) {
-    List<String> errors = new ArrayList<>();
-
-    if (isBlank(request.getName())) {
-      errors.add("Введите имя.");
-    }
-    if (isBlank(request.getSurname())) {
-      errors.add("Введите фамилию.");
-    }
-    if (isBlank(request.getPhone())) {
-      errors.add("Введите номер телефона.");
-    }
-    if (isBlank(request.getEmail())) {
-      errors.add("Введите почту.");
-    }
-    if (isBlank(request.getPassword())) {
-      errors.add("Введите пароль.");
-    }
-    if (!isBlank(request.getPassword()) && request.getPassword().length() < 8) {
-      errors.add("Пароль должен содержать минимум 8 символов.");
-    }
-    if (!safeEquals(request.getPassword(), request.getConfirmPassword())) {
-      errors.add("Пароли не совпадают.");
-    }
-
-    String phone = clean(request.getPhone());
-    if (!phone.isEmpty() && userDao.existsByPhoneNumber(phone)) {
-      errors.add("Пользователь с таким номером телефона уже существует.");
-    }
-
-    String email = clean(request.getEmail()).toLowerCase(Locale.ROOT);
-    if (!email.isEmpty() && userDao.existsByEmailAddress(email)) {
-      errors.add("Пользователь с такой почтой уже существует.");
-    }
-
-    return errors;
-  }
-
-  private Optional<User> authenticateStaff(String login, String password) {
-    if (isBlank(login) || isBlank(password)) {
-      return Optional.empty();
-    }
-
-    String cleanedLogin = clean(login);
-    Optional<User> user;
-    if (cleanedLogin.contains("@")) {
-      user = userDao.getUserByEmailAddress(cleanedLogin.toLowerCase(Locale.ROOT));
-    } else {
-      user = userDao.getUserByPhoneNumber(cleanedLogin);
-    }
-
-    if (user.isEmpty() || !passwordHasher.matches(password, user.get().getPasswordHash())) {
-      return Optional.empty();
-    }
-
-    return user;
-  }
-
-  private List<String> validateContactUpdate(User currentUser, String newPhone, String newEmail) {
-    List<String> errors = new ArrayList<>();
-
-    if (newPhone.isEmpty() && newEmail.isEmpty()) {
-      errors.add("Введите новый номер телефона или новую почту.");
-      return errors;
-    }
-
-    if (!newPhone.isEmpty() && !newPhone.equals(currentUser.getPhoneNumber()) && userDao.existsByPhoneNumber(newPhone)) {
-      errors.add("Пользователь с таким номером телефона уже существует.");
-    }
-
-    if (!newEmail.isEmpty() && !newEmail.equals(currentUser.getEmailAddress()) && userDao.existsByEmailAddress(newEmail)) {
-      errors.add("Пользователь с такой почтой уже существует.");
-    }
-
-    return errors;
-  }
-
-  private boolean isBlank(String value) {
-    return value == null || value.trim().isEmpty();
-  }
-
-  private String clean(String value) {
-    return value == null ? "" : value.trim();
-  }
-
-  private boolean safeEquals(String first, String second) {
-    return first != null && first.equals(second);
-  }
+  /** Updates phone and email contact details. */
+  User updateContactDetails(User currentUser, UpdateContactRequest request);
 }

@@ -6,7 +6,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.openbank.dao.user.UserDao;
+import org.openbank.dao.UserDao;
 import org.openbank.dto.CreateUserRequest;
 import org.openbank.dto.PasswordChangeRequest;
 import org.openbank.dto.UpdateContactRequest;
@@ -14,6 +14,7 @@ import org.openbank.exception.ContactUpdateException;
 import org.openbank.exception.UserRegistrationException;
 import org.openbank.model.User;
 import org.openbank.model.status.UserStatus;
+import org.openbank.service.impl.UserServiceImpl;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -36,7 +37,7 @@ class UserServiceTest {
   private PasswordHasher passwordHasher;
 
   @InjectMocks
-  private UserService service;
+  private UserServiceImpl service;
 
   @Test
   void createUserNormalizesEmailAndStoresHashedPassword() {

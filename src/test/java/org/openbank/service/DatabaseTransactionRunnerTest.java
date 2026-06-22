@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.openbank.db.ConnectionPool;
 import org.openbank.exception.BankTransactionException;
+import org.openbank.service.impl.DatabaseTransactionRunnerImpl;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -29,7 +30,7 @@ class DatabaseTransactionRunnerTest {
 
   @BeforeEach
   void setUp() throws SQLException {
-    runner = new DatabaseTransactionRunner(connectionPool);
+    runner = new DatabaseTransactionRunnerImpl(connectionPool);
     when(connectionPool.getConnection()).thenReturn(connection);
   }
 

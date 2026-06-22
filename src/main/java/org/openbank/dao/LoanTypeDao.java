@@ -1,4 +1,4 @@
-package org.openbank.dao.loantype;
+package org.openbank.dao;
 
 
 import org.openbank.model.LoanType;
