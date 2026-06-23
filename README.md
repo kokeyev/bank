@@ -120,25 +120,25 @@ Database notes:
 
 1. Set up the PostgreSQL database using the instructions from the Database Setup section.
 
-2. Run tests:
-
-```bash
-mvn test
-```
-
-3. Build the project:
+2. Build the project:
 
 ```bash
 mvn clean package
 ```
 
-The WAR file will be generated in the `target/` directory:
+This command also runs tests and generates the WAR file in the `target/` directory:
 
 ```text
 target/bank-1.0-SNAPSHOT.war
 ```
 
-4. Deploy the WAR file to a Jakarta Servlet container, for example Apache Tomcat.
+3. Deploy the WAR file to a Jakarta Servlet container, for example Apache Tomcat.
+
+To run only tests, use:
+
+```bash
+mvn test
+```
 
 To run tests with the JaCoCo coverage report, use:
 
