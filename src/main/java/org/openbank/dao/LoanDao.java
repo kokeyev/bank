@@ -25,16 +25,19 @@ public interface LoanDao {
   List<Loan> getActiveLoansByUserId(Long userId);
 
   /** Creates a pending loan request. */
-  boolean createPendingLoan(Long userId, Long loanTypeId, BigDecimal requestedAmount);
+  boolean createPendingLoan(Long userId, Long loanTypeId, Long accountId, BigDecimal requestedAmount);
 
   /** Creates a loan offer. */
-  boolean createOffer(Long parentLoanId, Long userId, Long loanTypeId, BigDecimal amount, BigDecimal rate, Integer duration, BigDecimal monthlyPayment);
+  boolean createOffer(Long parentLoanId, Long userId, Long loanTypeId, Long accountId, BigDecimal amount, BigDecimal rate, Integer duration, BigDecimal monthlyPayment);
 
   /** Returns loan offers for a user. */
   List<Loan> getOffers(Long userId);
 
   /** Accepts a loan offer. */
   boolean acceptOffer(Long userId, Long loanId);
+
+  /** Accepts a loan offer using an existing transaction. */
+  Optional<Loan> acceptOffer(Connection connection, Long userId, Long loanId);
 
   /** Refuses a loan offer. */
   boolean refuseOffer(Long userId, Long loanId);

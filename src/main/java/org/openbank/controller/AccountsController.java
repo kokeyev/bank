@@ -113,12 +113,7 @@ public class AccountsController {
     }
 
     try {
-      accountService.createNewAccount(
-          currentUser.get().getUserId(),
-          openAccountRequest.getCurrency(),
-          openAccountRequest.getTransactionLimit(),
-          openAccountRequest.getAccountName()
-      );
+      accountService.createNewAccount(currentUser.get().getUserId(), openAccountRequest.getCurrency(), openAccountRequest.getTransactionLimit(), openAccountRequest.getAccountName());
 
       return "redirect:/accounts?accountRequested=true";
     } catch (IllegalArgumentException e) {
@@ -139,6 +134,7 @@ public class AccountsController {
 
     if (bindingResult.hasErrors()) {
       redirectAttributes.addFlashAttribute("accountError", firstError(bindingResult));
+
       return "redirect:/accounts";
     }
 

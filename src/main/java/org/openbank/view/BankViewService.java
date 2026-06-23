@@ -167,6 +167,16 @@ public class BankViewService {
     return result;
   }
 
+  public List<TransferAccountOption> getKztAccountOptions(Long userId) {
+    List<TransferAccountOption> result = new ArrayList<>();
+    for (Account account : accountService.getAccountsByUserId(userId)) {
+      if (AccountStatus.ACTIVE.name().equals(account.getStatus()) && "KZT".equals(accountService.getCurrencyNameById(account.getCurrencyId()))) {
+        result.add(mapper.toTransferAccountOption(account));
+      }
+    }
+    return result;
+  }
+
   public List<TransferAccountOption> getAllAccountOptions(Long userId) {
     List<TransferAccountOption> result = new ArrayList<>();
     for (Account account : accountService.getAccountsByUserId(userId)) {

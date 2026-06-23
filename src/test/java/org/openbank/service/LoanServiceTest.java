@@ -5,12 +5,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.openbank.dao.AccountDao;
+import org.openbank.dao.CurrencyDao;
 import org.openbank.dao.LoanDao;
 import org.openbank.dao.LoanTypeDao;
+import org.openbank.dao.TransactionDao;
 import org.openbank.dto.LoanApplicationRequest;
 import org.openbank.dto.LoanOfferRequest;
+import org.openbank.model.Account;
 import org.openbank.model.Loan;
 import org.openbank.model.LoanType;
+import org.openbank.model.status.AccountStatus;
 import org.openbank.model.status.LoanStatus;
 import org.openbank.service.impl.LoanServiceImpl;
 import org.openbank.service.strategy.loan.AutoLoanStrategy;
@@ -19,12 +24,16 @@ import org.openbank.service.strategy.loan.MortgageLoanStrategy;
 import org.openbank.service.strategy.loan.PurposeLoanStrategy;
 
 import java.math.BigDecimal;
+import java.sql.Connection;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -35,7 +44,9 @@ class LoanServiceTest {
   private static final Long USER_ID = 7L;
   private static final Long LOAN_TYPE_ID = 2L;
   private static final Long CURRENCY_ID = 1L;
+  private static final Long ACCOUNT_ID = 3L;
   private static final String LOAN_TYPE_NAME = "Ипотека";
+  private static final String KZT = "KZT";
   private static final BigDecimal APPLICATION_AMOUNT = new BigDecimal("500000");
   private static final BigDecimal BELOW_MINIMUM_AMOUNT = new BigDecimal("100");
   private static final BigDecimal LOAN_RATE = new BigDecimal("12");
@@ -63,6 +74,21 @@ class LoanServiceTest {
   @Mock
   private LoanTypeDao loanTypeDao;
 
+  @Mock
+  private AccountDao accountDao;
+
+  @Mock
+  private CurrencyDao currencyDao;
+
+  @Mock
+  private TransactionDao transactionDao;
+
+  @Mock
+  private DatabaseTransactionRunner transactionRunner;
+
+  @Mock
+  private Connection connection;
+
   private LoanService service;
 
   @BeforeEach
@@ -72,24 +98,28 @@ class LoanServiceTest {
         new AutoLoanStrategy(),
         new MortgageLoanStrategy()
     ));
-    service = new LoanServiceImpl(loanDao, loanTypeDao, strategyResolver);
+    service = new LoanServiceImpl(loanDao, loanTypeDao, accountDao, currencyDao, transactionDao, transactionRunner, strategyResolver);
   }
 
   @Test
   void createApplicationValidatesAmountRangeAndDelegates() {
     LoanApplicationRequest request = new LoanApplicationRequest();
     request.setAmount(APPLICATION_AMOUNT);
+    request.setAccountId(ACCOUNT_ID);
     when(loanTypeDao.getAllLoanTypes()).thenReturn(List.of(loanType()));
+    when(accountDao.getAccountById(ACCOUNT_ID)).thenReturn(Optional.of(account()));
+    when(currencyDao.getCurrencyNameById(CURRENCY_ID)).thenReturn(KZT);
 
     service.createApplication(USER_ID, LOAN_TYPE_NAME, request);
 
-    verify(loanDao).createPendingLoan(USER_ID, LOAN_TYPE_ID, APPLICATION_AMOUNT);
+    verify(loanDao).createPendingLoan(USER_ID, LOAN_TYPE_ID, ACCOUNT_ID, APPLICATION_AMOUNT);
   }
 
   @Test
   void createApplicationRejectsAmountBelowMinimum() {
     LoanApplicationRequest request = new LoanApplicationRequest();
     request.setAmount(BELOW_MINIMUM_AMOUNT);
+    request.setAccountId(ACCOUNT_ID);
     when(loanTypeDao.getAllLoanTypes()).thenReturn(List.of(loanType()));
 
     assertThrows(IllegalArgumentException.class, () -> service.createApplication(USER_ID, LOAN_TYPE_NAME, request));
@@ -111,6 +141,7 @@ class LoanServiceTest {
         LOAN_ID,
         USER_ID,
         LOAN_TYPE_ID,
+        ACCOUNT_ID,
         APPLICATION_AMOUNT,
         LOAN_RATE,
         LOAN_DURATION,
@@ -129,6 +160,25 @@ class LoanServiceTest {
     when(loanTypeDao.getLoanTypeById(LOAN_TYPE_ID)).thenReturn(Optional.of(loanType()));
 
     assertThrows(IllegalArgumentException.class, () -> service.createOffer(LOAN_ID, request));
+  }
+
+  @Test
+  void acceptOfferCreditsSelectedKztAccountAndCreatesTransaction() throws Exception {
+    Loan offer = loan(LOAN_ID, USER_ID, LOAN_TYPE_ID, APPLICATION_AMOUNT, LoanStatus.OFFERED.name());
+    when(transactionRunner.run(anyString(), any())).thenAnswer(invocation -> {
+      DatabaseTransactionRunner.TransactionCallback<Boolean> callback = invocation.getArgument(1);
+      return callback.execute(connection);
+    });
+    when(loanDao.acceptOffer(connection, USER_ID, LOAN_ID)).thenReturn(Optional.of(offer));
+    when(accountDao.getAccountByIdForUpdate(connection, ACCOUNT_ID)).thenReturn(Optional.of(account()));
+    when(currencyDao.getCurrencyNameById(CURRENCY_ID)).thenReturn(KZT);
+    when(accountDao.topUp(connection, ACCOUNT_ID, APPLICATION_AMOUNT)).thenReturn(true);
+    when(transactionDao.createNewTransaction(any(), any(), any(), any(), any(), any(), any(), anyString(), anyString())).thenReturn(true);
+
+    assertTrue(service.acceptOffer(USER_ID, LOAN_ID));
+
+    verify(accountDao).topUp(connection, ACCOUNT_ID, APPLICATION_AMOUNT);
+    verify(transactionDao).createNewTransaction(any(), any(), any(), any(), any(), any(), any(), anyString(), anyString());
   }
 
   @Test
@@ -157,6 +207,10 @@ class LoanServiceTest {
   }
 
   private Loan loan(Long loanId, Long userId, Long loanTypeId, BigDecimal amount, String status) {
-    return new Loan(loanId, userId, loanTypeId, null, amount, null, null, status, null, null);
+    return new Loan(loanId, userId, loanTypeId, null, ACCOUNT_ID, amount, null, null, status, null, null);
+  }
+
+  private Account account() {
+    return new Account(ACCOUNT_ID, USER_ID, null, null, null, BigDecimal.ZERO, CURRENCY_ID, AccountStatus.ACTIVE.name(), BigDecimal.ZERO, "KZT", false);
   }
 }

@@ -15,6 +15,7 @@
 
     <div class="transfer-list">
         <a class="transfer-option" href="between-accounts.html" th:href="${loggedIn} ? @{/transfers/between-accounts} : null" th:classappend="${!loggedIn} ? ' disabled-link' : ''" th:attr="aria-disabled=${!loggedIn}" th:text="#{transfers.between}">Перевод между своими счетами</a>
+        <a class="transfer-option" href="account-top-up.html" th:href="${loggedIn} ? @{/transfers/account-top-up} : null" th:classappend="${!loggedIn} ? ' disabled-link' : ''" th:attr="aria-disabled=${!loggedIn}" th:text="#{transfers.accountTopUp}">Пополнить счет</a>
         <a class="transfer-option" href="by-phone.html" th:href="${loggedIn} ? @{/transfers/by-phone} : null" th:classappend="${!loggedIn} ? ' disabled-link' : ''" th:attr="aria-disabled=${!loggedIn}" th:text="#{transfers.phone}">Перевод по номеру телефона</a>
         <a class="transfer-option" href="by-card.html" th:href="${loggedIn} ? @{/transfers/by-card} : null" th:classappend="${!loggedIn} ? ' disabled-link' : ''" th:attr="aria-disabled=${!loggedIn}" th:text="#{transfers.card}">Перевод по номеру карты</a>
         <a class="transfer-option" href="deposit-top-up.html" th:href="${loggedIn} ? @{/transfers/deposit-top-up} : null" th:classappend="${!loggedIn} ? ' disabled-link' : ''" th:attr="aria-disabled=${!loggedIn}" th:text="#{transfers.depositTopUp}">Пополнить депозит</a>

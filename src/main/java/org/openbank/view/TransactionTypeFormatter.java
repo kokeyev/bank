@@ -31,6 +31,12 @@ public class TransactionTypeFormatter {
     if ("LOAN_PAYMENT".equals(type)) {
       return messageService.get("transaction.type.loanPayment");
     }
+    if ("ACCOUNT_TOP_UP".equals(type)) {
+      return messageService.get("transaction.type.accountTopUp");
+    }
+    if ("LOAN_DISBURSEMENT".equals(type)) {
+      return messageService.get("transaction.type.loanDisbursement");
+    }
     if ("DEPOSIT_OPEN".equals(type)) {
       return messageService.get("transaction.type.depositOpen");
     }

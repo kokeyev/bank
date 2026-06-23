@@ -32,6 +32,7 @@ public class TransactionServiceImpl implements TransactionService {
   private static final String EXTERNAL_CARD_TRANSFER = "EXTERNAL_CARD_TRANSFER";
   private static final String CURRENCY_EXCHANGE = "CURRENCY_EXCHANGE";
   private static final String LOAN_PAYMENT = "LOAN_PAYMENT";
+  private static final String ACCOUNT_TOP_UP = "ACCOUNT_TOP_UP";
 
   private final AccountDao accountDao;
   private final TransactionDao transactionDao;
@@ -173,6 +174,27 @@ public class TransactionServiceImpl implements TransactionService {
 
   public boolean makeTransactionExchangeCurrencies(Long senderAccountId, Long receiverAccountId, BigDecimal amount) {
     return transferToAccount(senderAccountId, receiverAccountId, amount, "Обмен валют", CURRENCY_EXCHANGE);
+  }
+
+  public boolean topUpAccount(Long userId, Long accountId, BigDecimal amount) {
+    validatePositive(amount, "Сумма пополнения должна быть больше нуля");
+    if (userId == null) {
+      throw new IllegalArgumentException("Войдите в аккаунт, чтобы пополнить счет");
+    }
+    if (accountId == null) {
+      throw new IllegalArgumentException("Выберите счет пополнения");
+    }
+
+    return transactionRunner.run("Не удалось пополнить счет", connection -> {
+      Account account = getAccountForUpdate(connection, accountId);
+      validateAccountBelongsToUser(account, userId, "Счет не принадлежит текущему пользователю");
+      validateActive(account);
+
+      topUp(connection, accountId, amount);
+      createTransactionHistory(connection, null, accountId, amount, account.getCurrencyId(), "Пополнение счета", ACCOUNT_TOP_UP);
+
+      return true;
+    });
   }
 
   private boolean transferToAccount(Long senderAccountId, Long receiverAccountId, BigDecimal amount, String message, String transactionType) {

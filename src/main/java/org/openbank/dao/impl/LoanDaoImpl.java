@@ -27,7 +27,7 @@ public class LoanDaoImpl implements LoanDao {
     List<Loan> loans = new ArrayList<>();
 
     String sql = """
-        select loan_id, user_id, loan_type_id, parent_loan_id, remaining_amount, rate, duration, status, start_date, monthly_payment
+        select loan_id, user_id, loan_type_id, parent_loan_id, account_id, remaining_amount, rate, duration, status, start_date, monthly_payment
         from loans
         where status = ?
         order by loan_id desc
@@ -56,7 +56,7 @@ public class LoanDaoImpl implements LoanDao {
   @Override
   public Optional<Loan> getLoanById(Long loanId) {
     String sql = """
-        select loan_id, user_id, loan_type_id, parent_loan_id, remaining_amount, rate, duration, status, start_date, monthly_payment
+        select loan_id, user_id, loan_type_id, parent_loan_id, account_id, remaining_amount, rate, duration, status, start_date, monthly_payment
         from loans
         where loan_id = ?
         """;
@@ -86,7 +86,7 @@ public class LoanDaoImpl implements LoanDao {
     List<Loan> loans = new ArrayList<>();
 
     String sql = """
-        select loan_id, user_id, loan_type_id, parent_loan_id, remaining_amount, rate, duration, status, start_date, monthly_payment
+        select loan_id, user_id, loan_type_id, parent_loan_id, account_id, remaining_amount, rate, duration, status, start_date, monthly_payment
         from loans
         where user_id = ?
         order by loan_id desc
@@ -117,7 +117,7 @@ public class LoanDaoImpl implements LoanDao {
     List<Loan> loans = new ArrayList<>();
 
     String sql = """
-        select loan_id, user_id, loan_type_id, parent_loan_id, remaining_amount, rate, duration, status, start_date, monthly_payment
+        select loan_id, user_id, loan_type_id, parent_loan_id, account_id, remaining_amount, rate, duration, status, start_date, monthly_payment
         from loans
         where user_id = ? and status = ?
         order by loan_id desc
@@ -145,10 +145,10 @@ public class LoanDaoImpl implements LoanDao {
     }
   }
   @Override
-  public boolean createPendingLoan(Long userId, Long loanTypeId, BigDecimal requestedAmount) {
+  public boolean createPendingLoan(Long userId, Long loanTypeId, Long accountId, BigDecimal requestedAmount) {
     String sql = """
-        insert into loans (user_id, loan_type_id, parent_loan_id, remaining_amount, rate, duration, status, start_date, monthly_payment)
-        values (?, ?, null, ?, null, null, ?, null, null)
+        insert into loans (user_id, loan_type_id, parent_loan_id, account_id, remaining_amount, rate, duration, status, start_date, monthly_payment)
+        values (?, ?, null, ?, ?, null, null, ?, null, null)
         """;
 
     Connection connection = null;
@@ -158,8 +158,9 @@ public class LoanDaoImpl implements LoanDao {
       try (PreparedStatement statement = connection.prepareStatement(sql)) {
         statement.setLong(1, userId);
         statement.setLong(2, loanTypeId);
-        statement.setBigDecimal(3, requestedAmount);
-        statement.setString(4, LoanStatus.PENDING.name());
+        statement.setLong(3, accountId);
+        statement.setBigDecimal(4, requestedAmount);
+        statement.setString(5, LoanStatus.PENDING.name());
 
         int rowsAffected = statement.executeUpdate();
         return rowsAffected > 0;
@@ -171,10 +172,10 @@ public class LoanDaoImpl implements LoanDao {
     }
   }
   @Override
-  public boolean createOffer(Long parentLoanId, Long userId, Long loanTypeId, BigDecimal amount, BigDecimal rate, Integer duration, BigDecimal monthlyPayment) {
+  public boolean createOffer(Long parentLoanId, Long userId, Long loanTypeId, Long accountId, BigDecimal amount, BigDecimal rate, Integer duration, BigDecimal monthlyPayment) {
     String sql = """
-        insert into loans (user_id, loan_type_id, parent_loan_id, remaining_amount, rate, duration, status, start_date, monthly_payment)
-        values (?, ?, ?, ?, ?, ?, ?, null, ?)
+        insert into loans (user_id, loan_type_id, parent_loan_id, account_id, remaining_amount, rate, duration, status, start_date, monthly_payment)
+        values (?, ?, ?, ?, ?, ?, ?, ?, null, ?)
         """;
 
     Connection connection = null;
@@ -185,11 +186,12 @@ public class LoanDaoImpl implements LoanDao {
         statement.setLong(1, userId);
         statement.setLong(2, loanTypeId);
         statement.setLong(3, parentLoanId);
-        statement.setBigDecimal(4, amount);
-        statement.setBigDecimal(5, rate);
-        statement.setInt(6, duration);
-        statement.setString(7, LoanStatus.OFFERED.name());
-        statement.setBigDecimal(8, monthlyPayment);
+        statement.setLong(4, accountId);
+        statement.setBigDecimal(5, amount);
+        statement.setBigDecimal(6, rate);
+        statement.setInt(7, duration);
+        statement.setString(8, LoanStatus.OFFERED.name());
+        statement.setBigDecimal(9, monthlyPayment);
 
         int rowsAffected = statement.executeUpdate();
         return rowsAffected > 0;
@@ -205,7 +207,7 @@ public class LoanDaoImpl implements LoanDao {
     List<Loan> loans = new ArrayList<>();
 
     String sql = """
-        select loan_id, user_id, loan_type_id, parent_loan_id, remaining_amount, rate, duration, status, start_date, monthly_payment
+        select loan_id, user_id, loan_type_id, parent_loan_id, account_id, remaining_amount, rate, duration, status, start_date, monthly_payment
         from loans
         where user_id = ? and status = ?
         order by loan_id desc
@@ -234,8 +236,36 @@ public class LoanDaoImpl implements LoanDao {
   }
   @Override
   public boolean acceptOffer(Long userId, Long loanId) {
+    Connection connection = null;
+
+    try {
+      connection = connectionPool.getConnection();
+      connection.setAutoCommit(false);
+
+      Optional<Loan> acceptedOffer = acceptOffer(connection, userId, loanId);
+      if (acceptedOffer.isEmpty()) {
+        connection.rollback();
+        return false;
+      }
+
+      connection.commit();
+      return true;
+    } catch (SQLException | RuntimeException e) {
+      rollback(connection);
+      if (e instanceof RuntimeException runtimeException) {
+        throw runtimeException;
+      }
+      throw new BankDataAccessException("Не удалось принять предложение по кредиту", e);
+    } finally {
+      resetAutoCommit(connection);
+      connectionPool.releaseConnection(connection);
+    }
+  }
+
+  @Override
+  public Optional<Loan> acceptOffer(Connection connection, Long userId, Long loanId) {
     String selectSql = """
-        select loan_id, user_id, loan_type_id, parent_loan_id, remaining_amount, rate, duration, status, start_date, monthly_payment
+        select loan_id, user_id, loan_type_id, parent_loan_id, account_id, remaining_amount, rate, duration, status, start_date, monthly_payment
         from loans
         where loan_id = ? and user_id = ? and status = ?
         for update
@@ -259,12 +289,7 @@ public class LoanDaoImpl implements LoanDao {
         where loan_id = ?
         """;
 
-    Connection connection = null;
-
     try {
-      connection = connectionPool.getConnection();
-      connection.setAutoCommit(false);
-
       Loan offer;
       try (PreparedStatement statement = connection.prepareStatement(selectSql)) {
         statement.setLong(1, loanId);
@@ -272,8 +297,7 @@ public class LoanDaoImpl implements LoanDao {
         statement.setString(3, LoanStatus.OFFERED.name());
         try (ResultSet resultSet = statement.executeQuery()) {
           if (!resultSet.next()) {
-            connection.rollback();
-            return false;
+            return Optional.empty();
           }
           offer = map(resultSet);
         }
@@ -302,14 +326,9 @@ public class LoanDaoImpl implements LoanDao {
         }
       }
 
-      connection.commit();
-      return true;
+      return Optional.of(offer);
     } catch (SQLException e) {
-      rollback(connection);
       throw new BankDataAccessException("Не удалось принять предложение по кредиту", e);
-    } finally {
-      resetAutoCommit(connection);
-      connectionPool.releaseConnection(connection);
     }
   }
   @Override
@@ -417,16 +436,12 @@ public class LoanDaoImpl implements LoanDao {
 
   private Loan map(ResultSet resultSet) throws SQLException {
     Date startDate = resultSet.getDate("start_date");
-    Long parentLoanId = resultSet.getLong("parent_loan_id");
-    if (resultSet.wasNull()) {
-      parentLoanId = null;
-    }
-
     return new Loan(
         resultSet.getLong("loan_id"),
         resultSet.getLong("user_id"),
         resultSet.getLong("loan_type_id"),
-        parentLoanId,
+        getLongOrNull(resultSet, "parent_loan_id"),
+        getLongOrNull(resultSet, "account_id"),
         resultSet.getBigDecimal("remaining_amount"),
         resultSet.getBigDecimal("rate"),
         (Integer) resultSet.getObject("duration"),
@@ -434,6 +449,11 @@ public class LoanDaoImpl implements LoanDao {
         startDate == null ? null : startDate.toLocalDate(),
         resultSet.getBigDecimal("monthly_payment")
     );
+  }
+
+  private Long getLongOrNull(ResultSet resultSet, String columnName) throws SQLException {
+    long value = resultSet.getLong(columnName);
+    return resultSet.wasNull() ? null : value;
   }
 
   private void rollback(Connection connection) {

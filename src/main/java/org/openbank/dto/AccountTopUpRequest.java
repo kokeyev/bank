@@ -5,22 +5,14 @@ import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
 
-public class LoanApplicationRequest {
-
-  @NotNull(message = "{validation.amount.required}")
-  @DecimalMin(value = "0.01", message = "{validation.amount.positive}")
-  private BigDecimal amount;
+public class AccountTopUpRequest {
 
   @NotNull(message = "{validation.targetAccount.required}")
   private Long accountId;
 
-  public BigDecimal getAmount() {
-    return amount;
-  }
-
-  public void setAmount(BigDecimal amount) {
-    this.amount = amount;
-  }
+  @NotNull(message = "{validation.amount.required}")
+  @DecimalMin(value = "0.01", message = "{validation.amount.positive}")
+  private BigDecimal amount;
 
   public Long getAccountId() {
     return accountId;
@@ -28,5 +20,13 @@ public class LoanApplicationRequest {
 
   public void setAccountId(Long accountId) {
     this.accountId = accountId;
+  }
+
+  public BigDecimal getAmount() {
+    return amount;
+  }
+
+  public void setAmount(BigDecimal amount) {
+    this.amount = amount;
   }
 }

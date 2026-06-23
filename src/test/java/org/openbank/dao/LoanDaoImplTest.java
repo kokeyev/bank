@@ -34,6 +34,7 @@ class LoanDaoImplTest {
   private static final Long USER_ID = 7L;
   private static final Long LOAN_TYPE_ID = 2L;
   private static final Long PARENT_LOAN_ID = 10L;
+  private static final Long ACCOUNT_ID = 3L;
   private static final BigDecimal OFFER_AMOUNT = new BigDecimal("1000000");
   private static final BigDecimal OFFER_RATE = new BigDecimal("21.5");
   private static final BigDecimal MONTHLY_PAYMENT = new BigDecimal("52000");
@@ -96,6 +97,7 @@ class LoanDaoImplTest {
         PARENT_LOAN_ID,
         USER_ID,
         LOAN_TYPE_ID,
+        ACCOUNT_ID,
         OFFER_AMOUNT,
         OFFER_RATE,
         OFFER_DURATION,
@@ -106,11 +108,12 @@ class LoanDaoImplTest {
     verify(statement).setLong(1, USER_ID);
     verify(statement).setLong(2, LOAN_TYPE_ID);
     verify(statement).setLong(3, PARENT_LOAN_ID);
-    verify(statement).setBigDecimal(4, OFFER_AMOUNT);
-    verify(statement).setBigDecimal(5, OFFER_RATE);
-    verify(statement).setInt(6, OFFER_DURATION);
-    verify(statement).setString(7, LoanStatus.OFFERED.name());
-    verify(statement).setBigDecimal(8, MONTHLY_PAYMENT);
+    verify(statement).setLong(4, ACCOUNT_ID);
+    verify(statement).setBigDecimal(5, OFFER_AMOUNT);
+    verify(statement).setBigDecimal(6, OFFER_RATE);
+    verify(statement).setInt(7, OFFER_DURATION);
+    verify(statement).setString(8, LoanStatus.OFFERED.name());
+    verify(statement).setBigDecimal(9, MONTHLY_PAYMENT);
   }
 
   @Test
@@ -181,7 +184,8 @@ class LoanDaoImplTest {
     when(resultSet.getLong("user_id")).thenReturn(userId);
     when(resultSet.getLong("loan_type_id")).thenReturn(loanTypeId);
     when(resultSet.getLong("parent_loan_id")).thenReturn(parentLoanId == null ? 0L : parentLoanId);
-    when(resultSet.wasNull()).thenReturn(parentLoanId == null);
+    when(resultSet.getLong("account_id")).thenReturn(ACCOUNT_ID);
+    when(resultSet.wasNull()).thenReturn(parentLoanId == null, false);
     when(resultSet.getBigDecimal("remaining_amount")).thenReturn(OFFER_AMOUNT);
     when(resultSet.getBigDecimal("rate")).thenReturn(OFFER_RATE);
     when(resultSet.getObject("duration")).thenReturn(OFFER_DURATION);

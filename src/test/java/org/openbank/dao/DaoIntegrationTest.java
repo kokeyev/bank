@@ -189,10 +189,10 @@ class DaoIntegrationTest {
     assertEquals(EXPECTED_TWO_RECORDS, loanTypeDao.getAllLoanTypes().size());
     assertTrue(loanTypeDao.changeRateOfLoanType(SEEDED_ID, UPDATED_LOAN_RATE));
 
-    assertTrue(loanDao.createPendingLoan(SEEDED_ID, SEEDED_ID, LOAN_AMOUNT));
+    assertTrue(loanDao.createPendingLoan(SEEDED_ID, SEEDED_ID, SEEDED_ID, LOAN_AMOUNT));
     assertEquals(EXPECTED_ONE_RECORD, loanDao.getPendingLoans().size());
     Loan pendingLoan = loanDao.getLoansByUserId(SEEDED_ID).getFirst();
-    assertTrue(loanDao.createOffer(pendingLoan.getLoanId(), SEEDED_ID, SEEDED_ID, LOAN_AMOUNT, LOAN_OFFER_RATE, PRODUCT_DURATION, MONTHLY_PAYMENT));
+    assertTrue(loanDao.createOffer(pendingLoan.getLoanId(), SEEDED_ID, SEEDED_ID, SEEDED_ID, LOAN_AMOUNT, LOAN_OFFER_RATE, PRODUCT_DURATION, MONTHLY_PAYMENT));
     assertEquals(EXPECTED_ONE_RECORD, loanDao.getOffers(SEEDED_ID).size());
     assertTrue(loanDao.rejectPendingLoan(pendingLoan.getLoanId()));
   }
@@ -304,6 +304,7 @@ class DaoIntegrationTest {
             user_id bigint,
             loan_type_id bigint,
             parent_loan_id bigint,
+            account_id bigint,
             remaining_amount numeric(19, 2),
             rate numeric(19, 2),
             duration integer,

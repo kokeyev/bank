@@ -50,8 +50,8 @@ public class LoansController {
   }
 
   @GetMapping("/loans/purpose")
-  public String purposeLoan(Model model) {
-    addLoanFormModel(model, PURPOSE, new LoanApplicationRequest());
+  public String purposeLoan(HttpSession session, Model model) {
+    addLoanFormModel(model, PURPOSE, new LoanApplicationRequest(), session);
     return "loans/purpose";
   }
 
@@ -61,8 +61,8 @@ public class LoansController {
   }
 
   @GetMapping("/loans/auto")
-  public String autoLoan(Model model) {
-    addLoanFormModel(model, AUTO, new LoanApplicationRequest());
+  public String autoLoan(HttpSession session, Model model) {
+    addLoanFormModel(model, AUTO, new LoanApplicationRequest(), session);
     return "loans/auto";
   }
 
@@ -72,8 +72,8 @@ public class LoansController {
   }
 
   @GetMapping("/loans/mortgage")
-  public String mortgageLoan(Model model) {
-    addLoanFormModel(model, MORTGAGE, new LoanApplicationRequest());
+  public String mortgageLoan(HttpSession session, Model model) {
+    addLoanFormModel(model, MORTGAGE, new LoanApplicationRequest(), session);
     return "loans/mortgage";
   }
 
@@ -124,24 +124,26 @@ public class LoansController {
     }
 
     if (bindingResult.hasErrors()) {
-      addLoanFormModel(model, loanTypeName, request);
+      addLoanFormModel(model, loanTypeName, request, session);
       return template;
     }
 
     try {
       loanService.createApplication(currentUser.get().getUserId(), loanTypeName, request);
       model.addAttribute("loanSuccess", messageService.get("loans.request.success"));
-      addLoanFormModel(model, loanTypeName, new LoanApplicationRequest());
+      addLoanFormModel(model, loanTypeName, new LoanApplicationRequest(), session);
     } catch (IllegalArgumentException e) {
       model.addAttribute("loanError", e.getMessage());
-      addLoanFormModel(model, loanTypeName, request);
+      addLoanFormModel(model, loanTypeName, request, session);
     }
 
     return template;
   }
 
-  private void addLoanFormModel(Model model, String loanTypeName, LoanApplicationRequest request) {
+  private void addLoanFormModel(Model model, String loanTypeName, LoanApplicationRequest request, HttpSession session) {
     model.addAttribute("loanApplicationRequest", request);
     model.addAttribute("loanType", bankViewService.getLoanTypeView(loanTypeName));
+    currentUserService.getCurrentUser(session)
+        .ifPresent(user -> model.addAttribute("kztAccountOptions", bankViewService.getKztAccountOptions(user.getUserId())));
   }
 }

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:text="#{transfers.accountTopUp}">Пополнить счет</title>
+    <link rel="stylesheet" href="../../static/css/styles.css" th:href="@{/css/styles.css}">
+    <meta charset="UTF-8">
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<main class="transfer-form-page">
+
+    <a class="back-link" href="index.html" th:href="@{/transfers}" th:text="#{transfers.back}">Назад к операциям</a>
+
+    <section class="transfer-form-card">
+        <h1 th:text="#{transfers.accountTopUp}">Пополнить счет</h1>
+
+        <form class="transfer-form" method="post" th:action="@{/transfers/account-top-up}" th:object="${accountTopUpRequest}">
+            <input type="hidden" name="_csrf" th:value="${csrfToken}">
+            <div class="transfer-message transfer-message-success" th:if="${accountTopUpSuccess}" th:text="${accountTopUpSuccess}">
+                Счет пополнен.
+            </div>
+
+            <div class="transfer-message transfer-message-error" th:if="${accountTopUpError}" th:text="${accountTopUpError}">
+                Не удалось пополнить счет.
+            </div>
+
+            <div class="transfer-message" th:if="${accountOptions == null || accountOptions.isEmpty()}" th:text="#{transfers.accountTopUp.needAccount}">
+                Для пополнения нужен активный счет.
+            </div>
+
+            <div class="transfer-field">
+                <label for="account" th:text="#{transfers.accountTopUp.to}">На счет</label>
+                <select id="account" name="accountId" th:field="*{accountId}" required>
+                    <option value="" disabled selected th:text="#{transfers.accountList}">Список счетов</option>
+                    <option th:each="account : ${accountOptions}" th:value="${account.accountId}" th:text="${account.label}">
+                        Основная - 125 430.50 KZT
+                    </option>
+                </select>
+            </div>
+
+            <div class="transfer-field">
+                <label for="amount" th:text="#{transfers.accountTopUp.amount}">Сумма пополнения</label>
+                <input id="amount" name="amount" th:field="*{amount}" type="number" min="0.01" step="0.01" placeholder="0" required>
+            </div>
+
+            <div class="commission-row">
+                <span th:text="#{transfers.commission}">Комиссия</span>
+                <strong>0 ₸</strong>
+            </div>
+
+            <button class="transfer-submit-button" type="submit" th:disabled="${accountOptions == null || accountOptions.isEmpty()}" th:text="#{transfers.accountTopUp.submit}">Пополнить счет</button>
+        </form>
+    </section>
+
+</main>
+
+</body>
+</html>

@@ -59,6 +59,7 @@ class TransactionServiceTest {
   private static final String CARD_TRANSFER_TYPE = "CARD_TRANSFER";
   private static final String EXTERNAL_CARD_TRANSFER_TYPE = "EXTERNAL_CARD_TRANSFER";
   private static final String LOAN_PAYMENT_TYPE = "LOAN_PAYMENT";
+  private static final String ACCOUNT_TOP_UP_TYPE = "ACCOUNT_TOP_UP";
   private static final String CVV = "123";
   private static final String ACCOUNT_NAME = "Main";
   private static final String USER_NAME = "A";
@@ -233,6 +234,18 @@ class TransactionServiceTest {
     service.makeTransactionTopUpLoan(SENDER_ACCOUNT_ID, LOAN_ID, BigDecimal.TEN);
 
     verify(loanDao).payLoan(connection, LOAN_ID, EXPECTED_LOAN_PAYMENT);
+  }
+
+  @Test
+  void accountTopUpCreditsAccountAndCreatesHistory() {
+    Account account = account(SENDER_ACCOUNT_ID, USER_ID, KZT_CURRENCY_ID, ACCOUNT_BALANCE, ACCOUNT_LIMIT);
+    when(accountDao.getAccountByIdForUpdate(connection, SENDER_ACCOUNT_ID)).thenReturn(Optional.of(account));
+    when(accountDao.topUp(connection, SENDER_ACCOUNT_ID, TRANSFER_AMOUNT)).thenReturn(true);
+    when(transactionDao.createNewTransaction(eq(connection), eq(null), eq(SENDER_ACCOUNT_ID), any(), eq(TRANSFER_AMOUNT), eq(KZT_CURRENCY_ID), eq(BigDecimal.ZERO), anyString(), eq(ACCOUNT_TOP_UP_TYPE))).thenReturn(true);
+
+    service.topUpAccount(USER_ID, SENDER_ACCOUNT_ID, TRANSFER_AMOUNT);
+
+    verify(accountDao).topUp(connection, SENDER_ACCOUNT_ID, TRANSFER_AMOUNT);
   }
 
   @Test

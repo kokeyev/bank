@@ -30,7 +30,19 @@
                 <input id="amount" name="amount" th:field="*{amount}" type="number" min="0.01" step="0.01" placeholder="0" required>
             </div>
 
-            <button class="loan-submit-button" type="submit" th:text="#{loans.application.submit}">Отправить заявку</button>
+            <div class="loan-form-field">
+                <label for="accountId" th:text="#{loans.disbursementAccount}">Счет для зачисления</label>
+                <select id="accountId" name="accountId" th:field="*{accountId}" required>
+                    <option value="" disabled selected th:text="#{loans.kztAccountList}">Список KZT счетов</option>
+                    <option th:each="account : ${kztAccountOptions}" th:value="${account.accountId}" th:text="${account.label}">KZT account</option>
+                </select>
+            </div>
+
+            <div class="loan-message loan-message-error" th:if="${kztAccountOptions == null || kztAccountOptions.isEmpty()}" th:text="#{loans.needKztAccount}">
+                Для заявки нужен активный счет в KZT.
+            </div>
+
+            <button class="loan-submit-button" type="submit" th:disabled="${kztAccountOptions == null || kztAccountOptions.isEmpty()}" th:text="#{loans.application.submit}">Отправить заявку</button>
         </form>
     </section>
 

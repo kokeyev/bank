@@ -40,6 +40,9 @@ public interface TransactionService {
   /** Pays an active loan from a client account. */
   boolean makeTransactionTopUpLoan(Long senderAccountId, Long loanId, BigDecimal amount);
 
+  /** Tops up an active account owned by the current user. */
+  boolean topUpAccount(Long userId, Long accountId, BigDecimal amount);
+
   /** Exchanges money between two accounts. */
   boolean makeTransactionExchangeCurrencies(Long senderAccountId, Long receiverAccountId, BigDecimal amount);
 }

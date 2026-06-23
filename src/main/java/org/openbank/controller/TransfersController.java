@@ -2,6 +2,7 @@ package org.openbank.controller;
 
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import org.openbank.dto.AccountTopUpRequest;
 import org.openbank.dto.CardTransferRequest;
 import org.openbank.dto.DepositTopUpRequest;
 import org.openbank.dto.LoanPaymentRequest;
@@ -79,6 +80,36 @@ public class TransfersController {
     }
 
     return "transfers/between-accounts";
+  }
+
+  @GetMapping("/transfers/account-top-up")
+  public String accountTopUp(HttpSession session, Model model) {
+    addAccountTopUpModelAttributes(session, model, new AccountTopUpRequest());
+    return "transfers/account-top-up";
+  }
+
+  @PostMapping("/transfers/account-top-up")
+  public String createAccountTopUp(@Valid @ModelAttribute AccountTopUpRequest request, BindingResult bindingResult, HttpSession session, Model model) {
+    Optional<User> currentUser = currentUserService.getCurrentUser(session);
+    if (currentUser.isEmpty()) {
+      return "redirect:/login?loginRequired=true";
+    }
+
+    if (bindingResult.hasErrors()) {
+      addAccountTopUpModelAttributes(session, model, request);
+      return "transfers/account-top-up";
+    }
+
+    try {
+      transactionService.topUpAccount(currentUser.get().getUserId(), request.getAccountId(), request.getAmount());
+      addAccountTopUpModelAttributes(session, model, new AccountTopUpRequest());
+      model.addAttribute("accountTopUpSuccess", messageService.get("transfers.accountTopUp.success"));
+    } catch (IllegalArgumentException e) {
+      addAccountTopUpModelAttributes(session, model, request);
+      model.addAttribute("accountTopUpError", e.getMessage());
+    }
+
+    return "transfers/account-top-up";
   }
 
   @GetMapping("/transfers/by-phone")
@@ -239,6 +270,11 @@ public class TransfersController {
 
   private void addPhoneTransferModelAttributes(HttpSession session, Model model, PhoneTransferRequest request) {
     model.addAttribute("phoneTransferRequest", request);
+    model.addAttribute("accountOptions", getAccountOptions(session));
+  }
+
+  private void addAccountTopUpModelAttributes(HttpSession session, Model model, AccountTopUpRequest request) {
+    model.addAttribute("accountTopUpRequest", request);
     model.addAttribute("accountOptions", getAccountOptions(session));
   }
 
