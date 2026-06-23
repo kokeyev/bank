@@ -1,33 +1,41 @@
 # Online Bank
 
-Online Bank is a Spring MVC web application for a Java Web Development capstone project. The application lets clients open bank products, managers review requests, and admins update bank settings.
+Online Bank is a Spring MVC web application for a Java Web Development capstone project. The application allows clients to manage bank accounts, deposits, loans, transfers, and currency exchange. Managers can review client requests, and admins can update bank settings such as fees, rates, and limits.
 
 ## Main Features
 
 ### Client
 
-- Register, log in, log out, and deactivate an account.
-- Open bank accounts in different currencies.
-- Open deposits and loans.
-- Transfer money between own accounts.
-- Transfer money by phone number or card number.
-- Exchange currencies.
-- Change language, phone number, email, and password.
+- Register, log in, log out, and deactivate an account
+- Open bank accounts in different currencies
+- View accounts, deposits, loans, and transaction history
+- Transfer money between own accounts
+- Transfer money to other clients by phone number or card number
+- Transfer money to external cards
+- Open deposits and apply for loans
+- Exchange currencies between accounts
+- Update phone number, email, password, and language
 
 ### Manager
 
-- Review account opening requests.
-- Review deposit opening requests.
-- Review loan requests.
-- Create loan offers for clients.
-- Approve or reject client requests.
+- Review account opening requests
+- Approve or reject account requests
+- Review deposit opening requests
+- Approve or reject deposit requests
+- Review loan applications
+- Create loan offers for clients
+- Approve or reject loan requests
+- Process expired deposits and accrue deposit interest
 
 ### Admin
 
-- Review manager registration requests.
-- Update transfer fees.
-- Update currency exchange rates.
-- Update deposit and loan rates.
+- Review manager registration requests
+- Approve or reject managers
+- Update transfer fees
+- Update currency exchange rates
+- Update deposit rates
+- Update loan rates
+- Update account limits
 
 ## Tech Stack
 
@@ -39,22 +47,28 @@ Online Bank is a Spring MVC web application for a Java Web Development capstone 
 - JDBC
 - PostgreSQL
 - Maven
+- SLF4J and Logback
 - JUnit 5
 - Mockito
-- H2 for tests
-- SLF4J and Logback
+- H2 Database for tests
+- JaCoCo for test coverage
 
 ## Project Structure
 
-- `controller` - web endpoints and page flow.
-- `service` - business rules.
-- `dao` - database access with JDBC.
-- `model` - main domain objects.
-- `dto` - form and view objects.
-- `config` - Spring and database configuration.
-- `resources/templates` - Thymeleaf pages.
-- `resources/static` - CSS files.
-- `sql_scripts` - database table scripts.
+- `controller` - Spring MVC controllers
+- `service` - business logic and validation rules
+- `dao` - database access layer implemented with JDBC
+- `db` - custom database connection pool
+- `model` - main domain objects
+- `dto` - request, form, and view data objects
+- `config` - Spring MVC, application, database, i18n, and web configuration
+- `exception` - custom application exceptions
+- `view` - helpers for preparing data for Thymeleaf pages
+- `resources/templates` - Thymeleaf HTML templates
+- `resources/static/css` - application styles
+- `sql_scripts` - database initialization, table creation, and seed data scripts
+- `webapp/WEB-INF` - web application configuration
+- `test` - unit and integration tests
 
 ## Database Setup
 
@@ -68,7 +82,7 @@ cd src/main/sql_scripts
 psql -d bank -f init_database.sql
 ```
 
-The init script creates the schema and loads seed data for currencies, deposit products, loan products, an active demo client, an active demo manager, and one demo client account.
+The init script creates all tables and loads seed data for currencies, deposit products, loan products, demo users, and one demo client account.
 
 If you want to run only the schema manually, run the SQL files from `src/main/sql_scripts/createTablesScripts` in this order:
    - `currencies.sql`
@@ -99,49 +113,124 @@ Demo credentials after running the seed script:
 
 Database notes:
 
-- Currency names are unique in the schema.
-- Seed scripts are idempotent for reference data and demo records.
-- CVV is stored only because this course project simulates issued cards and displays demo card details inside the bank cabinet. The app has no merchant acquiring, online purchase, or external card authorization flow. In a production banking system, CVV must not be stored after authorization/issuance; it should be removed from persistent storage or replaced with a compliant card-provider/tokenization design.
+- Seed scripts can be run again for reference data and demo records.
+- CVV is stored only for this course project to simulate demo bank cards. In a real banking system, CVV must not be stored in the database.
 
 ## How To Run
 
-Build the project:
+1. Set up the PostgreSQL database using the instructions from the Database Setup section.
 
-```bash
-mvn clean package
-```
-
-Run tests:
+2. Run tests:
 
 ```bash
 mvn test
 ```
 
-Deploy the generated WAR file from `target/` to a Jakarta Servlet container such as Tomcat.
+3. Build the project:
+
+```bash
+mvn clean package
+```
+
+The WAR file will be generated in the `target/` directory:
+
+```text
+target/bank-1.0-SNAPSHOT.war
+```
+
+4. Deploy the WAR file to a Jakarta Servlet container, for example Apache Tomcat.
+
+To run tests with the JaCoCo coverage report, use:
+
+```bash
+mvn verify
+```
 
 ## Useful Routes
 
-- `/register` - client registration.
-- `/login` - client login.
-- `/accounts` - client dashboard.
-- `/accounts/open` - open a new account.
-- `/transfers` - transfer menu.
-- `/deposits` - deposit products.
-- `/loans` - loan products.
-- `/exchange` - currency exchange.
-- `/settings` - language and account settings.
-- `/manager/accounts` - account requests for managers.
-- `/manager/deposits` - deposit requests for managers.
-- `/manager/loans` - loan requests for managers.
-- `/admin` - admin panel.
+### Client
+
+- `/register` - client registration
+- `/login` - client login
+- `/accounts` - client dashboard
+- `/accounts/open` - open a new account
+- `/transfers` - transfer menu
+- `/transfers/between-accounts` - transfer between own accounts
+- `/transfers/account-top-up` - top up an account
+- `/transfers/by-phone` - transfer by phone number
+- `/transfers/by-card` - transfer by card number
+- `/transfers/deposit-top-up` - top up a deposit
+- `/transfers/loan-payment` - pay a loan
+- `/transfers/currency-exchange` - exchange money between accounts
+- `/deposits` - deposit products
+- `/deposits/kopilka` - Kopilka deposit page
+- `/deposits/strategy` - Strategy deposit page
+- `/deposits/capital` - Capital deposit page
+- `/loans` - loan products
+- `/loans/purpose` - personal loan page
+- `/loans/auto` - car loan page
+- `/loans/mortgage` - mortgage loan page
+- `/exchange` - currency exchange rates and calculator
+- `/settings` - language, contact, password, and account settings
+
+### Manager
+
+- `/manager` - manager login and registration page
+- `/manager/accounts` - account requests
+- `/manager/deposits` - deposit requests
+- `/manager/loans` - loan requests
+
+### Admin
+
+- `/admin` - admin login and dashboard
 
 ## Design Patterns
 
+### 1. Strategy Pattern
+
+The project uses the Strategy pattern for deposit products.
+
+Different deposit types have different business rules, for example top-up, withdrawal, auto-renewal, and interest reinvestment. These rules are implemented through the `DepositProductStrategy` interface and separate strategy classes:
+
+- `KopilkaDepositStrategy`
+- `StrategyDepositStrategy`
+- `CapitalDepositStrategy`
+
+The correct strategy is selected by `DepositProductStrategyResolver`. This makes it easier to add a new deposit product without changing the main deposit service logic.
+
+### 2. Interceptor Pattern
+
+The project uses Spring MVC interceptors for request checks before the request reaches a controller.
+
+Implemented interceptors:
+
+- `LoginRequiredInterceptor` checks access to protected client, manager, and admin pages.
+- `CsrfInterceptor` checks CSRF tokens for POST forms.
+- `LocaleChangeInterceptor` changes the application language.
+
+This keeps security and request validation logic outside controllers.
+
+### 3. Template Callback Pattern
+
+The project uses a template callback approach for JDBC transactions.
+
+`DatabaseTransactionRunner` defines the common transaction flow:
+
+- get database connection
+- disable auto-commit
+- execute business logic
+- commit transaction
+- rollback if an error happens
+- release connection
+
+The real business logic is passed as a callback. This avoids repeating transaction management code in every service method.
 
 ## Notes
 
-- Passwords are stored as salted hashes.
-- SQL queries use `PreparedStatement`.
-- The app supports Russian, Kazakh, and English interface texts.
-- Tests cover Service and DAO logic.
+- Passwords are stored as salted SHA-256 hashes.
+- SQL queries use `PreparedStatement` to reduce SQL injection risks.
+- Forms are validated with Jakarta Validation annotations.
 - POST forms include a session CSRF token checked by `CsrfInterceptor`.
+- The app supports Russian, Kazakh, and English interface texts.
+- JDBC transactions are handled with explicit commit and rollback logic.
+- Tests cover service logic, DAO logic, database integration, and i18n configuration.
