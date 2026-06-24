@@ -2,6 +2,7 @@ package org.openbank.service;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.function.Executable;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -116,7 +117,8 @@ class AccountServiceTest {
     Account account = activeAccount(BALANCE_50, BALANCE_100);
     when(accountDao.getAccountById(ACCOUNT_ID)).thenReturn(Optional.of(account));
 
-    assertThrows(IllegalArgumentException.class, () -> service.withdraw(ACCOUNT_ID, WITHDRAW_AMOUNT_60));
+    Executable executable = () -> service.withdraw(ACCOUNT_ID, WITHDRAW_AMOUNT_60);
+    assertThrows(IllegalArgumentException.class, executable);
     verify(accountDao, never()).withdraw(any(), any());
   }
 
@@ -139,7 +141,8 @@ class AccountServiceTest {
     when(accountDao.getAccountById(PENDING_ACCOUNT_ID)).thenReturn(Optional.of(account));
     when(accountDao.countAccountsByUserIdAndStatus(PENDING_USER_ID, AccountStatus.ACTIVE)).thenReturn(MAX_ACTIVE_ACCOUNTS);
 
-    assertThrows(IllegalArgumentException.class, () -> service.approveAccount(PENDING_ACCOUNT_ID));
+    Executable executable = () -> service.approveAccount(PENDING_ACCOUNT_ID);
+    assertThrows(IllegalArgumentException.class, executable);
 
     verify(accountDao).setStatusToAccount(PENDING_ACCOUNT_ID, AccountStatus.PENDING, AccountStatus.REJECTED);
   }
@@ -148,7 +151,8 @@ class AccountServiceTest {
   void updateTransactionLimitRejectsAccountOwnedByAnotherUser() {
     when(accountDao.getAccountById(ACCOUNT_ID)).thenReturn(Optional.of(activeAccount(BigDecimal.TEN, BigDecimal.TEN)));
 
-    assertThrows(IllegalArgumentException.class, () -> service.updateTransactionLimit(OTHER_USER_ID, ACCOUNT_ID, BigDecimal.ONE));
+    Executable executable = () -> service.updateTransactionLimit(OTHER_USER_ID, ACCOUNT_ID, BigDecimal.ONE);
+    assertThrows(IllegalArgumentException.class, executable);
 
     verify(accountDao, never()).updateTransactionLimit(any(), any());
   }
@@ -181,7 +185,8 @@ class AccountServiceTest {
     Account account = activeAccount(BigDecimal.TEN, BigDecimal.ONE);
     when(accountDao.getAccountById(ACCOUNT_ID)).thenReturn(Optional.of(account));
 
-    assertThrows(IllegalArgumentException.class, () -> service.topUp(ACCOUNT_ID, BigDecimal.TEN));
+    Executable executable = () -> service.topUp(ACCOUNT_ID, BigDecimal.TEN);
+    assertThrows(IllegalArgumentException.class, executable);
 
     verify(accountDao, never()).topUp(any(), any());
   }

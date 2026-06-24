@@ -3,6 +3,7 @@ package org.openbank.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.function.Executable;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.openbank.db.ConnectionPool;
@@ -52,9 +53,8 @@ class DatabaseTransactionRunnerTest {
 
   @Test
   void runRollsBackAndWrapsSqlException() throws SQLException {
-    assertThrows(BankTransactionException.class, () -> runner.run(FAILURE_MESSAGE, activeConnection -> {
-      throw new SQLException(SQL_ERROR_MESSAGE);
-    }));
+    Executable executable = () -> runner.run(FAILURE_MESSAGE, activeConnection -> {throw new SQLException(SQL_ERROR_MESSAGE);});
+    assertThrows(BankTransactionException.class, executable);
 
     verify(connection).rollback();
     verify(connection).setAutoCommit(true);
@@ -63,9 +63,8 @@ class DatabaseTransactionRunnerTest {
 
   @Test
   void runRollsBackAndRethrowsRuntimeException() throws SQLException {
-    assertThrows(IllegalStateException.class, () -> runner.run(FAILURE_MESSAGE, activeConnection -> {
-      throw new IllegalStateException(RUNTIME_ERROR_MESSAGE);
-    }));
+    Executable executable = () -> runner.run(FAILURE_MESSAGE, activeConnection -> {throw new IllegalStateException(RUNTIME_ERROR_MESSAGE);});
+    assertThrows(IllegalStateException.class, executable);
 
     verify(connection).rollback();
     verify(connectionPool).releaseConnection(connection);

@@ -3,6 +3,7 @@ package org.openbank.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.function.Executable;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.openbank.dao.AccountDao;
@@ -147,7 +148,8 @@ class DepositServiceTest {
     when(depositDao.getDepositByIdForUpdate(connection, DEPOSIT_ID)).thenReturn(Optional.of(deposit));
     when(depositTypeDao.getDepositTypeById(DEPOSIT_TYPE_ID)).thenReturn(Optional.of(capital));
 
-    assertThrows(IllegalArgumentException.class, () -> service.topUpDeposit(USER_ID, ACCOUNT_ID, DEPOSIT_ID, BigDecimal.TEN));
+    Executable executable = () -> service.topUpDeposit(USER_ID, ACCOUNT_ID, DEPOSIT_ID, BigDecimal.TEN);
+    assertThrows(IllegalArgumentException.class, executable);
   }
 
   @Test
@@ -202,6 +204,7 @@ class DepositServiceTest {
     request.setAmount(amount);
     request.setAutoRenewal(true);
     request.setReinvestInterest(false);
+
     return request;
   }
 

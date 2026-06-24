@@ -3,6 +3,7 @@ package org.openbank.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.function.Executable;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.openbank.dao.AccountDao;
@@ -95,11 +96,7 @@ class LoanServiceTest {
 
   @BeforeEach
   void setUp() {
-    LoanProductStrategyResolver strategyResolver = new LoanProductStrategyResolver(List.of(
-        new PurposeLoanStrategy(messageService),
-        new AutoLoanStrategy(messageService),
-        new MortgageLoanStrategy(messageService)
-    ), messageService);
+    LoanProductStrategyResolver strategyResolver = new LoanProductStrategyResolver(List.of(new PurposeLoanStrategy(messageService), new AutoLoanStrategy(messageService), new MortgageLoanStrategy(messageService)), messageService);
     service = new LoanServiceImpl(loanDao, loanTypeDao, accountDao, currencyDao, transactionDao, transactionRunner, strategyResolver, messageService);
   }
 
@@ -124,7 +121,8 @@ class LoanServiceTest {
     request.setAccountId(ACCOUNT_ID);
     when(loanTypeDao.getAllLoanTypes()).thenReturn(List.of(loanType()));
 
-    assertThrows(IllegalArgumentException.class, () -> service.createApplication(USER_ID, LOAN_TYPE_NAME, request));
+    Executable executable = () -> service.createApplication(USER_ID, LOAN_TYPE_NAME, request);
+    assertThrows(IllegalArgumentException.class, executable);
   }
 
   @Test
@@ -161,7 +159,8 @@ class LoanServiceTest {
     when(loanDao.getLoanById(LOAN_ID)).thenReturn(Optional.of(parentLoan));
     when(loanTypeDao.getLoanTypeById(LOAN_TYPE_ID)).thenReturn(Optional.of(loanType()));
 
-    assertThrows(IllegalArgumentException.class, () -> service.createOffer(LOAN_ID, request));
+    Executable executable = () -> service.createOffer(LOAN_ID, request);
+    assertThrows(IllegalArgumentException.class, executable);
   }
 
   @Test

@@ -28,18 +28,21 @@ public class GlobalExceptionHandler {
     LOGGER.info("User input error at {}: {}", request.getRequestURI(), exception.getMessage());
     model.addAttribute("errorTitle", messageService.get("error.validationTitle"));
     model.addAttribute("errorMessage", exception.getMessage());
+
     return "error";
   }
 
   @ExceptionHandler({BankDataAccessException.class, BankInfrastructureException.class, BankTransactionException.class, IllegalStateException.class})
   public ModelAndView handleTechnicalError(RuntimeException exception, HttpServletRequest request) {
     LOGGER.error("Technical error at {}", request.getRequestURI(), exception);
+
     return errorView(messageService.get("error.serviceTitle"), messageService.get("error.technicalMessage"));
   }
 
   @ExceptionHandler(Exception.class)
   public ModelAndView handleUnexpectedError(Exception exception, HttpServletRequest request) {
     LOGGER.error("Unexpected error at {}", request.getRequestURI(), exception);
+
     return errorView(messageService.get("error.unexpectedTitle"), messageService.get("error.technicalMessage"));
   }
 
@@ -47,6 +50,7 @@ public class GlobalExceptionHandler {
     ModelAndView modelAndView = new ModelAndView("error");
     modelAndView.addObject("errorTitle", title);
     modelAndView.addObject("errorMessage", message);
+
     return modelAndView;
   }
 }

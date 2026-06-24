@@ -78,8 +78,7 @@ public class BankViewMapper {
   }
 
   public DepositView toDepositView(Deposit deposit) {
-    DepositType depositType = depositService.getDepositTypeById(deposit.getDepositTypeId())
-        .orElseThrow(() -> new IllegalStateException(messageService.get("error.depositType.notFound")));
+    DepositType depositType = depositService.getDepositTypeById(deposit.getDepositTypeId()).orElseThrow(() -> new IllegalStateException(messageService.get("error.depositType.notFound")));
     String currency = depositService.getCurrencyNameById(depositType.getCurrencyId());
 
     return new DepositView(
@@ -100,8 +99,7 @@ public class BankViewMapper {
   }
 
   public LoanView toLoanView(Loan loan) {
-    LoanType loanType = loanService.getLoanTypeById(loan.getLoanTypeId())
-        .orElseThrow(() -> new IllegalStateException(messageService.get("error.loanType.notFound")));
+    LoanType loanType = loanService.getLoanTypeById(loan.getLoanTypeId()).orElseThrow(() -> new IllegalStateException(messageService.get("error.loanType.notFound")));
 
     return new LoanView(
         loan.getLoanId(),

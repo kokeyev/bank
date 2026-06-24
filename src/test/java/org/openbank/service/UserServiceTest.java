@@ -3,6 +3,7 @@ package org.openbank.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.function.Executable;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -100,7 +101,8 @@ class UserServiceTest {
     when(userDao.existsByPhoneNumber(PHONE_NUMBER)).thenReturn(true);
     when(userDao.existsByEmailAddress(EMAIL)).thenReturn(true);
 
-    assertThrows(UserRegistrationException.class, () -> service.createUser(request));
+    Executable executable = () -> service.createUser(request);
+    assertThrows(UserRegistrationException.class, executable);
     verify(userDao, never()).createNewUser(any());
   }
 
@@ -211,7 +213,8 @@ class UserServiceTest {
     request.setEmail(NEW_EMAIL);
     when(userDao.existsByEmailAddress(NEW_EMAIL)).thenReturn(true);
 
-    assertThrows(ContactUpdateException.class, () -> service.updateContactDetails(currentUser, request));
+    Executable executable = () -> service.updateContactDetails(currentUser, request);
+    assertThrows(ContactUpdateException.class, executable);
   }
 
   @Test
@@ -221,14 +224,16 @@ class UserServiceTest {
     emptyRequest.setPhone(EMPTY_VALUE);
     emptyRequest.setEmail(EMPTY_VALUE);
 
-    assertThrows(ContactUpdateException.class, () -> service.updateContactDetails(currentUser, emptyRequest));
+    Executable executable = () -> service.updateContactDetails(currentUser, emptyRequest);
+    assertThrows(ContactUpdateException.class, executable);
 
     UpdateContactRequest duplicatePhone = new UpdateContactRequest();
     duplicatePhone.setPhone(DUPLICATE_PHONE_NUMBER);
     duplicatePhone.setEmail(currentUser.getEmailAddress());
     when(userDao.existsByPhoneNumber(DUPLICATE_PHONE_NUMBER)).thenReturn(true);
 
-    assertThrows(ContactUpdateException.class, () -> service.updateContactDetails(currentUser, duplicatePhone));
+    Executable executable1 = () -> service.updateContactDetails(currentUser, duplicatePhone);
+    assertThrows(ContactUpdateException.class, executable1);
   }
 
   @Test

@@ -1,6 +1,7 @@
 package org.openbank.service;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 import org.openbank.service.impl.BankSettingsServiceImpl;
 
 import java.math.BigDecimal;
@@ -34,6 +35,7 @@ class BankSettingsServiceTest {
 
   @Test
   void setTransferFeePercentRejectsNegativeValue() {
-    assertThrows(IllegalArgumentException.class, () -> service.setTransferFeePercent(NEGATIVE_TRANSFER_FEE_PERCENT));
+    Executable executable = () -> service.setTransferFeePercent(NEGATIVE_TRANSFER_FEE_PERCENT);
+    assertThrows(IllegalArgumentException.class, executable);
   }
 }

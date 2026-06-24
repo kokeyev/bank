@@ -3,6 +3,8 @@ package org.openbank.dao;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.function.Executable;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.openbank.dao.impl.CurrencyDaoImpl;
@@ -45,11 +47,12 @@ class CurrencyDaoImplTest {
   @Mock
   private ResultSet resultSet;
 
-  private CurrencyDaoImpl dao;
+  @InjectMocks
+  private CurrencyDaoImpl testingInstance;
 
   @BeforeEach
   void setUp() throws SQLException {
-    dao = new CurrencyDaoImpl(connectionPool);
+    testingInstance = new CurrencyDaoImpl(connectionPool);
     when(connectionPool.getConnection()).thenReturn(connection);
     when(connection.prepareStatement(anyString())).thenReturn(statement);
   }
@@ -62,7 +65,7 @@ class CurrencyDaoImplTest {
     when(resultSet.getString("name")).thenReturn(CURRENCY_NAME);
     when(resultSet.getBigDecimal("rate_to_kzt")).thenReturn(BigDecimal.ONE);
 
-    Optional<Currency> currency = dao.getCurrencyByName(CURRENCY_NAME);
+    Optional<Currency> currency = testingInstance.getCurrencyByName(CURRENCY_NAME);
 
     assertTrue(currency.isPresent());
     assertEquals(CURRENCY_ID, currency.get().getCurrencyId());
@@ -76,18 +79,19 @@ class CurrencyDaoImplTest {
   void updateCurrencyRateReturnsTrueWhenRowUpdated() throws SQLException {
     when(statement.executeUpdate()).thenReturn(UPDATED_ROW_COUNT);
 
-    boolean updated = dao.updateCurrencyRate(CURRENCY_ID, UPDATED_RATE_TO_KZT);
+    boolean updated = testingInstance.updateCurrencyRate(CURRENCY_ID, UPDATED_RATE_TO_KZT);
 
-    assertTrue(updated);
     verify(statement).setBigDecimal(1, UPDATED_RATE_TO_KZT);
     verify(statement).setLong(2, CURRENCY_ID);
+    assertTrue(updated);
   }
 
   @Test
   void getCurrencyByIdWrapsSqlException() throws SQLException {
     when(connection.prepareStatement(anyString())).thenThrow(new SQLException(SQL_ERROR_MESSAGE));
 
-    assertThrows(BankDataAccessException.class, () -> dao.getCurrencyById(CURRENCY_ID));
+    Executable executable = () -> testingInstance.getCurrencyById(CURRENCY_ID);
+    assertThrows(BankDataAccessException.class, executable);
     verify(connectionPool).releaseConnection(connection);
   }
 }

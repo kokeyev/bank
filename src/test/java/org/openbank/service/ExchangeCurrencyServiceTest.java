@@ -2,6 +2,7 @@ package org.openbank.service;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.function.Executable;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -53,7 +54,8 @@ class ExchangeCurrencyServiceTest {
 
   @Test
   void calculateRejectsMissingCurrency() {
-    assertThrows(IllegalArgumentException.class, () -> service.calculate(null, FROM_CURRENCY_ID, BigDecimal.TEN));
+    Executable executable = () -> service.calculate(null, FROM_CURRENCY_ID, BigDecimal.TEN);
+    assertThrows(IllegalArgumentException.class, executable);
   }
 
   @Test

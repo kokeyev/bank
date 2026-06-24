@@ -164,6 +164,7 @@ public class BankViewService {
         result.add(mapper.toTransferAccountOption(account));
       }
     }
+
     return result;
   }
 
@@ -174,6 +175,7 @@ public class BankViewService {
         result.add(mapper.toTransferAccountOption(account));
       }
     }
+
     return result;
   }
 
@@ -182,6 +184,7 @@ public class BankViewService {
     for (Account account : accountService.getAccountsByUserId(userId)) {
       result.add(mapper.toTransferAccountOption(account));
     }
+
     return result;
   }
 
@@ -190,6 +193,7 @@ public class BankViewService {
     for (DepositType depositType : depositService.getDepositTypesByProduct(productName)) {
       result.add(mapper.toDepositTypeOption(depositType));
     }
+
     return result;
   }
 

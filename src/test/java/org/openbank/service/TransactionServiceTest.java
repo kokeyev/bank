@@ -3,6 +3,7 @@ package org.openbank.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.function.Executable;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -213,14 +214,16 @@ class TransactionServiceTest {
   void phoneTransferRejectsMissingReceiverOrReceiverWithoutAccount() {
     when(userDao.getUserByPhoneNumber(PHONE_NUMBER)).thenReturn(Optional.empty());
 
-    assertThrows(IllegalArgumentException.class, () -> service.makeTransactionByPhoneNumber(SENDER_ACCOUNT_ID, PHONE_NUMBER, BigDecimal.TEN));
+    Executable executable1 = () -> service.makeTransactionByPhoneNumber(SENDER_ACCOUNT_ID, PHONE_NUMBER, BigDecimal.TEN);
+    assertThrows(IllegalArgumentException.class, executable1);
 
     User receiver = user(RECEIVER_USER_ID);
     when(userDao.getUserByPhoneNumber(MISSING_PHONE_NUMBER)).thenReturn(Optional.of(receiver));
     when(accountDao.getMainActiveAccountByUserId(RECEIVER_USER_ID)).thenReturn(Optional.empty());
     when(accountDao.getFirstActiveAccountByUserId(RECEIVER_USER_ID)).thenReturn(Optional.empty());
 
-    assertThrows(IllegalArgumentException.class, () -> service.makeTransactionByPhoneNumber(SENDER_ACCOUNT_ID, MISSING_PHONE_NUMBER, BigDecimal.TEN));
+    Executable executable = () -> service.makeTransactionByPhoneNumber(SENDER_ACCOUNT_ID, MISSING_PHONE_NUMBER, BigDecimal.TEN);
+    assertThrows(IllegalArgumentException.class, executable);
   }
 
   @Test

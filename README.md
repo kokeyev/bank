@@ -50,7 +50,6 @@ Online Bank is a Spring MVC web application for a Java Web Development capstone 
 - SLF4J and Logback
 - JUnit 5
 - Mockito
-- H2 Database for tests
 - JaCoCo for test coverage
 
 ## Project Structure
