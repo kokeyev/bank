@@ -23,6 +23,9 @@ import org.openbank.service.AccountService;
 import org.openbank.service.DepositService;
 import org.openbank.service.LoanService;
 import org.openbank.service.MessageService;
+import org.openbank.service.strategy.deposit.CapitalDepositStrategy;
+import org.openbank.service.strategy.deposit.KopilkaDepositStrategy;
+import org.openbank.service.strategy.deposit.StrategyDepositStrategy;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -81,7 +84,7 @@ public class BankViewMapper {
 
     return new DepositView(
         deposit.getDepositId(),
-        depositType.getName(),
+        depositName(depositType.getName()),
         formatter.money(deposit.getCurrentAmount()),
         formatter.decimalValue(deposit.getCurrentAmount()),
         currency,
@@ -174,7 +177,7 @@ public class BankViewMapper {
     DepositType depositType = depositService.getDepositTypeById(deposit.getDepositTypeId())
         .orElseThrow(() -> new IllegalStateException(messageService.get("error.depositType.notFound")));
     String currency = depositService.getCurrencyNameById(depositType.getCurrencyId());
-    String label = messageService.get("deposits.option.label", depositType.getName(), formatter.duration(depositType.getDuration()), formatter.money(deposit.getCurrentAmount()), currency);
+    String label = messageService.get("deposits.option.label", depositName(depositType.getName()), formatter.duration(depositType.getDuration()), formatter.money(deposit.getCurrentAmount()), currency);
 
     return new DepositOption(deposit.getDepositId(), label);
   }
@@ -210,5 +213,18 @@ public class BankViewMapper {
     }
 
     return result;
+  }
+
+  private String depositName(String productName) {
+    if (KopilkaDepositStrategy.PRODUCT_NAME.equals(productName)) {
+      return messageService.get("deposits.kopilka.name");
+    }
+    if (StrategyDepositStrategy.PRODUCT_NAME.equals(productName)) {
+      return messageService.get("deposits.strategy.name");
+    }
+    if (CapitalDepositStrategy.PRODUCT_NAME.equals(productName)) {
+      return messageService.get("deposits.capital.name");
+    }
+    return productName == null ? "" : productName;
   }
 }

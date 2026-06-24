@@ -45,7 +45,7 @@ public class UserDaoImpl implements UserDao {
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось добавить пользователя", e);
+      throw new BankDataAccessException("Could not add user", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -73,7 +73,7 @@ public class UserDaoImpl implements UserDao {
         return Optional.empty();
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось найти пользователя по id", e);
+      throw new BankDataAccessException("Could not find user by id", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -101,7 +101,7 @@ public class UserDaoImpl implements UserDao {
         return Optional.empty();
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось найти пользователя по номеру телефона", e);
+      throw new BankDataAccessException("Could not find user by phone number", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -129,7 +129,7 @@ public class UserDaoImpl implements UserDao {
         return Optional.empty();
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось найти пользователя по почте", e);
+      throw new BankDataAccessException("Could not find user by email", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -161,7 +161,7 @@ public class UserDaoImpl implements UserDao {
       }
       return users;
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось получить пользователей по роли", e);
+      throw new BankDataAccessException("Could not fetch users by role", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -186,7 +186,7 @@ public class UserDaoImpl implements UserDao {
         }
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось проверить номер телефона", e);
+      throw new BankDataAccessException("Could not check phone number", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -211,7 +211,7 @@ public class UserDaoImpl implements UserDao {
         }
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось проверить почту", e);
+      throw new BankDataAccessException("Could not check email", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -235,7 +235,7 @@ public class UserDaoImpl implements UserDao {
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось поменять номер телефона", e);
+      throw new BankDataAccessException("Could not change phone number", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -259,7 +259,7 @@ public class UserDaoImpl implements UserDao {
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось поменять почту", e);
+      throw new BankDataAccessException("Could not change email", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -283,7 +283,7 @@ public class UserDaoImpl implements UserDao {
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось поменять пароль", e);
+      throw new BankDataAccessException("Could not change password", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -306,7 +306,7 @@ public class UserDaoImpl implements UserDao {
         return statement.executeUpdate() > 0;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось изменить статус пользователя", e);
+      throw new BankDataAccessException("Could not update user status", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -329,7 +329,7 @@ public class UserDaoImpl implements UserDao {
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось поменять пароль", e);
+      throw new BankDataAccessException("Could not change password", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }

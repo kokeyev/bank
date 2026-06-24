@@ -8,6 +8,9 @@ import org.openbank.view.BankViewService;
 import org.openbank.service.CurrentUserService;
 import org.openbank.service.DepositService;
 import org.openbank.service.MessageService;
+import org.openbank.service.strategy.deposit.CapitalDepositStrategy;
+import org.openbank.service.strategy.deposit.KopilkaDepositStrategy;
+import org.openbank.service.strategy.deposit.StrategyDepositStrategy;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -21,9 +24,9 @@ import java.util.Optional;
 @Controller
 public class DepositsController {
 
-  private static final String KOPILKA = "Копилка";
-  private static final String STRATEGY = "Стратегия";
-  private static final String CAPITAL = "Капитал";
+  private static final String KOPILKA = KopilkaDepositStrategy.PRODUCT_NAME;
+  private static final String STRATEGY = StrategyDepositStrategy.PRODUCT_NAME;
+  private static final String CAPITAL = CapitalDepositStrategy.PRODUCT_NAME;
 
   private final CurrentUserService currentUserService;
   private final DepositService depositService;

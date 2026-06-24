@@ -1,13 +1,12 @@
 package org.openbank.view;
 
 import org.openbank.service.MessageService;
+import org.openbank.service.strategy.loan.AutoLoanStrategy;
+import org.openbank.service.strategy.loan.MortgageLoanStrategy;
 import org.springframework.stereotype.Component;
 
 @Component
 public class LoanProductText {
-
-  private static final String AUTO = "Автокредит";
-  private static final String MORTGAGE = "Ипотека";
 
   private final MessageService messageService;
 
@@ -16,10 +15,10 @@ public class LoanProductText {
   }
 
   public String slug(String loanTypeName) {
-    if (AUTO.equals(loanTypeName)) {
+    if (AutoLoanStrategy.PRODUCT_NAME.equals(loanTypeName)) {
       return "auto";
     }
-    if (MORTGAGE.equals(loanTypeName)) {
+    if (MortgageLoanStrategy.PRODUCT_NAME.equals(loanTypeName)) {
       return "mortgage";
     }
     return "purpose";

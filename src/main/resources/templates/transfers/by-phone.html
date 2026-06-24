@@ -18,21 +18,15 @@
 
         <form class="transfer-form" method="post" th:action="@{/transfers/by-phone}" th:object="${phoneTransferRequest}">
             <input type="hidden" name="_csrf" th:value="${csrfToken}">
-            <div class="transfer-message transfer-message-success" th:if="${phoneTransferSuccess}" th:text="${phoneTransferSuccess}">
-                Перевод выполнен.
-            </div>
+            <div class="transfer-message transfer-message-success" th:if="${phoneTransferSuccess}" th:text="${phoneTransferSuccess}"></div>
 
-            <div class="transfer-message transfer-message-error" th:if="${phoneTransferError}" th:text="${phoneTransferError}">
-                Не удалось выполнить перевод.
-            </div>
+            <div class="transfer-message transfer-message-error" th:if="${phoneTransferError}" th:text="${phoneTransferError}"></div>
 
             <div class="transfer-field">
                 <label for="fromAccount" th:text="#{transfers.whereFrom}">Откуда</label>
                 <select id="fromAccount" name="senderAccountId" th:field="*{senderAccountId}" required>
                     <option value="" disabled selected th:text="#{transfers.accountList}">Список счетов</option>
-                    <option th:each="account : ${accountOptions}" th:value="${account.accountId}" th:text="${account.label}">
-                        Основная - 125 430.50 KZT
-                    </option>
+                    <option th:each="account : ${accountOptions}" th:value="${account.accountId}" th:text="${account.label}">Main - 125 430.50 KZT</option>
                 </select>
             </div>
 

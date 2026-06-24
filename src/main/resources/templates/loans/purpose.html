@@ -38,9 +38,7 @@
                 </select>
             </div>
 
-            <div class="loan-message loan-message-error" th:if="${kztAccountOptions == null || kztAccountOptions.isEmpty()}" th:text="#{loans.needKztAccount}">
-                Для заявки нужен активный счет в KZT.
-            </div>
+            <div class="loan-message loan-message-error" th:if="${kztAccountOptions == null || kztAccountOptions.isEmpty()}" th:text="#{loans.needKztAccount}"></div>
 
             <button class="loan-submit-button" type="submit" th:disabled="${kztAccountOptions == null || kztAccountOptions.isEmpty()}" th:text="#{loans.application.submit}">Отправить заявку</button>
         </form>

@@ -56,15 +56,9 @@
             <h2 th:text="#{accounts.myAccounts}">Мои счета</h2>
         </div>
 
-        <div class="account-message account-message-success" th:if="${param.accountRequested}" th:text="#{accounts.openRequested}">
-            Заявка на открытие счета отправлена менеджеру.
-        </div>
-        <div class="account-message account-message-success" th:if="${accountSuccess}" th:text="${accountSuccess}">
-            Готово.
-        </div>
-        <div class="account-message account-message-error" th:if="${accountError}" th:text="${accountError}">
-            Не удалось выполнить действие.
-        </div>
+        <div class="account-message account-message-success" th:if="${param.accountRequested}" th:text="#{accounts.openRequested}"></div>
+        <div class="account-message account-message-success" th:if="${accountSuccess}" th:text="${accountSuccess}"></div>
+        <div class="account-message account-message-error" th:if="${accountError}" th:text="${accountError}"></div>
 
         <div class="accounts-empty-state" th:if="${accounts == null || accounts.isEmpty()}">
             <p th:if="${loggedIn}" th:text="#{accounts.empty}">У вас пока нет открытых счетов.</p>
@@ -130,12 +124,8 @@
             <h2 th:text="#{accounts.myDeposits}">Мои депозиты</h2>
         </div>
 
-        <div class="account-message account-message-success" th:if="${depositSuccess}" th:text="${depositSuccess}">
-            Готово.
-        </div>
-        <div class="account-message account-message-error" th:if="${depositError}" th:text="${depositError}">
-            Не удалось выполнить действие.
-        </div>
+        <div class="account-message account-message-success" th:if="${depositSuccess}" th:text="${depositSuccess}"></div>
+        <div class="account-message account-message-error" th:if="${depositError}" th:text="${depositError}"></div>
 
         <div class="accounts-empty-state" th:if="${depositsPage == null || depositsPage.items.isEmpty()}">
             <p th:if="${loggedIn}" th:text="#{accounts.deposits.empty}">У вас пока нет открытых депозитов.</p>

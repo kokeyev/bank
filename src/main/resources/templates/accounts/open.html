@@ -18,9 +18,7 @@
 
         <form class="open-account-form" method="post" th:action="@{/accounts/open}" th:object="${openAccountRequest}">
             <input type="hidden" name="_csrf" th:value="${csrfToken}">
-            <div class="open-account-message open-account-message-error" th:if="${accountOpenError}" th:text="${accountOpenError}">
-                Не удалось открыть счет.
-            </div>
+            <div class="open-account-message open-account-message-error" th:if="${accountOpenError}" th:text="${accountOpenError}"></div>
             <div class="open-account-message open-account-message-error" th:if="${accountOpenErrors}">
                 <p th:each="error : ${accountOpenErrors}" th:text="${error}">Ошибка</p>
             </div>

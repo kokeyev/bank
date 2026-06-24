@@ -26,9 +26,7 @@
                 <span th:text="#{transfers.error}">Не удалось выполнить перевод.</span>
             </div>
 
-            <div class="transfer-message" th:if="${accountOptions == null || accountOptions.size() < 2}" th:text="#{transfers.needTwoAccounts}">
-                Для перевода между своими счетами нужно минимум два счета.
-            </div>
+            <div class="transfer-message" th:if="${accountOptions == null || accountOptions.size() < 2}" th:text="#{transfers.needTwoAccounts}"></div>
 
             <div class="transfer-field">
                 <label for="fromAccount" th:text="#{transfers.from}">Со счета</label>
@@ -36,9 +34,7 @@
                     <option value="" disabled selected th:text="#{transfers.accountList}">Список счетов</option>
                     <option th:each="account : ${accountOptions}"
                             th:value="${account.accountId}"
-                            th:text="${account.label}">
-                        Основная - 125 430.50 KZT
-                    </option>
+                            th:text="${account.label}">Main - 125 430.50 KZT</option>
                 </select>
             </div>
 
@@ -48,9 +44,7 @@
                     <option value="" disabled selected th:text="#{transfers.accountList}">Список счетов</option>
                     <option th:each="account : ${accountOptions}"
                             th:value="${account.accountId}"
-                            th:text="${account.label}">
-                        Основная - 125 430.50 KZT
-                    </option>
+                            th:text="${account.label}">Main - 125 430.50 KZT</option>
                 </select>
             </div>
 

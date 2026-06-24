@@ -2,6 +2,7 @@ package org.openbank.service.impl;
 
 import org.openbank.service.PasswordHasher;
 import org.openbank.service.UserService;
+import org.openbank.service.MessageService;
 import org.openbank.dao.UserDao;
 import org.openbank.dto.CreateUserRequest;
 import org.openbank.dto.PasswordChangeRequest;
@@ -27,9 +28,12 @@ public class UserServiceImpl implements UserService {
 
   private final UserDao userDao;
   private final PasswordHasher passwordHasher;
-  public UserServiceImpl(UserDao userDao, PasswordHasher passwordHasher) {
+  private final MessageService messageService;
+
+  public UserServiceImpl(UserDao userDao, PasswordHasher passwordHasher, MessageService messageService) {
     this.userDao = userDao;
     this.passwordHasher = passwordHasher;
+    this.messageService = messageService;
   }
 
   public void createUser(CreateUserRequest request) {
@@ -129,19 +133,19 @@ public class UserServiceImpl implements UserService {
     List<String> errors = new ArrayList<>();
 
     if (isBlank(request.getCurrentPassword())) {
-      errors.add("Введите текущий пароль.");
+      errors.add(messageService.get("validation.currentPassword.required"));
     }
     if (isBlank(request.getNewPassword())) {
-      errors.add("Введите новый пароль.");
+      errors.add(messageService.get("validation.newPassword.required"));
     }
     if (!isBlank(request.getNewPassword()) && request.getNewPassword().length() < 8) {
-      errors.add("Новый пароль должен содержать минимум 8 символов.");
+      errors.add(messageService.get("validation.newPassword.min"));
     }
     if (!safeEquals(request.getNewPassword(), request.getConfirmPassword())) {
-      errors.add("Новые пароли не совпадают.");
+      errors.add(messageService.get("validation.newPassword.confirm.mismatch"));
     }
     if (!passwordHasher.matches(request.getCurrentPassword(), currentUser.getPasswordHash())) {
-      errors.add("Текущий пароль указан неверно.");
+      errors.add(messageService.get("validation.currentPassword.invalid"));
     }
 
     if (!errors.isEmpty()) {
@@ -153,7 +157,7 @@ public class UserServiceImpl implements UserService {
 
   public void deactivateUser(Long userId) {
     if (!userDao.changeStatusOfUserById(userId, UserStatus.DEACTIVATED.name())) {
-      throw new IllegalStateException("Не удалось деактивировать аккаунт");
+      throw new IllegalStateException(messageService.get("settings.account.deactivate.error"));
     }
   }
 
@@ -179,46 +183,46 @@ public class UserServiceImpl implements UserService {
     }
 
     if (!changed) {
-      throw new ContactUpdateException(List.of("Введите новый номер телефона или новую почту."));
+      throw new ContactUpdateException(List.of(messageService.get("validation.contact.required")));
     }
 
     return userDao.getUserById(currentUser.getUserId())
-        .orElseThrow(() -> new IllegalStateException("Пользователь не найден"));
+        .orElseThrow(() -> new IllegalStateException(messageService.get("error.user.notFound")));
   }
 
   private List<String> validate(CreateUserRequest request) {
     List<String> errors = new ArrayList<>();
 
     if (isBlank(request.getName())) {
-      errors.add("Введите имя.");
+      errors.add(messageService.get("validation.name.required"));
     }
     if (isBlank(request.getSurname())) {
-      errors.add("Введите фамилию.");
+      errors.add(messageService.get("validation.surname.required"));
     }
     if (isBlank(request.getPhone())) {
-      errors.add("Введите номер телефона.");
+      errors.add(messageService.get("validation.phone.required"));
     }
     if (isBlank(request.getEmail())) {
-      errors.add("Введите почту.");
+      errors.add(messageService.get("validation.email.required"));
     }
     if (isBlank(request.getPassword())) {
-      errors.add("Введите пароль.");
+      errors.add(messageService.get("validation.password.required"));
     }
     if (!isBlank(request.getPassword()) && request.getPassword().length() < 8) {
-      errors.add("Пароль должен содержать минимум 8 символов.");
+      errors.add(messageService.get("validation.password.min"));
     }
     if (!safeEquals(request.getPassword(), request.getConfirmPassword())) {
-      errors.add("Пароли не совпадают.");
+      errors.add(messageService.get("validation.password.confirm.mismatch"));
     }
 
     String phone = clean(request.getPhone());
     if (!phone.isEmpty() && userDao.existsByPhoneNumber(phone)) {
-      errors.add("Пользователь с таким номером телефона уже существует.");
+      errors.add(messageService.get("validation.phone.duplicate"));
     }
 
     String email = clean(request.getEmail()).toLowerCase(Locale.ROOT);
     if (!email.isEmpty() && userDao.existsByEmailAddress(email)) {
-      errors.add("Пользователь с такой почтой уже существует.");
+      errors.add(messageService.get("validation.email.duplicate"));
     }
 
     return errors;
@@ -248,16 +252,16 @@ public class UserServiceImpl implements UserService {
     List<String> errors = new ArrayList<>();
 
     if (newPhone.isEmpty() && newEmail.isEmpty()) {
-      errors.add("Введите новый номер телефона или новую почту.");
+      errors.add(messageService.get("validation.contact.required"));
       return errors;
     }
 
     if (!newPhone.isEmpty() && !newPhone.equals(currentUser.getPhoneNumber()) && userDao.existsByPhoneNumber(newPhone)) {
-      errors.add("Пользователь с таким номером телефона уже существует.");
+      errors.add(messageService.get("validation.phone.duplicate"));
     }
 
     if (!newEmail.isEmpty() && !newEmail.equals(currentUser.getEmailAddress()) && userDao.existsByEmailAddress(newEmail)) {
-      errors.add("Пользователь с такой почтой уже существует.");
+      errors.add(messageService.get("validation.email.duplicate"));
     }
 
     return errors;

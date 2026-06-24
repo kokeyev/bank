@@ -43,9 +43,7 @@
 
         <form class="auth-form" method="post" th:action="@{/manager/register}" th:object="${createUserRequest}">
             <input type="hidden" name="_csrf" th:value="${csrfToken}">
-            <div class="settings-message settings-message-success" th:if="${managerRegisterSuccess}" th:text="${managerRegisterSuccess}">
-                Заявка отправлена.
-            </div>
+            <div class="settings-message settings-message-success" th:if="${managerRegisterSuccess}" th:text="${managerRegisterSuccess}"></div>
 
             <div class="auth-errors" th:if="${managerRegisterErrors}">
                 <p th:each="error : ${managerRegisterErrors}" th:text="${error}">Ошибка</p>

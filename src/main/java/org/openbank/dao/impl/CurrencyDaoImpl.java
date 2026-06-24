@@ -48,7 +48,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         return Optional.empty();
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось получить валюту", e);
+      throw new BankDataAccessException("Could not fetch currency", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -77,7 +77,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         return Optional.empty();
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось получить валюту по названию", e);
+      throw new BankDataAccessException("Could not fetch currency by name", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -107,7 +107,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         return currencies;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось получить список валют", e);
+      throw new BankDataAccessException("Could not fetch currency list", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -133,10 +133,10 @@ public class CurrencyDaoImpl implements CurrencyDao {
           }
         }
 
-        throw new BankDataAccessException("Валюта не найдена");
+        throw new BankDataAccessException("error.currency.notFound");
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось получить название валюты", e);
+      throw new BankDataAccessException("error.currency.notFound", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -162,10 +162,10 @@ public class CurrencyDaoImpl implements CurrencyDao {
           }
         }
 
-        throw new BankDataAccessException("Валюта не найдена");
+        throw new BankDataAccessException("error.currency.notFound");
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось получить курс валюты", e);
+      throw new BankDataAccessException("Could not fetch currency rate", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -189,7 +189,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         return statement.executeUpdate() > 0;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось обновить курс валюты", e);
+      throw new BankDataAccessException("Could not update currency rate", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }

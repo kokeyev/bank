@@ -44,9 +44,9 @@ class DepositServiceTest {
   private static final Long CURRENCY_ID = 1L;
   private static final Long DEPOSIT_ID = 9L;
   private static final Long DEPOSIT_TYPE_ID = 5L;
-  private static final String KOPILKA_PRODUCT_NAME = "Копилка";
-  private static final String CAPITAL_PRODUCT_NAME = "Капитал";
-  private static final String STRATEGY_PRODUCT_NAME = "Стратегия";
+  private static final String KOPILKA_PRODUCT_NAME = KopilkaDepositStrategy.PRODUCT_NAME;
+  private static final String CAPITAL_PRODUCT_NAME = CapitalDepositStrategy.PRODUCT_NAME;
+  private static final String STRATEGY_PRODUCT_NAME = StrategyDepositStrategy.PRODUCT_NAME;
   private static final String CARD_NUMBER = "4000000000000002";
   private static final String CVV = "123";
   private static final String ACCOUNT_NAME = "Main";
@@ -85,16 +85,18 @@ class DepositServiceTest {
   @Mock
   private Connection connection;
 
+  private final MessageService messageService = (code, args) -> code;
+
   private DepositService service;
 
   @BeforeEach
   void runCallbacks() {
     DepositProductStrategyResolver strategyResolver = new DepositProductStrategyResolver(List.of(
-        new KopilkaDepositStrategy(),
-        new StrategyDepositStrategy(),
-        new CapitalDepositStrategy()
-    ));
-    service = new DepositServiceImpl(depositDao, depositTypeDao, accountDao, currencyDao, transactionDao, transactionRunner, strategyResolver);
+        new KopilkaDepositStrategy(messageService),
+        new StrategyDepositStrategy(messageService),
+        new CapitalDepositStrategy(messageService)
+    ), messageService);
+    service = new DepositServiceImpl(depositDao, depositTypeDao, accountDao, currencyDao, transactionDao, transactionRunner, strategyResolver, messageService);
 
     when(transactionRunner.run(anyString(), any())).thenAnswer(invocation -> {
       DatabaseTransactionRunner.TransactionCallback<?> callback = invocation.getArgument(1);

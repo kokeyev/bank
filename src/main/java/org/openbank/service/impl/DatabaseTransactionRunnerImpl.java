@@ -53,7 +53,7 @@ public class DatabaseTransactionRunnerImpl implements DatabaseTransactionRunner 
     try {
       connection.rollback();
     } catch (SQLException e) {
-      LOGGER.warn("Не удалось откатить транзакцию", e);
+      LOGGER.warn("Could not roll back transaction", e);
     }
   }
 
@@ -65,7 +65,7 @@ public class DatabaseTransactionRunnerImpl implements DatabaseTransactionRunner 
     try {
       connection.setAutoCommit(true);
     } catch (SQLException e) {
-      LOGGER.warn("Не удалось вернуть auto-commit после транзакции", e);
+      LOGGER.warn("Could not restore auto-commit after transaction", e);
     }
   }
 }

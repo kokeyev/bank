@@ -50,7 +50,7 @@ public class DepositDaoImpl implements DepositDao {
 
       return statement.executeUpdate() > 0;
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось создать депозит", e);
+      throw new BankDataAccessException("Could not create deposit", e);
     }
   }
   @Override
@@ -76,7 +76,7 @@ public class DepositDaoImpl implements DepositDao {
         return Optional.empty();
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось получить депозит", e);
+      throw new BankDataAccessException("Could not fetch deposit", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -100,7 +100,7 @@ public class DepositDaoImpl implements DepositDao {
 
       return Optional.empty();
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось получить депозит", e);
+      throw new BankDataAccessException("Could not fetch deposit", e);
     }
   }
   @Override
@@ -128,7 +128,7 @@ public class DepositDaoImpl implements DepositDao {
         return deposits;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось получить депозиты пользователя", e);
+      throw new BankDataAccessException("Could not fetch user deposits", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -159,7 +159,7 @@ public class DepositDaoImpl implements DepositDao {
         return deposits;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось получить депозиты по статусу", e);
+      throw new BankDataAccessException("Could not fetch deposits by status", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -177,7 +177,7 @@ public class DepositDaoImpl implements DepositDao {
       statement.setLong(2, depositId);
       return statement.executeUpdate() > 0;
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось пополнить депозит", e);
+      throw new BankDataAccessException("Could not top up deposit", e);
     }
   }
   @Override
@@ -194,7 +194,7 @@ public class DepositDaoImpl implements DepositDao {
       statement.setBigDecimal(3, amount);
       return statement.executeUpdate() > 0;
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось снять деньги с депозита", e);
+      throw new BankDataAccessException("Could not withdraw from deposit", e);
     }
   }
   @Override
@@ -221,7 +221,7 @@ public class DepositDaoImpl implements DepositDao {
       statement.setLong(2, depositId);
       return statement.executeUpdate() > 0;
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось изменить статус депозита", e);
+      throw new BankDataAccessException("Could not update deposit status", e);
     }
   }
   @Override
@@ -237,7 +237,7 @@ public class DepositDaoImpl implements DepositDao {
       statement.setLong(2, depositId);
       return statement.executeUpdate() > 0;
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось обновить дату депозита", e);
+      throw new BankDataAccessException("Could not update deposit date", e);
     }
   }
   @Override
@@ -265,7 +265,7 @@ public class DepositDaoImpl implements DepositDao {
         return deposits;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось получить заявки на депозит", e);
+      throw new BankDataAccessException("Could not fetch deposit applications", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -290,7 +290,7 @@ public class DepositDaoImpl implements DepositDao {
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось принять депозит", e);
+      throw new BankDataAccessException("Could not accept deposit", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }

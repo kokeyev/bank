@@ -54,7 +54,7 @@ public class TransactionDaoImpl implements TransactionDao {
 
       return statement.executeUpdate() > 0;
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось сохранить историю транзакции", e);
+      throw new BankDataAccessException("Could not save transaction history", e);
     }
   }
   @Override
@@ -80,7 +80,7 @@ public class TransactionDaoImpl implements TransactionDao {
         return Optional.empty();
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось получить транзакцию", e);
+      throw new BankDataAccessException("Could not fetch transaction", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -112,7 +112,7 @@ public class TransactionDaoImpl implements TransactionDao {
         return transactions;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось получить транзакции счета", e);
+      throw new BankDataAccessException("Could not fetch account transactions", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -154,7 +154,7 @@ public class TransactionDaoImpl implements TransactionDao {
         return transactions;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось получить историю транзакций", e);
+      throw new BankDataAccessException("Could not fetch transaction history", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -181,7 +181,7 @@ public class TransactionDaoImpl implements TransactionDao {
         }
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось посчитать историю транзакций", e);
+      throw new BankDataAccessException("Could not count transaction history", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }

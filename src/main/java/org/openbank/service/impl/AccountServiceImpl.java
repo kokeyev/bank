@@ -122,6 +122,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     accountDao.clearMainAccount(userId);
+
     return accountDao.setMainAccount(accountId);
   }
 
@@ -135,6 +136,7 @@ public class AccountServiceImpl implements AccountService {
     long activeAccounts = accountDao.countAccountsByUserIdAndStatus(account.getUserId(), AccountStatus.ACTIVE);
     if (activeAccounts >= MAX_ACTIVE_ACCOUNTS) {
       accountDao.setStatusToAccount(accountId, AccountStatus.PENDING, AccountStatus.REJECTED);
+
       throw new IllegalArgumentException(messageService.get("account.validation.maxActiveAccounts"));
     }
 
@@ -194,6 +196,7 @@ public class AccountServiceImpl implements AccountService {
     if (account.isEmpty()) {
       throw new IllegalArgumentException(messageService.get("error.account.notFound"));
     }
+
     return account.get();
   }
 

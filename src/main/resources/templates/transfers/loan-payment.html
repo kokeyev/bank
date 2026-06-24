@@ -18,21 +18,15 @@
 
         <form class="transfer-form" method="post" th:action="@{/transfers/loan-payment}" th:object="${loanPaymentRequest}">
             <input type="hidden" name="_csrf" th:value="${csrfToken}">
-            <div class="transfer-message transfer-message-success" th:if="${loanPaymentSuccess}" th:text="${loanPaymentSuccess}">
-                Платеж выполнен.
-            </div>
+            <div class="transfer-message transfer-message-success" th:if="${loanPaymentSuccess}" th:text="${loanPaymentSuccess}"></div>
 
-            <div class="transfer-message transfer-message-error" th:if="${loanPaymentError}" th:text="${loanPaymentError}">
-                Не удалось выполнить платеж.
-            </div>
+            <div class="transfer-message transfer-message-error" th:if="${loanPaymentError}" th:text="${loanPaymentError}"></div>
 
             <div class="transfer-field">
                 <label for="fromAccount" th:text="#{transfers.from}">Со счета</label>
                 <select id="fromAccount" name="sourceAccountId" th:field="*{sourceAccountId}" required>
                     <option value="" disabled selected th:text="#{transfers.accountList}">Список счетов</option>
-                    <option th:each="account : ${accountOptions}" th:value="${account.accountId}" th:text="${account.label}">
-                        Основная - 125 430.50 KZT
-                    </option>
+                    <option th:each="account : ${accountOptions}" th:value="${account.accountId}" th:text="${account.label}">Main - 125 430.50 KZT</option>
                 </select>
             </div>
 
@@ -40,9 +34,7 @@
                 <label for="loan" th:text="#{transfers.loan.select}">Кредит</label>
                 <select id="loan" name="loanId" th:field="*{loanId}" required>
                     <option value="" disabled selected th:text="#{transfers.loan.list}">Список кредитов</option>
-                    <option th:each="loan : ${loanOptions}" th:value="${loan.loanId}" th:text="${loan.label}">
-                        Автокредит - остаток 3 450 000 KZT
-                    </option>
+                    <option th:each="loan : ${loanOptions}" th:value="${loan.loanId}" th:text="${loan.label}">Loan - remaining 3 450 000 KZT</option>
                 </select>
             </div>
 

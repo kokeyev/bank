@@ -2,6 +2,7 @@ package org.openbank.service.strategy.deposit;
 
 import org.openbank.model.Deposit;
 import org.openbank.model.DepositType;
+import org.openbank.service.MessageService;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -15,10 +16,16 @@ import java.time.LocalDate;
  */
 public abstract class AbstractDepositProductStrategy implements DepositProductStrategy {
 
+  private final MessageService messageService;
+
+  protected AbstractDepositProductStrategy(MessageService messageService) {
+    this.messageService = messageService;
+  }
+
   @Override
   public void validateOpeningAmount(DepositType depositType, BigDecimal amount) {
     if (depositType.getMinimumAmount() != null && amount.compareTo(depositType.getMinimumAmount()) < 0) {
-      throw new IllegalArgumentException("Минимальная сумма для выбранных условий: " + depositType.getMinimumAmount());
+      throw new IllegalArgumentException(messageService.get("deposit.validation.minimumAmount", depositType.getMinimumAmount()));
     }
   }
 

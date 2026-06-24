@@ -55,7 +55,7 @@ public class AccountDaoImpl implements AccountDao {
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось создать счет", e);
+      throw new BankDataAccessException("Could not create account", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -84,7 +84,7 @@ public class AccountDaoImpl implements AccountDao {
         return Optional.empty();
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось получить счет", e);
+      throw new BankDataAccessException("Could not fetch account", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -109,7 +109,7 @@ public class AccountDaoImpl implements AccountDao {
 
       return Optional.empty();
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось получить счет", e);
+      throw new BankDataAccessException("Could not fetch account", e);
     }
   }
 
@@ -136,7 +136,7 @@ public class AccountDaoImpl implements AccountDao {
         return Optional.empty();
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось получить счет по номеру карты", e);
+      throw new BankDataAccessException("Could not fetch account by card number", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -184,7 +184,7 @@ public class AccountDaoImpl implements AccountDao {
         return Optional.empty();
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось получить активный счет пользователя", e);
+      throw new BankDataAccessException("Could not fetch user active account", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -216,7 +216,7 @@ public class AccountDaoImpl implements AccountDao {
         return accounts;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось получить счета пользователя", e);
+      throw new BankDataAccessException("Could not fetch user accounts", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -248,7 +248,7 @@ public class AccountDaoImpl implements AccountDao {
         return accounts;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось получить счета по статусу", e);
+      throw new BankDataAccessException("Could not fetch accounts by status", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -275,7 +275,7 @@ public class AccountDaoImpl implements AccountDao {
         }
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось посчитать счета пользователя", e);
+      throw new BankDataAccessException("Could not count user accounts", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -301,7 +301,7 @@ public class AccountDaoImpl implements AccountDao {
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось изменить статус счета", e);
+      throw new BankDataAccessException("Could not update account status", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -328,7 +328,7 @@ public class AccountDaoImpl implements AccountDao {
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось изменить статус счета", e);
+      throw new BankDataAccessException("Could not update account status", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -354,7 +354,7 @@ public class AccountDaoImpl implements AccountDao {
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось изменить лимит счета", e);
+      throw new BankDataAccessException("Could not update account limit", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -378,7 +378,7 @@ public class AccountDaoImpl implements AccountDao {
         return true;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось сбросить основной счет", e);
+      throw new BankDataAccessException("Could not clear main account", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -403,7 +403,7 @@ public class AccountDaoImpl implements AccountDao {
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось сделать счет основным", e);
+      throw new BankDataAccessException("Could not set main account", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -430,7 +430,7 @@ public class AccountDaoImpl implements AccountDao {
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось снять деньги со счета", e);
+      throw new BankDataAccessException("Could not debit account", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -449,7 +449,7 @@ public class AccountDaoImpl implements AccountDao {
       statement.setLong(2, accountId);
       return statement.executeUpdate() > 0;
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось снять деньги со счета", e);
+      throw new BankDataAccessException("Could not debit account", e);
     }
   }
 
@@ -473,7 +473,7 @@ public class AccountDaoImpl implements AccountDao {
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось пополнить счет", e);
+      throw new BankDataAccessException("Could not credit account", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -492,7 +492,7 @@ public class AccountDaoImpl implements AccountDao {
       statement.setLong(2, accountId);
       return statement.executeUpdate() > 0;
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось пополнить счет", e);
+      throw new BankDataAccessException("Could not credit account", e);
     }
   }
 

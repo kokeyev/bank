@@ -45,7 +45,7 @@ class LoanServiceTest {
   private static final Long LOAN_TYPE_ID = 2L;
   private static final Long CURRENCY_ID = 1L;
   private static final Long ACCOUNT_ID = 3L;
-  private static final String LOAN_TYPE_NAME = "Ипотека";
+  private static final String LOAN_TYPE_NAME = MortgageLoanStrategy.PRODUCT_NAME;
   private static final String KZT = "KZT";
   private static final BigDecimal APPLICATION_AMOUNT = new BigDecimal("500000");
   private static final BigDecimal BELOW_MINIMUM_AMOUNT = new BigDecimal("100");
@@ -89,16 +89,18 @@ class LoanServiceTest {
   @Mock
   private Connection connection;
 
+  private final MessageService messageService = (code, args) -> code;
+
   private LoanService service;
 
   @BeforeEach
   void setUp() {
     LoanProductStrategyResolver strategyResolver = new LoanProductStrategyResolver(List.of(
-        new PurposeLoanStrategy(),
-        new AutoLoanStrategy(),
-        new MortgageLoanStrategy()
-    ));
-    service = new LoanServiceImpl(loanDao, loanTypeDao, accountDao, currencyDao, transactionDao, transactionRunner, strategyResolver);
+        new PurposeLoanStrategy(messageService),
+        new AutoLoanStrategy(messageService),
+        new MortgageLoanStrategy(messageService)
+    ), messageService);
+    service = new LoanServiceImpl(loanDao, loanTypeDao, accountDao, currencyDao, transactionDao, transactionRunner, strategyResolver, messageService);
   }
 
   @Test

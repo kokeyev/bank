@@ -39,7 +39,7 @@ public class ConnectionPool {
         availableConnections.add(connection);
       }
     } catch (ClassNotFoundException | SQLException e) {
-      throw new BankInfrastructureException("Не удалось создать пул соединений", e);
+      throw new BankInfrastructureException("Could not create connection pool", e);
     }
   }
 
@@ -49,7 +49,7 @@ public class ConnectionPool {
         wait();
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
-        throw new BankInfrastructureException("Ожидание свободного соединения было прервано", e);
+        throw new BankInfrastructureException("Waiting for an available connection was interrupted", e);
       }
     }
 
@@ -84,7 +84,7 @@ public class ConnectionPool {
         try {
           connection.close();
         } catch (SQLException e) {
-          LOGGER.warn("Не удалось закрыть соединение", e);
+          LOGGER.warn("Could not close connection", e);
         }
       }
     }

@@ -1,6 +1,7 @@
 package org.openbank.service.strategy.loan;
 
 import org.openbank.model.LoanType;
+import org.openbank.service.MessageService;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -14,8 +15,10 @@ import java.util.Map;
 public class LoanProductStrategyResolver {
 
   private final Map<String, LoanProductStrategy> strategiesByProductName = new HashMap<>();
+  private final MessageService messageService;
 
-  public LoanProductStrategyResolver(List<LoanProductStrategy> strategies) {
+  public LoanProductStrategyResolver(List<LoanProductStrategy> strategies, MessageService messageService) {
+    this.messageService = messageService;
     for (LoanProductStrategy strategy : strategies) {
       strategiesByProductName.put(strategy.productName(), strategy);
     }
@@ -31,7 +34,7 @@ public class LoanProductStrategyResolver {
   public LoanProductStrategy resolve(LoanType loanType) {
     LoanProductStrategy strategy = strategiesByProductName.get(loanType.getName());
     if (strategy == null) {
-      throw new IllegalArgumentException("Тип кредита не найден");
+      throw new IllegalArgumentException(messageService.get("error.loanType.notFound"));
     }
     return strategy;
   }
@@ -48,7 +51,7 @@ public class LoanProductStrategyResolver {
       return strategiesByProductName.values().iterator().next();
     }
     if (strategy == null) {
-      throw new IllegalStateException("Стратегии кредитов не настроены");
+      throw new IllegalStateException(messageService.get("loan.validation.strategies.notConfigured"));
     }
     return strategy;
   }

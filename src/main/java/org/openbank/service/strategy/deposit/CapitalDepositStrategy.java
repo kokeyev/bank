@@ -1,6 +1,7 @@
 package org.openbank.service.strategy.deposit;
 
 import org.openbank.model.DepositType;
+import org.openbank.service.MessageService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -13,6 +14,10 @@ import org.springframework.stereotype.Component;
 public class CapitalDepositStrategy extends AbstractDepositProductStrategy {
 
   public static final String PRODUCT_NAME = "Капитал";
+
+  public CapitalDepositStrategy(MessageService messageService) {
+    super(messageService);
+  }
 
   @Override
   public String productName() {

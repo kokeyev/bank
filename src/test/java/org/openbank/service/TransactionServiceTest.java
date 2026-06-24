@@ -102,6 +102,9 @@ class TransactionServiceTest {
   private DatabaseTransactionRunner transactionRunner;
 
   @Mock
+  private MessageService messageService;
+
+  @Mock
   private Connection connection;
 
   @InjectMocks
@@ -109,6 +112,8 @@ class TransactionServiceTest {
 
   @BeforeEach
   void runCallbacks() {
+    lenient().when(messageService.get(anyString(), any())).thenAnswer(invocation -> invocation.getArgument(0));
+    lenient().when(messageService.get(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
     lenient().when(transactionRunner.run(anyString(), any())).thenAnswer(invocation -> {
       DatabaseTransactionRunner.TransactionCallback<?> callback = invocation.getArgument(1);
       return callback.execute(connection);

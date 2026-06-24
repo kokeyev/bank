@@ -45,7 +45,7 @@ public class LoanTypeDaoImpl implements LoanTypeDao {
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось создать тип кредита", e);
+      throw new BankDataAccessException("Could not create loan type", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -73,7 +73,7 @@ public class LoanTypeDaoImpl implements LoanTypeDao {
         return Optional.empty();
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось получить тип кредита", e);
+      throw new BankDataAccessException("Could not fetch loan type", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -102,7 +102,7 @@ public class LoanTypeDaoImpl implements LoanTypeDao {
         return loanTypes;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось получить типы кредитов", e);
+      throw new BankDataAccessException("Could not fetch loan types", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -125,7 +125,7 @@ public class LoanTypeDaoImpl implements LoanTypeDao {
         return statement.executeUpdate() > 0;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось изменить ставку типа кредита", e);
+      throw new BankDataAccessException("Could not update loan type rate", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }

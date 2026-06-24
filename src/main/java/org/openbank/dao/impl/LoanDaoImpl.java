@@ -48,7 +48,7 @@ public class LoanDaoImpl implements LoanDao {
         return loans;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось получить заявки на кредит", e);
+      throw new BankDataAccessException("Could not fetch loan applications", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -76,7 +76,7 @@ public class LoanDaoImpl implements LoanDao {
         return Optional.empty();
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось получить кредит", e);
+      throw new BankDataAccessException("Could not fetch loan", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -107,7 +107,7 @@ public class LoanDaoImpl implements LoanDao {
         return loans;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось получить кредиты пользователя", e);
+      throw new BankDataAccessException("Could not fetch user loans", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -139,7 +139,7 @@ public class LoanDaoImpl implements LoanDao {
         return loans;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось получить активные кредиты", e);
+      throw new BankDataAccessException("Could not fetch active loans", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -166,7 +166,7 @@ public class LoanDaoImpl implements LoanDao {
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось создать заявку на кредит", e);
+      throw new BankDataAccessException("Could not create loan application", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -197,7 +197,7 @@ public class LoanDaoImpl implements LoanDao {
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось создать предложение по кредиту", e);
+      throw new BankDataAccessException("Could not create loan offer", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -229,7 +229,7 @@ public class LoanDaoImpl implements LoanDao {
         return loans;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось получить предложения по кредиту", e);
+      throw new BankDataAccessException("Could not fetch loan offers", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -255,7 +255,7 @@ public class LoanDaoImpl implements LoanDao {
       if (e instanceof RuntimeException runtimeException) {
         throw runtimeException;
       }
-      throw new BankDataAccessException("Не удалось принять предложение по кредиту", e);
+      throw new BankDataAccessException("Could not accept loan offer", e);
     } finally {
       resetAutoCommit(connection);
       connectionPool.releaseConnection(connection);
@@ -328,7 +328,7 @@ public class LoanDaoImpl implements LoanDao {
 
       return Optional.of(offer);
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось принять предложение по кредиту", e);
+      throw new BankDataAccessException("Could not accept loan offer", e);
     }
   }
   @Override
@@ -353,7 +353,7 @@ public class LoanDaoImpl implements LoanDao {
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось отклонить предложение по кредиту", e);
+      throw new BankDataAccessException("Could not reject loan offer", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -378,7 +378,7 @@ public class LoanDaoImpl implements LoanDao {
         return statement.executeUpdate() > 0;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось отклонить заявку на кредит", e);
+      throw new BankDataAccessException("Could not reject loan application", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -407,7 +407,7 @@ public class LoanDaoImpl implements LoanDao {
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось погасить кредит", e);
+      throw new BankDataAccessException("Could not repay loan", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -430,7 +430,7 @@ public class LoanDaoImpl implements LoanDao {
 
       return statement.executeUpdate() > 0;
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось погасить кредит", e);
+      throw new BankDataAccessException("Could not repay loan", e);
     }
   }
 
@@ -464,7 +464,7 @@ public class LoanDaoImpl implements LoanDao {
     try {
       connection.rollback();
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось откатить изменения по кредиту", e);
+      throw new BankDataAccessException("Could not roll back loan changes", e);
     }
   }
 
@@ -476,7 +476,7 @@ public class LoanDaoImpl implements LoanDao {
     try {
       connection.setAutoCommit(true);
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось вернуть настройки соединения", e);
+      throw new BankDataAccessException("Could not restore connection settings", e);
     }
   }
 

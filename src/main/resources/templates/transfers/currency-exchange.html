@@ -18,21 +18,15 @@
 
         <form class="transfer-form" method="post" th:action="@{/transfers/currency-exchange}" th:object="${transferRequest}">
             <input type="hidden" name="_csrf" th:value="${csrfToken}">
-            <div class="transfer-message transfer-message-success" th:if="${exchangeSuccess}" th:text="${exchangeSuccess}">
-                Обмен выполнен.
-            </div>
+            <div class="transfer-message transfer-message-success" th:if="${exchangeSuccess}" th:text="${exchangeSuccess}"></div>
 
-            <div class="transfer-message transfer-message-error" th:if="${exchangeError}" th:text="${exchangeError}">
-                Не удалось выполнить обмен.
-            </div>
+            <div class="transfer-message transfer-message-error" th:if="${exchangeError}" th:text="${exchangeError}"></div>
 
             <div class="transfer-field">
                 <label for="fromAccount" th:text="#{transfers.from}">Со счета</label>
                 <select id="fromAccount" name="senderAccountId" th:field="*{senderAccountId}" required>
                     <option value="" disabled selected th:text="#{transfers.accountList}">Список счетов</option>
-                    <option th:each="account : ${accountOptions}" th:value="${account.accountId}" th:text="${account.label}">
-                        Основная - 125 430.50 KZT
-                    </option>
+                    <option th:each="account : ${accountOptions}" th:value="${account.accountId}" th:text="${account.label}">Main - 125 430.50 KZT</option>
                 </select>
             </div>
 
@@ -40,9 +34,7 @@
                 <label for="toAccount" th:text="#{transfers.to}">На счет</label>
                 <select id="toAccount" name="receiverAccountId" th:field="*{receiverAccountId}" required>
                     <option value="" disabled selected th:text="#{transfers.accountList}">Список счетов</option>
-                    <option th:each="account : ${accountOptions}" th:value="${account.accountId}" th:text="${account.label}">
-                        Долларовый - 100.00 USD
-                    </option>
+                    <option th:each="account : ${accountOptions}" th:value="${account.accountId}" th:text="${account.label}">USD account - 100.00 USD</option>
                 </select>
             </div>
 

@@ -28,9 +28,7 @@ public class BankCardGeneratorImpl implements BankCardGenerator {
   }
 
   public LocalDate generateExpiryDate() {
-    return LocalDate.now()
-        .plusYears(DEFAULT_VALID_YEARS)
-        .withDayOfMonth(1);
+    return LocalDate.now().plusYears(DEFAULT_VALID_YEARS).withDayOfMonth(1);
   }
 
   public String generateCvv() {

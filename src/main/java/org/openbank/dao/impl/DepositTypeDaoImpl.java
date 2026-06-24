@@ -48,7 +48,7 @@ public class DepositTypeDaoImpl implements DepositTypeDao {
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось создать тип депозита", e);
+      throw new BankDataAccessException("Could not create deposit type", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -77,7 +77,7 @@ public class DepositTypeDaoImpl implements DepositTypeDao {
         return Optional.empty();
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось получить тип депозита", e);
+      throw new BankDataAccessException("Could not fetch deposit type", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -107,7 +107,7 @@ public class DepositTypeDaoImpl implements DepositTypeDao {
         return depositTypes;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось получить типы депозитов", e);
+      throw new BankDataAccessException("Could not fetch deposit types", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }
@@ -133,7 +133,7 @@ public class DepositTypeDaoImpl implements DepositTypeDao {
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
-      throw new BankDataAccessException("Не удалось изменить ставку типа депозита", e);
+      throw new BankDataAccessException("Could not update deposit type rate", e);
     } finally {
       connectionPool.releaseConnection(connection);
     }

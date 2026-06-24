@@ -12,9 +12,7 @@
 <main class="page-shell">
     <section class="panel">
         <h1 th:text="${errorTitle} ?: #{error.defaultTitle}">Ошибка</h1>
-        <p th:text="${errorMessage} ?: #{error.defaultMessage}">
-            Произошла ошибка. Попробуйте еще раз позже.
-        </p>
+        <p th:text="${errorMessage} ?: #{error.defaultMessage}"></p>
         <a class="button-primary" th:href="@{/}" th:text="#{common.home}">На главную</a>
     </section>
 </main>

@@ -2,6 +2,7 @@ package org.openbank.service.impl;
 
 import org.openbank.service.BankSettingsService;
 import org.openbank.service.DatabaseTransactionRunner;
+import org.openbank.service.MessageService;
 import org.openbank.service.TransactionService;
 import org.openbank.dao.AccountDao;
 import org.openbank.dao.CurrencyDao;
@@ -41,7 +42,9 @@ public class TransactionServiceImpl implements TransactionService {
   private final LoanDao loanDao;
   private final BankSettingsService bankSettingsService;
   private final DatabaseTransactionRunner transactionRunner;
-  public TransactionServiceImpl(AccountDao accountDao, TransactionDao transactionDao, CurrencyDao currencyDao, UserDao userDao, LoanDao loanDao, BankSettingsService bankSettingsService, DatabaseTransactionRunner transactionRunner) {
+  private final MessageService messageService;
+
+  public TransactionServiceImpl(AccountDao accountDao, TransactionDao transactionDao, CurrencyDao currencyDao, UserDao userDao, LoanDao loanDao, BankSettingsService bankSettingsService, DatabaseTransactionRunner transactionRunner, MessageService messageService) {
     this.accountDao = accountDao;
     this.transactionDao = transactionDao;
     this.currencyDao = currencyDao;
@@ -49,10 +52,11 @@ public class TransactionServiceImpl implements TransactionService {
     this.loanDao = loanDao;
     this.bankSettingsService = bankSettingsService;
     this.transactionRunner = transactionRunner;
+    this.messageService = messageService;
   }
 
   public boolean createNewTransaction(Long senderAccountId, Long receiverAccountId, BigDecimal amount, Long currencyId, BigDecimal fee, String message, String transactionType) {
-    validatePositive(amount, "Сумма транзакции должна быть больше нуля");
+    validatePositive(amount, messageService.get("transaction.validation.amount.positive"));
     return transactionDao.createNewTransaction(
         senderAccountId,
         receiverAccountId,
@@ -86,7 +90,7 @@ public class TransactionServiceImpl implements TransactionService {
     Account receiverAccount = checkAccountExists(receiverAccountId);
 
     if (!senderAccount.getUserId().equals(receiverAccount.getUserId())) {
-      throw new IllegalArgumentException("Счета принадлежат разным пользователям");
+      throw new IllegalArgumentException(messageService.get("transaction.validation.accounts.differentOwners"));
     }
 
     return makeTransactionBetweenAccountsOfOneClient(senderAccount.getUserId(), senderAccountId, receiverAccountId, amount, "");
@@ -95,15 +99,15 @@ public class TransactionServiceImpl implements TransactionService {
   public boolean makeTransactionBetweenAccountsOfOneClient(Long userId, Long senderAccountId, Long receiverAccountId, BigDecimal amount, String message) {
     validateTransferRequest(userId, senderAccountId, receiverAccountId, amount);
 
-    return transactionRunner.run("Не удалось выполнить перевод", connection -> {
+    return transactionRunner.run(messageService.get("transfers.error"), connection -> {
       Account senderAccount = getAccountForUpdate(connection, senderAccountId);
       Account receiverAccount = getAccountForUpdate(connection, receiverAccountId);
 
-      validateAccountBelongsToUser(senderAccount, userId, "Счет списания не принадлежит текущему пользователю");
-      validateAccountBelongsToUser(receiverAccount, userId, "Счет зачисления не принадлежит текущему пользователю");
+      validateAccountBelongsToUser(senderAccount, userId, messageService.get("transaction.validation.senderAccount.notOwner"));
+      validateAccountBelongsToUser(receiverAccount, userId, messageService.get("transaction.validation.receiverAccount.notOwner"));
       BigDecimal fee = bankSettingsService.calculateTransferFee(amount);
       BigDecimal debitAmount = amount.add(fee);
-      validateTransferFrom(senderAccount, debitAmount, "Превышен лимит перевода");
+      validateTransferFrom(senderAccount, debitAmount, messageService.get("transaction.validation.transferLimit.exceeded"));
       validateActive(receiverAccount);
 
       withdraw(connection, senderAccountId, debitAmount);
@@ -115,11 +119,11 @@ public class TransactionServiceImpl implements TransactionService {
   }
 
   public boolean makeTransactionByPhoneNumber(Long senderAccountId, String receiverPhoneNumber, BigDecimal amount) {
-    validateText(receiverPhoneNumber, "Введите номер телефона получателя");
+    validateText(receiverPhoneNumber, messageService.get("validation.recipientPhone.required"));
 
     Optional<User> userOptional = userDao.getUserByPhoneNumber(cleanPhone(receiverPhoneNumber));
     if (userOptional.isEmpty()) {
-      throw new IllegalArgumentException("Получатель не найден");
+      throw new IllegalArgumentException(messageService.get("transaction.validation.receiver.notFound"));
     }
     User receiver = userOptional.get();
 
@@ -128,93 +132,93 @@ public class TransactionServiceImpl implements TransactionService {
       accountOptional = accountDao.getFirstActiveAccountByUserId(receiver.getUserId());
     }
     if (accountOptional.isEmpty()) {
-      throw new IllegalArgumentException("У получателя нет активного счета");
+      throw new IllegalArgumentException(messageService.get("transaction.validation.receiver.noActiveAccount"));
     }
     Account receiverAccount = accountOptional.get();
 
-    return transferToAccount(senderAccountId, receiverAccount.getAccountId(), amount, "Перевод по телефону " + receiverPhoneNumber, PHONE_TRANSFER);
+    return transferToAccount(senderAccountId, receiverAccount.getAccountId(), amount, messageService.get("transaction.message.phoneTransfer", receiverPhoneNumber), PHONE_TRANSFER);
   }
 
   public boolean makeTransactionByCardNumber(Long senderAccountId, String receiverCardNumber, BigDecimal amount) {
-    validateText(receiverCardNumber, "Введите номер карты");
+    validateText(receiverCardNumber, messageService.get("validation.cardNumber.required"));
     String cleanedCard = cleanCard(receiverCardNumber);
     Optional<Account> receiverAccount = accountDao.getAccountByCardNumber(cleanedCard);
 
     if (receiverAccount.isPresent()) {
-      return transferToAccount(senderAccountId, receiverAccount.get().getAccountId(), amount, "Перевод на карту " + cleanedCard, CARD_TRANSFER);
+      return transferToAccount(senderAccountId, receiverAccount.get().getAccountId(), amount, messageService.get("transaction.message.cardTransfer", cleanedCard), CARD_TRANSFER);
     }
 
     return transferToExternalCard(senderAccountId, cleanedCard, amount);
   }
 
   public boolean makeTransactionTopUpLoan(Long senderAccountId, Long loanId, BigDecimal amount) {
-    validatePositive(amount, "Сумма платежа должна быть больше нуля");
+    validatePositive(amount, messageService.get("payment.validation.amount.positive"));
 
-    return transactionRunner.run("Не удалось погасить кредит", connection -> {
+    return transactionRunner.run(messageService.get("transfers.loan.error"), connection -> {
       Account senderAccount = getAccountForUpdate(connection, senderAccountId);
       Loan loan = loanDao.getLoanById(loanId)
-          .orElseThrow(() -> new IllegalArgumentException("Кредит не найден"));
+          .orElseThrow(() -> new IllegalArgumentException(messageService.get("error.loan.notFound")));
 
       validateActive(senderAccount);
-      validateAccountBelongsToUser(senderAccount, loan.getUserId(), "Счет списания не принадлежит владельцу кредита");
+      validateAccountBelongsToUser(senderAccount, loan.getUserId(), messageService.get("transaction.validation.senderAccount.notLoanOwner"));
       if (!LoanStatus.ACTIVE.name().equals(loan.getStatus())) {
-        throw new IllegalArgumentException("Погасить можно только активный кредит");
+        throw new IllegalArgumentException(messageService.get("loan.validation.payment.activeOnly"));
       }
 
-      validateTransferFrom(senderAccount, amount, "Превышен лимит платежа");
+      validateTransferFrom(senderAccount, amount, messageService.get("transaction.validation.paymentLimit.exceeded"));
 
       BigDecimal kztAmount = convert(amount, senderAccount.getCurrencyId(), getKztCurrencyId());
       withdraw(connection, senderAccountId, amount);
       payLoan(connection, loanId, kztAmount);
-      createTransactionHistory(connection, senderAccountId, null, amount, senderAccount.getCurrencyId(), "Погашение кредита #" + loanId, LOAN_PAYMENT);
+      createTransactionHistory(connection, senderAccountId, null, amount, senderAccount.getCurrencyId(), messageService.get("transaction.message.loanPayment", loanId), LOAN_PAYMENT);
 
       return true;
     });
   }
 
   public boolean makeTransactionExchangeCurrencies(Long senderAccountId, Long receiverAccountId, BigDecimal amount) {
-    return transferToAccount(senderAccountId, receiverAccountId, amount, "Обмен валют", CURRENCY_EXCHANGE);
+    return transferToAccount(senderAccountId, receiverAccountId, amount, messageService.get("transaction.message.currencyExchange"), CURRENCY_EXCHANGE);
   }
 
   public boolean topUpAccount(Long userId, Long accountId, BigDecimal amount) {
-    validatePositive(amount, "Сумма пополнения должна быть больше нуля");
+    validatePositive(amount, messageService.get("topUp.validation.amount.positive"));
     if (userId == null) {
-      throw new IllegalArgumentException("Войдите в аккаунт, чтобы пополнить счет");
+      throw new IllegalArgumentException(messageService.get("transaction.validation.loginRequired.topUp"));
     }
     if (accountId == null) {
-      throw new IllegalArgumentException("Выберите счет пополнения");
+      throw new IllegalArgumentException(messageService.get("validation.topUpAccount.required"));
     }
 
-    return transactionRunner.run("Не удалось пополнить счет", connection -> {
+    return transactionRunner.run(messageService.get("transfers.accountTopUp.error"), connection -> {
       Account account = getAccountForUpdate(connection, accountId);
-      validateAccountBelongsToUser(account, userId, "Счет не принадлежит текущему пользователю");
+      validateAccountBelongsToUser(account, userId, messageService.get("account.validation.notOwner"));
       validateActive(account);
 
       topUp(connection, accountId, amount);
-      createTransactionHistory(connection, null, accountId, amount, account.getCurrencyId(), "Пополнение счета", ACCOUNT_TOP_UP);
+      createTransactionHistory(connection, null, accountId, amount, account.getCurrencyId(), messageService.get("transaction.message.accountTopUp"), ACCOUNT_TOP_UP);
 
       return true;
     });
   }
 
   private boolean transferToAccount(Long senderAccountId, Long receiverAccountId, BigDecimal amount, String message, String transactionType) {
-    validatePositive(amount, "Сумма перевода должна быть больше нуля");
+    validatePositive(amount, messageService.get("transfer.validation.amount.positive"));
     if (senderAccountId == null) {
-      throw new IllegalArgumentException("Выберите счет списания");
+      throw new IllegalArgumentException(messageService.get("validation.senderAccount.required"));
     }
     if (receiverAccountId == null) {
-      throw new IllegalArgumentException("Выберите счет зачисления");
+      throw new IllegalArgumentException(messageService.get("validation.receiverAccount.required"));
     }
     if (senderAccountId.equals(receiverAccountId)) {
-      throw new IllegalArgumentException("Выберите разные счета");
+      throw new IllegalArgumentException(messageService.get("transaction.validation.accounts.different"));
     }
 
-    return transactionRunner.run("Не удалось выполнить перевод", connection -> {
+    return transactionRunner.run(messageService.get("transfers.error"), connection -> {
       Account senderAccount = getAccountForUpdate(connection, senderAccountId);
       Account receiverAccount = getAccountForUpdate(connection, receiverAccountId);
       BigDecimal fee = bankSettingsService.calculateTransferFee(amount);
       BigDecimal debitAmount = amount.add(fee);
-      validateTransferFrom(senderAccount, debitAmount, "Превышен лимит перевода");
+      validateTransferFrom(senderAccount, debitAmount, messageService.get("transaction.validation.transferLimit.exceeded"));
       validateActive(receiverAccount);
 
       withdraw(connection, senderAccountId, debitAmount);
@@ -226,16 +230,16 @@ public class TransactionServiceImpl implements TransactionService {
   }
 
   private boolean transferToExternalCard(Long senderAccountId, String receiverCardNumber, BigDecimal amount) {
-    validatePositive(amount, "Сумма перевода должна быть больше нуля");
+    validatePositive(amount, messageService.get("transfer.validation.amount.positive"));
 
-    return transactionRunner.run("Не удалось выполнить перевод на карту", connection -> {
+    return transactionRunner.run(messageService.get("transaction.operation.externalCardTransfer.error"), connection -> {
       Account senderAccount = getAccountForUpdate(connection, senderAccountId);
       BigDecimal fee = bankSettingsService.calculateTransferFee(amount);
       BigDecimal debitAmount = amount.add(fee);
-      validateTransferFrom(senderAccount, debitAmount, "Превышен лимит перевода");
+      validateTransferFrom(senderAccount, debitAmount, messageService.get("transaction.validation.transferLimit.exceeded"));
 
       withdraw(connection, senderAccountId, debitAmount);
-      createTransactionHistory(connection, senderAccountId, null, amount, senderAccount.getCurrencyId(), fee, "Перевод на внешнюю карту " + receiverCardNumber, EXTERNAL_CARD_TRANSFER);
+      createTransactionHistory(connection, senderAccountId, null, amount, senderAccount.getCurrencyId(), fee, messageService.get("transaction.message.externalCardTransfer", receiverCardNumber), EXTERNAL_CARD_TRANSFER);
 
       return true;
     });
@@ -243,37 +247,37 @@ public class TransactionServiceImpl implements TransactionService {
 
   private void validateTransferRequest(Long userId, Long senderAccountId, Long receiverAccountId, BigDecimal amount) {
     if (userId == null) {
-      throw new IllegalArgumentException("Войдите в аккаунт, чтобы выполнить перевод");
+      throw new IllegalArgumentException(messageService.get("transaction.validation.loginRequired.transfer"));
     }
     if (senderAccountId == null) {
-      throw new IllegalArgumentException("Выберите счет списания");
+      throw new IllegalArgumentException(messageService.get("validation.senderAccount.required"));
     }
     if (receiverAccountId == null) {
-      throw new IllegalArgumentException("Выберите счет зачисления");
+      throw new IllegalArgumentException(messageService.get("validation.receiverAccount.required"));
     }
     if (senderAccountId.equals(receiverAccountId)) {
-      throw new IllegalArgumentException("Выберите разные счета");
+      throw new IllegalArgumentException(messageService.get("transaction.validation.accounts.different"));
     }
-    validatePositive(amount, "Сумма перевода должна быть больше нуля");
+    validatePositive(amount, messageService.get("transfer.validation.amount.positive"));
   }
 
   private Account checkAccountExists(Long accountId) {
     Optional<Account> account = accountDao.getAccountById(accountId);
     if (account.isEmpty()) {
-      throw new IllegalArgumentException("Счет не найден");
+      throw new IllegalArgumentException(messageService.get("error.account.notFound"));
     }
     return account.get();
   }
 
   private void validateTransferFrom(Account account, BigDecimal amount, String limitMessage) {
     validateActive(account);
-    validatePositiveOrZero(account.getBalance().subtract(amount), "Не хватает средств на счету");
+    validatePositiveOrZero(account.getBalance().subtract(amount), messageService.get("account.validation.insufficientFunds"));
     validatePositiveOrZero(account.getTransactionLimit().subtract(amount), limitMessage);
   }
 
   private void validateActive(Account account) {
     if (!AccountStatus.ACTIVE.name().equals(account.getStatus())) {
-      throw new IllegalArgumentException("Операции доступны только для активных счетов");
+      throw new IllegalArgumentException(messageService.get("account.validation.operations.activeOnly"));
     }
   }
 
@@ -297,24 +301,24 @@ public class TransactionServiceImpl implements TransactionService {
 
   private Account getAccountForUpdate(Connection connection, Long accountId) {
     return accountDao.getAccountByIdForUpdate(connection, accountId)
-        .orElseThrow(() -> new IllegalArgumentException("Счет не найден"));
+        .orElseThrow(() -> new IllegalArgumentException(messageService.get("error.account.notFound")));
   }
 
   private void withdraw(Connection connection, Long accountId, BigDecimal amount) {
     if (!accountDao.withdraw(connection, accountId, amount)) {
-      throw new IllegalStateException("Не удалось списать деньги со счета");
+      throw new IllegalStateException(messageService.get("account.operation.withdraw.error"));
     }
   }
 
   private void topUp(Connection connection, Long accountId, BigDecimal amount) {
     if (!accountDao.topUp(connection, accountId, amount)) {
-      throw new IllegalStateException("Не удалось зачислить деньги на счет");
+      throw new IllegalStateException(messageService.get("account.operation.topUp.error"));
     }
   }
 
   private void payLoan(Connection connection, Long loanId, BigDecimal amount) {
     if (!loanDao.payLoan(connection, loanId, amount)) {
-      throw new IllegalStateException("Не удалось обновить кредит");
+      throw new IllegalStateException(messageService.get("loan.operation.update.error"));
     }
   }
 
@@ -336,7 +340,7 @@ public class TransactionServiceImpl implements TransactionService {
     );
 
     if (!created) {
-      throw new IllegalStateException("Не удалось сохранить историю перевода");
+      throw new IllegalStateException(messageService.get("transaction.operation.history.error"));
     }
   }
 
@@ -352,7 +356,7 @@ public class TransactionServiceImpl implements TransactionService {
 
   private Long getKztCurrencyId() {
     return currencyDao.getCurrencyByName("KZT")
-        .orElseThrow(() -> new IllegalStateException("Валюта KZT не найдена"))
+        .orElseThrow(() -> new IllegalStateException(messageService.get("error.currency.kzt.notFound")))
         .getCurrencyId();
   }
 

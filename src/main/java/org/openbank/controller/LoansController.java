@@ -8,6 +8,9 @@ import org.openbank.view.BankViewService;
 import org.openbank.service.CurrentUserService;
 import org.openbank.service.LoanService;
 import org.openbank.service.MessageService;
+import org.openbank.service.strategy.loan.AutoLoanStrategy;
+import org.openbank.service.strategy.loan.MortgageLoanStrategy;
+import org.openbank.service.strategy.loan.PurposeLoanStrategy;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -23,9 +26,9 @@ import java.util.Optional;
 @Controller
 public class LoansController {
 
-  private static final String PURPOSE = "На любые цели";
-  private static final String AUTO = "Автокредит";
-  private static final String MORTGAGE = "Ипотека";
+  private static final String PURPOSE = PurposeLoanStrategy.PRODUCT_NAME;
+  private static final String AUTO = AutoLoanStrategy.PRODUCT_NAME;
+  private static final String MORTGAGE = MortgageLoanStrategy.PRODUCT_NAME;
   private static final int LOAN_PAGE_SIZE = 4;
 
   private final CurrentUserService currentUserService;

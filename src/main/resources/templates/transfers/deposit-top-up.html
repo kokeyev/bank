@@ -18,25 +18,17 @@
 
         <form class="transfer-form" method="post" th:action="@{/transfers/deposit-top-up}" th:object="${depositTopUpRequest}">
             <input type="hidden" name="_csrf" th:value="${csrfToken}">
-            <div class="transfer-message transfer-message-success" th:if="${depositTopUpSuccess}" th:text="${depositTopUpSuccess}">
-                Депозит пополнен.
-            </div>
+            <div class="transfer-message transfer-message-success" th:if="${depositTopUpSuccess}" th:text="${depositTopUpSuccess}"></div>
 
-            <div class="transfer-message transfer-message-error" th:if="${depositTopUpError}" th:text="${depositTopUpError}">
-                Не удалось пополнить депозит.
-            </div>
+            <div class="transfer-message transfer-message-error" th:if="${depositTopUpError}" th:text="${depositTopUpError}"></div>
 
-            <div class="transfer-message" th:if="${accountOptions == null || accountOptions.isEmpty() || depositOptions == null || depositOptions.isEmpty()}" th:text="#{transfers.deposit.needAccountAndDeposit}">
-                Для пополнения нужен счет и открытый депозит.
-            </div>
+            <div class="transfer-message" th:if="${accountOptions == null || accountOptions.isEmpty() || depositOptions == null || depositOptions.isEmpty()}" th:text="#{transfers.deposit.needAccountAndDeposit}"></div>
 
             <div class="transfer-field">
                 <label for="fromAccount" th:text="#{transfers.from}">Со счета</label>
                 <select id="fromAccount" name="sourceAccountId" th:field="*{sourceAccountId}" required>
                     <option value="" disabled selected th:text="#{transfers.accountList}">Список счетов</option>
-                    <option th:each="account : ${accountOptions}" th:value="${account.accountId}" th:text="${account.label}">
-                        Основная - 125 430.50 KZT
-                    </option>
+                    <option th:each="account : ${accountOptions}" th:value="${account.accountId}" th:text="${account.label}">Main - 125 430.50 KZT</option>
                 </select>
             </div>
 
@@ -44,9 +36,7 @@
                 <label for="toDeposit" th:text="#{transfers.deposit.to}">На депозит</label>
                 <select id="toDeposit" name="depositId" th:field="*{depositId}" required>
                     <option value="" disabled selected th:text="#{transfers.deposit.list}">Список депозитов</option>
-                    <option th:each="deposit : ${depositOptions}" th:value="${deposit.depositId}" th:text="${deposit.label}">
-                        Копилка - 350 000 KZT
-                    </option>
+                    <option th:each="deposit : ${depositOptions}" th:value="${deposit.depositId}" th:text="${deposit.label}">Deposit - 350 000 KZT</option>
                 </select>
             </div>
 

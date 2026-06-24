@@ -44,9 +44,7 @@
 
             <form class="settings-form" method="post" th:action="@{/settings/contact}">
             <input type="hidden" name="_csrf" th:value="${csrfToken}">
-                <div class="settings-message settings-message-success" th:if="${contactSuccess}" th:text="${contactSuccess}">
-                    Контактные данные обновлены.
-                </div>
+                <div class="settings-message settings-message-success" th:if="${contactSuccess}" th:text="${contactSuccess}"></div>
 
                 <div class="settings-message settings-message-error" th:if="${contactErrors}">
                     <p th:each="error : ${contactErrors}" th:text="${error}">Ошибка</p>
@@ -72,9 +70,7 @@
 
             <form class="settings-form" method="post" th:action="@{/settings/password}">
             <input type="hidden" name="_csrf" th:value="${csrfToken}">
-                <div class="settings-message settings-message-success" th:if="${passwordSuccess}" th:text="${passwordSuccess}">
-                    Пароль обновлен.
-                </div>
+                <div class="settings-message settings-message-success" th:if="${passwordSuccess}" th:text="${passwordSuccess}"></div>
 
                 <div class="settings-message settings-message-error" th:if="${passwordErrors}">
                     <p th:each="error : ${passwordErrors}" th:text="${error}">Ошибка</p>

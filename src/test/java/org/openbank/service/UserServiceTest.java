@@ -1,5 +1,6 @@
 package org.openbank.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -23,9 +24,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
@@ -65,8 +68,17 @@ class UserServiceTest {
   @Mock
   private PasswordHasher passwordHasher;
 
+  @Mock
+  private MessageService messageService;
+
   @InjectMocks
   private UserServiceImpl service;
+
+  @BeforeEach
+  void setUpMessages() {
+    lenient().when(messageService.get(anyString(), any())).thenAnswer(invocation -> invocation.getArgument(0));
+    lenient().when(messageService.get(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
+  }
 
   @Test
   void createUserNormalizesEmailAndStoresHashedPassword() {

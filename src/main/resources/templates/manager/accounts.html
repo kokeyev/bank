@@ -15,12 +15,8 @@
         <p class="accounts-greeting" th:text="#{manager.accounts.title}">Account requests</p>
     </header>
 
-    <div class="account-message account-message-success" th:if="${managerAccountSuccess}" th:text="${managerAccountSuccess}">
-        Готово.
-    </div>
-    <div class="account-message account-message-error" th:if="${managerAccountError}" th:text="${managerAccountError}">
-        Ошибка.
-    </div>
+    <div class="account-message account-message-success" th:if="${managerAccountSuccess}" th:text="${managerAccountSuccess}"></div>
+    <div class="account-message account-message-error" th:if="${managerAccountError}" th:text="${managerAccountError}"></div>
 
     <div class="accounts-empty-state" th:if="${pendingAccountsPage == null || pendingAccountsPage.items.isEmpty()}">
         <p th:text="#{manager.accounts.empty}">No account opening requests.</p>

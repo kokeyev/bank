@@ -1,5 +1,6 @@
 package org.openbank.service.strategy.loan;
 
+import org.openbank.service.MessageService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -9,6 +10,10 @@ import org.springframework.stereotype.Component;
 public class AutoLoanStrategy extends AbstractLoanProductStrategy {
 
   public static final String PRODUCT_NAME = "Автокредит";
+
+  public AutoLoanStrategy(MessageService messageService) {
+    super(messageService);
+  }
 
   @Override
   public String productName() {

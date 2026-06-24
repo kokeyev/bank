@@ -3,6 +3,7 @@ package org.openbank.service.strategy.loan;
 import org.openbank.model.Loan;
 import org.openbank.model.LoanType;
 import org.openbank.model.status.LoanStatus;
+import org.openbank.service.MessageService;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
@@ -21,6 +22,11 @@ import java.util.List;
 public abstract class AbstractLoanProductStrategy implements LoanProductStrategy {
 
   private static final MathContext MATH_CONTEXT = new MathContext(16, RoundingMode.HALF_UP);
+  private final MessageService messageService;
+
+  protected AbstractLoanProductStrategy(MessageService messageService) {
+    this.messageService = messageService;
+  }
 
   @Override
   public void validateApplicationAmount(LoanType loanType, BigDecimal amount) {
@@ -31,7 +37,7 @@ public abstract class AbstractLoanProductStrategy implements LoanProductStrategy
   public void validateOffer(LoanType loanType, BigDecimal amount, Integer duration) {
     validateAmountRange(loanType, amount);
     if (loanType.getDuration() != null && duration != null && duration > loanType.getDuration()) {
-      throw new IllegalArgumentException("Срок предложения не должен превышать срок продукта: " + loanType.getDuration());
+      throw new IllegalArgumentException(messageService.get("loan.validation.offerDuration.max", loanType.getDuration()));
     }
   }
 
@@ -84,11 +90,11 @@ public abstract class AbstractLoanProductStrategy implements LoanProductStrategy
 
   private void validateAmountRange(LoanType loanType, BigDecimal amount) {
     if (loanType.getMinimumAmount() != null && amount.compareTo(loanType.getMinimumAmount()) < 0) {
-      throw new IllegalArgumentException("Минимальная сумма кредита: " + loanType.getMinimumAmount());
+      throw new IllegalArgumentException(messageService.get("loan.validation.minimumAmount", loanType.getMinimumAmount()));
     }
 
     if (loanType.getMaximumAmount() != null && amount.compareTo(loanType.getMaximumAmount()) > 0) {
-      throw new IllegalArgumentException("Максимальная сумма кредита: " + loanType.getMaximumAmount());
+      throw new IllegalArgumentException(messageService.get("loan.validation.maximumAmount", loanType.getMaximumAmount()));
     }
   }
 }

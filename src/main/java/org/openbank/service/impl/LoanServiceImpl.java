@@ -14,6 +14,7 @@ import org.openbank.model.LoanType;
 import org.openbank.model.status.AccountStatus;
 import org.openbank.model.status.LoanStatus;
 import org.openbank.service.DatabaseTransactionRunner;
+import org.openbank.service.MessageService;
 import org.openbank.service.strategy.loan.LoanProductStrategy;
 import org.openbank.service.strategy.loan.LoanProductStrategyResolver;
 import org.springframework.stereotype.Service;
@@ -38,7 +39,9 @@ public class LoanServiceImpl implements LoanService {
   private final TransactionDao transactionDao;
   private final DatabaseTransactionRunner transactionRunner;
   private final LoanProductStrategyResolver strategyResolver;
-  public LoanServiceImpl(LoanDao loanDao, LoanTypeDao loanTypeDao, AccountDao accountDao, CurrencyDao currencyDao, TransactionDao transactionDao, DatabaseTransactionRunner transactionRunner, LoanProductStrategyResolver strategyResolver) {
+  private final MessageService messageService;
+
+  public LoanServiceImpl(LoanDao loanDao, LoanTypeDao loanTypeDao, AccountDao accountDao, CurrencyDao currencyDao, TransactionDao transactionDao, DatabaseTransactionRunner transactionRunner, LoanProductStrategyResolver strategyResolver, MessageService messageService) {
     this.loanDao = loanDao;
     this.loanTypeDao = loanTypeDao;
     this.accountDao = accountDao;
@@ -46,6 +49,7 @@ public class LoanServiceImpl implements LoanService {
     this.transactionDao = transactionDao;
     this.transactionRunner = transactionRunner;
     this.strategyResolver = strategyResolver;
+    this.messageService = messageService;
   }
 
   public List<LoanType> getAllLoanTypes() {
@@ -78,12 +82,12 @@ public class LoanServiceImpl implements LoanService {
   }
 
   public boolean createApplication(Long userId, String loanTypeName, LoanApplicationRequest request) {
-    validatePositive(request.getAmount(), "Введите сумму кредита");
+    validatePositive(request.getAmount(), messageService.get("loan.validation.amount.required"));
     validateAccountSelected(request.getAccountId());
 
     Optional<LoanType> loanTypeOptional = getLoanTypeByName(loanTypeName);
     if (loanTypeOptional.isEmpty()) {
-      throw new IllegalArgumentException("Тип кредита не найден");
+      throw new IllegalArgumentException(messageService.get("error.loanType.notFound"));
     }
     LoanType loanType = loanTypeOptional.get();
     LoanProductStrategy strategy = strategyResolver.resolve(loanType);
@@ -95,26 +99,26 @@ public class LoanServiceImpl implements LoanService {
   }
 
   public boolean createOffer(Long parentLoanId, LoanOfferRequest request) {
-    validatePositive(request.getAmount(), "Введите сумму предложения");
-    validatePositive(request.getRate(), "Введите процентную ставку");
+    validatePositive(request.getAmount(), messageService.get("validation.offerAmount.required"));
+    validatePositive(request.getRate(), messageService.get("validation.rate.required"));
 
     if (request.getDuration() == null || request.getDuration() <= 0) {
-      throw new IllegalArgumentException("Введите срок кредита");
+      throw new IllegalArgumentException(messageService.get("validation.duration.required"));
     }
 
     Optional<Loan> loanOptional = loanDao.getLoanById(parentLoanId);
     if (loanOptional.isEmpty()) {
-      throw new IllegalArgumentException("Заявка не найдена");
+      throw new IllegalArgumentException(messageService.get("loan.validation.application.notFound"));
     }
     Loan parentLoan = loanOptional.get();
 
     if (!LoanStatus.PENDING.name().equals(parentLoan.getStatus())) {
-      throw new IllegalArgumentException("Предложения можно создавать только для заявок в статусе PENDING");
+      throw new IllegalArgumentException(messageService.get("loan.validation.offer.pendingOnly"));
     }
 
     Optional<LoanType> loanTypeOptional = loanTypeDao.getLoanTypeById(parentLoan.getLoanTypeId());
     if (loanTypeOptional.isEmpty()) {
-      throw new IllegalArgumentException("Тип кредита не найден");
+      throw new IllegalArgumentException(messageService.get("error.loanType.notFound"));
     }
     LoanType loanType = loanTypeOptional.get();
     LoanProductStrategy strategy = strategyResolver.resolve(loanType);
@@ -139,7 +143,7 @@ public class LoanServiceImpl implements LoanService {
   }
 
   public boolean acceptOffer(Long userId, Long loanId) {
-    return transactionRunner.run("Не удалось принять предложение по кредиту", connection -> {
+    return transactionRunner.run(messageService.get("loan.operation.acceptOffer.error"), connection -> {
       Optional<Loan> acceptedOffer = loanDao.acceptOffer(connection, userId, loanId);
       if (acceptedOffer.isEmpty()) {
         return false;
@@ -151,11 +155,11 @@ public class LoanServiceImpl implements LoanService {
       validateKztAccount(userId, account);
 
       if (!accountDao.topUp(connection, offer.getAccountId(), offer.getRemainingAmount())) {
-        throw new IllegalStateException("Не удалось зачислить деньги кредита");
+        throw new IllegalStateException(messageService.get("loan.operation.disbursement.error"));
       }
 
-      if (!transactionDao.createNewTransaction(connection, null, offer.getAccountId(), LocalDateTime.now(), offer.getRemainingAmount(), account.getCurrencyId(), BigDecimal.ZERO, "Зачисление кредита #" + offer.getLoanId(), LOAN_DISBURSEMENT)) {
-        throw new IllegalStateException("Не удалось сохранить историю зачисления кредита");
+      if (!transactionDao.createNewTransaction(connection, null, offer.getAccountId(), LocalDateTime.now(), offer.getRemainingAmount(), account.getCurrencyId(), BigDecimal.ZERO, messageService.get("transaction.message.loanDisbursement", offer.getLoanId()), LOAN_DISBURSEMENT)) {
+        throw new IllegalStateException(messageService.get("loan.operation.disbursementHistory.error"));
       }
 
       return true;
@@ -204,31 +208,31 @@ public class LoanServiceImpl implements LoanService {
 
   private void validateAccountSelected(Long accountId) {
     if (accountId == null) {
-      throw new IllegalArgumentException("Выберите счет для зачисления кредита");
+      throw new IllegalArgumentException(messageService.get("loan.validation.disbursementAccount.required"));
     }
   }
 
   private void validateKztAccount(Long userId, Long accountId) {
     Account account = accountDao.getAccountById(accountId)
-        .orElseThrow(() -> new IllegalArgumentException("Счет не найден"));
+        .orElseThrow(() -> new IllegalArgumentException(messageService.get("error.account.notFound")));
     validateKztAccount(userId, account);
   }
 
   private void validateKztAccount(Long userId, Account account) {
     if (!account.getUserId().equals(userId)) {
-      throw new IllegalArgumentException("Счет не принадлежит текущему пользователю");
+      throw new IllegalArgumentException(messageService.get("account.validation.notOwner"));
     }
     if (!AccountStatus.ACTIVE.name().equals(account.getStatus())) {
-      throw new IllegalArgumentException("Кредит можно зачислить только на активный счет");
+      throw new IllegalArgumentException(messageService.get("loan.validation.disbursementAccount.activeOnly"));
     }
     String currencyName = currencyDao.getCurrencyNameById(account.getCurrencyId());
     if (!KZT.equals(currencyName)) {
-      throw new IllegalArgumentException("Кредит можно зачислить только на счет в KZT");
+      throw new IllegalArgumentException(messageService.get("loan.validation.disbursementAccount.kztOnly"));
     }
   }
 
   private Account getAccountForUpdate(Connection connection, Long accountId) {
     return accountDao.getAccountByIdForUpdate(connection, accountId)
-        .orElseThrow(() -> new IllegalArgumentException("Счет не найден"));
+        .orElseThrow(() -> new IllegalArgumentException(messageService.get("error.account.notFound")));
   }
 }
