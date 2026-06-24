@@ -13,6 +13,7 @@ import org.openbank.model.Loan;
 import org.openbank.model.LoanType;
 import org.openbank.model.status.AccountStatus;
 import org.openbank.model.status.LoanStatus;
+import org.openbank.model.status.TransactionType;
 import org.openbank.service.DatabaseTransactionRunner;
 import org.openbank.service.MessageService;
 import org.openbank.service.strategy.loan.LoanProductStrategy;
@@ -30,7 +31,6 @@ import java.util.Optional;
 public class LoanServiceImpl implements LoanService {
 
   private static final String KZT = "KZT";
-  private static final String LOAN_DISBURSEMENT = "LOAN_DISBURSEMENT";
 
   private final LoanDao loanDao;
   private final LoanTypeDao loanTypeDao;
@@ -158,7 +158,7 @@ public class LoanServiceImpl implements LoanService {
         throw new IllegalStateException(messageService.get("loan.operation.disbursement.error"));
       }
 
-      if (!transactionDao.createNewTransaction(connection, null, offer.getAccountId(), LocalDateTime.now(), offer.getRemainingAmount(), account.getCurrencyId(), BigDecimal.ZERO, messageService.get("transaction.message.loanDisbursement", offer.getLoanId()), LOAN_DISBURSEMENT)) {
+      if (!transactionDao.createNewTransaction(connection, null, offer.getAccountId(), LocalDateTime.now(), offer.getRemainingAmount(), account.getCurrencyId(), BigDecimal.ZERO, messageService.get("transaction.message.loanDisbursement", offer.getLoanId()), TransactionType.LOAN_DISBURSEMENT.name())) {
         throw new IllegalStateException(messageService.get("loan.operation.disbursementHistory.error"));
       }
 

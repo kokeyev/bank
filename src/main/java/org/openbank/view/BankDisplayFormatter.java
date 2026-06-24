@@ -19,6 +19,8 @@ public class BankDisplayFormatter {
 
   private static final DateTimeFormatter EXPIRY_DATE_FORMATTER = DateTimeFormatter.ofPattern("MM/yy");
   private static final DateTimeFormatter DISPLAY_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+  public static final String REGEX = "(.{4})(?!$)";
+  public static final String PATTERN = "#,##0.00";
 
   private final MessageService messageService;
 
@@ -33,7 +35,7 @@ public class BankDisplayFormatter {
 
     DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
     symbols.setGroupingSeparator(' ');
-    return new DecimalFormat("#,##0.00", symbols).format(amount);
+    return new DecimalFormat(PATTERN, symbols).format(amount);
   }
 
   public String decimalValue(BigDecimal amount) {
@@ -45,7 +47,7 @@ public class BankDisplayFormatter {
       return "";
     }
 
-    return cardNumber.replaceAll("(.{4})(?!$)", "$1 ");
+    return cardNumber.replaceAll(REGEX, "$1 ");
   }
 
   public String expiryDate(LocalDate expiryDate) {
@@ -104,6 +106,7 @@ public class BankDisplayFormatter {
     if (AccountStatus.REJECTED.name().equals(status)) {
       return messageService.get("status.rejected");
     }
+
     return status == null ? "" : status;
   }
 
@@ -123,6 +126,7 @@ public class BankDisplayFormatter {
     if (DepositStatus.CLOSED.name().equals(status)) {
       return messageService.get("status.closed");
     }
+
     return status == null ? "" : status;
   }
 
@@ -145,6 +149,7 @@ public class BankDisplayFormatter {
     if (LoanStatus.CLOSED.name().equals(status)) {
       return messageService.get("status.closed");
     }
+
     return status == null ? "" : status;
   }
 }

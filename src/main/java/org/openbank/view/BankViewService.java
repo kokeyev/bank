@@ -63,6 +63,7 @@ public class BankViewService {
     for (Account account : accountService.getPendingAccounts()) {
       result.add(mapper.toAccountView(account));
     }
+
     return result;
   }
 
@@ -243,8 +244,7 @@ public class BankViewService {
       return false;
     }
 
-    DepositType depositType = depositService.getDepositTypeById(deposit.getDepositTypeId())
-        .orElseThrow(() -> new IllegalStateException(messageService.get("error.depositType.notFound")));
+    DepositType depositType = depositService.getDepositTypeById(deposit.getDepositTypeId()).orElseThrow(() -> new IllegalStateException(messageService.get("error.depositType.notFound")));
     return depositService.canTopUpDeposit(deposit, depositType);
   }
 

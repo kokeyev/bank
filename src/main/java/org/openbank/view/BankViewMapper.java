@@ -19,6 +19,7 @@ import org.openbank.model.Transaction;
 import org.openbank.model.status.AccountStatus;
 import org.openbank.model.status.DepositStatus;
 import org.openbank.model.status.LoanStatus;
+import org.openbank.model.status.TransactionType;
 import org.openbank.service.AccountService;
 import org.openbank.service.DepositService;
 import org.openbank.service.LoanService;
@@ -43,16 +44,14 @@ public class BankViewMapper {
   private final DepositService depositService;
   private final LoanService loanService;
   private final BankDisplayFormatter formatter;
-  private final TransactionTypeFormatter transactionTypeFormatter;
   private final LoanProductText loanProductText;
   private final MessageService messageService;
 
-  public BankViewMapper(AccountService accountService, DepositService depositService, LoanService loanService, BankDisplayFormatter formatter, TransactionTypeFormatter transactionTypeFormatter, LoanProductText loanProductText, MessageService messageService) {
+  public BankViewMapper(AccountService accountService, DepositService depositService, LoanService loanService, BankDisplayFormatter formatter, LoanProductText loanProductText, MessageService messageService) {
     this.accountService = accountService;
     this.depositService = depositService;
     this.loanService = loanService;
     this.formatter = formatter;
-    this.transactionTypeFormatter = transactionTypeFormatter;
     this.loanProductText = loanProductText;
     this.messageService = messageService;
   }
@@ -138,7 +137,7 @@ public class BankViewMapper {
     return new LoanTypeView(
         loanType.getLoanTypeId(),
         loanProductText.name(loanType.getName()),
-        loanProductText.slug(loanType.getName()),
+        loanProductText.urlPath(loanType.getName()),
         loanProductText.tag(loanType.getName()),
         loanProductText.description(loanType.getName()),
         loanProductText.amountRange(formatter.money(loanType.getMinimumAmount()), formatter.money(loanType.getMaximumAmount())),
@@ -153,7 +152,7 @@ public class BankViewMapper {
 
     return new TransactionView(
         date,
-        transactionTypeFormatter.displayName(transaction.getTransactionType()),
+        TransactionType.displayName(transaction.getTransactionType(), messageService),
         formatter.money(transaction.getAmount()) + " " + currency,
         formatter.money(transaction.getFee()),
         transaction.getMessage()
@@ -162,18 +161,18 @@ public class BankViewMapper {
 
   public TransferAccountOption toTransferAccountOption(Account account) {
     String currency = accountService.getCurrencyNameById(account.getCurrencyId());
+
     return new TransferAccountOption(account.getAccountId(), account.getName() + " - " + formatter.money(account.getBalance()) + " " + currency);
   }
 
   public LoanOption toLoanOption(Loan loan) {
-    LoanType loanType = loanService.getLoanTypeById(loan.getLoanTypeId())
-        .orElseThrow(() -> new IllegalStateException(messageService.get("error.loanType.notFound")));
+    LoanType loanType = loanService.getLoanTypeById(loan.getLoanTypeId()).orElseThrow(() -> new IllegalStateException(messageService.get("error.loanType.notFound")));
+
     return new LoanOption(loan.getLoanId(), loanProductText.remainingAmount(loanType.getName(), formatter.money(loan.getRemainingAmount())));
   }
 
   public DepositOption toDepositOption(Deposit deposit) {
-    DepositType depositType = depositService.getDepositTypeById(deposit.getDepositTypeId())
-        .orElseThrow(() -> new IllegalStateException(messageService.get("error.depositType.notFound")));
+    DepositType depositType = depositService.getDepositTypeById(deposit.getDepositTypeId()).orElseThrow(() -> new IllegalStateException(messageService.get("error.depositType.notFound")));
     String currency = depositService.getCurrencyNameById(depositType.getCurrencyId());
     String label = messageService.get("deposits.option.label", depositName(depositType.getName()), formatter.duration(depositType.getDuration()), formatter.money(deposit.getCurrentAmount()), currency);
 
@@ -223,6 +222,7 @@ public class BankViewMapper {
     if (CapitalDepositStrategy.PRODUCT_NAME.equals(productName)) {
       return messageService.get("deposits.capital.name");
     }
+
     return productName == null ? "" : productName;
   }
 }

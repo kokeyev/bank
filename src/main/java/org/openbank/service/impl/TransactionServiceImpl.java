@@ -15,6 +15,7 @@ import org.openbank.model.Transaction;
 import org.openbank.model.User;
 import org.openbank.model.status.AccountStatus;
 import org.openbank.model.status.LoanStatus;
+import org.openbank.model.status.TransactionType;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -26,14 +27,6 @@ import java.util.Optional;
 
 @Service
 public class TransactionServiceImpl implements TransactionService {
-
-  private static final String BETWEEN_OWN_ACCOUNTS = "BETWEEN_OWN_ACCOUNTS";
-  private static final String PHONE_TRANSFER = "PHONE_TRANSFER";
-  private static final String CARD_TRANSFER = "CARD_TRANSFER";
-  private static final String EXTERNAL_CARD_TRANSFER = "EXTERNAL_CARD_TRANSFER";
-  private static final String CURRENCY_EXCHANGE = "CURRENCY_EXCHANGE";
-  private static final String LOAN_PAYMENT = "LOAN_PAYMENT";
-  private static final String ACCOUNT_TOP_UP = "ACCOUNT_TOP_UP";
 
   private final AccountDao accountDao;
   private final TransactionDao transactionDao;
@@ -112,7 +105,7 @@ public class TransactionServiceImpl implements TransactionService {
 
       withdraw(connection, senderAccountId, debitAmount);
       topUp(connection, receiverAccountId, convert(amount, senderAccount.getCurrencyId(), receiverAccount.getCurrencyId()));
-      createTransactionHistory(connection, senderAccountId, receiverAccountId, amount, senderAccount.getCurrencyId(), fee, message, BETWEEN_OWN_ACCOUNTS);
+      createTransactionHistory(connection, senderAccountId, receiverAccountId, amount, senderAccount.getCurrencyId(), fee, message, TransactionType.BETWEEN_OWN_ACCOUNTS.name());
 
       return true;
     });
@@ -136,7 +129,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
     Account receiverAccount = accountOptional.get();
 
-    return transferToAccount(senderAccountId, receiverAccount.getAccountId(), amount, messageService.get("transaction.message.phoneTransfer", receiverPhoneNumber), PHONE_TRANSFER);
+    return transferToAccount(senderAccountId, receiverAccount.getAccountId(), amount, messageService.get("transaction.message.phoneTransfer", receiverPhoneNumber), TransactionType.PHONE_TRANSFER.name());
   }
 
   public boolean makeTransactionByCardNumber(Long senderAccountId, String receiverCardNumber, BigDecimal amount) {
@@ -145,7 +138,7 @@ public class TransactionServiceImpl implements TransactionService {
     Optional<Account> receiverAccount = accountDao.getAccountByCardNumber(cleanedCard);
 
     if (receiverAccount.isPresent()) {
-      return transferToAccount(senderAccountId, receiverAccount.get().getAccountId(), amount, messageService.get("transaction.message.cardTransfer", cleanedCard), CARD_TRANSFER);
+      return transferToAccount(senderAccountId, receiverAccount.get().getAccountId(), amount, messageService.get("transaction.message.cardTransfer", cleanedCard), TransactionType.CARD_TRANSFER.name());
     }
 
     return transferToExternalCard(senderAccountId, cleanedCard, amount);
@@ -170,14 +163,14 @@ public class TransactionServiceImpl implements TransactionService {
       BigDecimal kztAmount = convert(amount, senderAccount.getCurrencyId(), getKztCurrencyId());
       withdraw(connection, senderAccountId, amount);
       payLoan(connection, loanId, kztAmount);
-      createTransactionHistory(connection, senderAccountId, null, amount, senderAccount.getCurrencyId(), messageService.get("transaction.message.loanPayment", loanId), LOAN_PAYMENT);
+      createTransactionHistory(connection, senderAccountId, null, amount, senderAccount.getCurrencyId(), messageService.get("transaction.message.loanPayment", loanId), TransactionType.LOAN_PAYMENT.name());
 
       return true;
     });
   }
 
   public boolean makeTransactionExchangeCurrencies(Long senderAccountId, Long receiverAccountId, BigDecimal amount) {
-    return transferToAccount(senderAccountId, receiverAccountId, amount, messageService.get("transaction.message.currencyExchange"), CURRENCY_EXCHANGE);
+    return transferToAccount(senderAccountId, receiverAccountId, amount, messageService.get("transaction.message.currencyExchange"), TransactionType.CURRENCY_EXCHANGE.name());
   }
 
   public boolean topUpAccount(Long userId, Long accountId, BigDecimal amount) {
@@ -195,7 +188,7 @@ public class TransactionServiceImpl implements TransactionService {
       validateActive(account);
 
       topUp(connection, accountId, amount);
-      createTransactionHistory(connection, null, accountId, amount, account.getCurrencyId(), messageService.get("transaction.message.accountTopUp"), ACCOUNT_TOP_UP);
+      createTransactionHistory(connection, null, accountId, amount, account.getCurrencyId(), messageService.get("transaction.message.accountTopUp"), TransactionType.ACCOUNT_TOP_UP.name());
 
       return true;
     });
@@ -239,7 +232,7 @@ public class TransactionServiceImpl implements TransactionService {
       validateTransferFrom(senderAccount, debitAmount, messageService.get("transaction.validation.transferLimit.exceeded"));
 
       withdraw(connection, senderAccountId, debitAmount);
-      createTransactionHistory(connection, senderAccountId, null, amount, senderAccount.getCurrencyId(), fee, messageService.get("transaction.message.externalCardTransfer", receiverCardNumber), EXTERNAL_CARD_TRANSFER);
+      createTransactionHistory(connection, senderAccountId, null, amount, senderAccount.getCurrencyId(), fee, messageService.get("transaction.message.externalCardTransfer", receiverCardNumber), TransactionType.EXTERNAL_CARD_TRANSFER.name());
 
       return true;
     });

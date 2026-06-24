@@ -3,6 +3,7 @@ package org.openbank.view;
 import org.openbank.service.MessageService;
 import org.openbank.service.strategy.loan.AutoLoanStrategy;
 import org.openbank.service.strategy.loan.MortgageLoanStrategy;
+import org.openbank.service.strategy.loan.PurposeLoanStrategy;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -14,49 +15,61 @@ public class LoanProductText {
     this.messageService = messageService;
   }
 
-  public String slug(String loanTypeName) {
-    if (AutoLoanStrategy.PRODUCT_NAME.equals(loanTypeName)) {
-      return "auto";
-    }
-    if (MortgageLoanStrategy.PRODUCT_NAME.equals(loanTypeName)) {
-      return "mortgage";
-    }
-    return "purpose";
+  public String urlPath(String loanTypeName) {
+    return product(loanTypeName).urlPath;
   }
 
   public String name(String loanTypeName) {
-    return message(keyPrefix(loanTypeName) + ".name");
+    return messageService.get(product(loanTypeName).messagePrefix + ".name");
   }
 
   public String tag(String loanTypeName) {
-    return message(keyPrefix(loanTypeName) + ".tag");
+    return messageService.get(product(loanTypeName).messagePrefix + ".tag");
   }
 
   public String description(String loanTypeName) {
-    return message(keyPrefix(loanTypeName) + ".description");
+    return messageService.get(product(loanTypeName).messagePrefix + ".description");
   }
 
   public String amountRange(String minimumAmount, String maximumAmount) {
-    return message("loans.amount.range", minimumAmount, maximumAmount);
+    return messageService.get("loans.amount.range", minimumAmount, maximumAmount);
   }
 
   public String durationUpTo(Integer durationMonths) {
-    return message("loans.duration.upTo", durationMonths);
+    return messageService.get("loans.duration.upTo", durationMonths);
   }
 
   public String rateFrom(String rate) {
-    return message("loans.rate.from", rate);
+    return messageService.get("loans.rate.from", rate);
   }
 
   public String remainingAmount(String loanTypeName, String remainingAmount) {
-    return message("loans.remaining", name(loanTypeName), remainingAmount);
+    return messageService.get("loans.remaining", name(loanTypeName), remainingAmount);
   }
 
-  private String keyPrefix(String loanTypeName) {
-    return "loans." + slug(loanTypeName);
+  private LoanProduct product(String loanTypeName) {
+    for (LoanProduct product : LoanProduct.values()) {
+      if (product.productName.equals(loanTypeName)) {
+        return product;
+      }
+    }
+
+    return LoanProduct.PURPOSE;
   }
 
-  private String message(String code, Object... args) {
-    return messageService.get(code, args);
+  private enum LoanProduct {
+    PURPOSE(PurposeLoanStrategy.PRODUCT_NAME, "purpose", "loans.purpose"),
+    AUTO(AutoLoanStrategy.PRODUCT_NAME, "auto", "loans.auto"),
+    MORTGAGE(MortgageLoanStrategy.PRODUCT_NAME, "mortgage", "loans.mortgage");
+
+    private final String productName;
+    private final String urlPath;
+    private final String messagePrefix;
+
+    LoanProduct(String productName, String urlPath, String messagePrefix) {
+      this.productName = productName;
+      this.urlPath = urlPath;
+      this.messagePrefix = messagePrefix;
+    }
   }
 }

@@ -13,6 +13,7 @@ import org.openbank.model.Account;
 import org.openbank.model.Deposit;
 import org.openbank.model.DepositType;
 import org.openbank.model.status.DepositStatus;
+import org.openbank.model.status.TransactionType;
 import org.openbank.service.strategy.deposit.CapitalDepositStrategy;
 import org.openbank.service.strategy.deposit.DepositProductStrategy;
 import org.openbank.service.strategy.deposit.DepositProductStrategyResolver;
@@ -30,11 +31,6 @@ import java.util.Optional;
 
 @Service
 public class DepositServiceImpl implements DepositService {
-
-  private static final String DEPOSIT_OPEN = "DEPOSIT_OPEN";
-  private static final String DEPOSIT_TOP_UP = "DEPOSIT_TOP_UP";
-  private static final String DEPOSIT_WITHDRAWAL = "DEPOSIT_WITHDRAWAL";
-  private static final String DEPOSIT_INTEREST = "DEPOSIT_INTEREST";
 
   private final DepositDao depositDao;
   private final DepositTypeDao depositTypeDao;
@@ -111,7 +107,7 @@ public class DepositServiceImpl implements DepositService {
       if (!created) {
         throw new IllegalStateException(messageService.get("deposit.operation.open.error"));
       }
-      createTransactionHistory(connection, sourceAccount.getAccountId(), null, request.getAmount(), sourceAccount.getCurrencyId(), messageService.get("transaction.message.depositOpen", localizedDepositName(depositType.getName())), DEPOSIT_OPEN);
+      createTransactionHistory(connection, sourceAccount.getAccountId(), null, request.getAmount(), sourceAccount.getCurrencyId(), messageService.get("transaction.message.depositOpen", localizedDepositName(depositType.getName())), TransactionType.DEPOSIT_OPEN.name());
 
       return true;
     });
@@ -139,7 +135,7 @@ public class DepositServiceImpl implements DepositService {
       if (!depositDao.topUpDeposit(connection, deposit.getDepositId(), amount)) {
         throw new IllegalStateException(messageService.get("deposit.operation.topUp.error"));
       }
-      createTransactionHistory(connection, sourceAccount.getAccountId(), null, amount, sourceAccount.getCurrencyId(), messageService.get("transaction.message.depositTopUp", depositId), DEPOSIT_TOP_UP);
+      createTransactionHistory(connection, sourceAccount.getAccountId(), null, amount, sourceAccount.getCurrencyId(), messageService.get("transaction.message.depositTopUp", depositId), TransactionType.DEPOSIT_TOP_UP.name());
 
       return true;
     });
@@ -165,7 +161,7 @@ public class DepositServiceImpl implements DepositService {
         throw new IllegalStateException(messageService.get("deposit.operation.withdraw.error"));
       }
       topUpAccount(connection, targetAccountId, amount);
-      createTransactionHistory(connection, null, targetAccountId, amount, targetAccount.getCurrencyId(), messageService.get("transaction.message.depositWithdrawal", depositId), DEPOSIT_WITHDRAWAL);
+      createTransactionHistory(connection, null, targetAccountId, amount, targetAccount.getCurrencyId(), messageService.get("transaction.message.depositWithdrawal", depositId), TransactionType.DEPOSIT_WITHDRAWAL.name());
 
       return true;
     });
@@ -200,7 +196,7 @@ public class DepositServiceImpl implements DepositService {
         if (Boolean.TRUE.equals(deposit.getReinvestInterest())) {
           depositDao.topUpDeposit(connection, deposit.getDepositId(), monthlyInterest);
         }
-        createTransactionHistory(connection, null, null, monthlyInterest, depositType.getCurrencyId(), messageService.get("transaction.message.depositInterest", deposit.getDepositId()), DEPOSIT_INTEREST);
+        createTransactionHistory(connection, null, null, monthlyInterest, depositType.getCurrencyId(), messageService.get("transaction.message.depositInterest", deposit.getDepositId()), TransactionType.DEPOSIT_INTEREST.name());
 
         return null;
       });

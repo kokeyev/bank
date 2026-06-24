@@ -4,17 +4,17 @@ public class LoanTypeView {
 
   private final Long loanTypeId;
   private final String name;
-  private final String slug;
+  private final String urlPath;
   private final String tag;
   private final String description;
   private final String amountRange;
   private final String duration;
   private final String rate;
 
-  public LoanTypeView(Long loanTypeId, String name, String slug, String tag, String description, String amountRange, String duration, String rate) {
+  public LoanTypeView(Long loanTypeId, String name, String urlPath, String tag, String description, String amountRange, String duration, String rate) {
     this.loanTypeId = loanTypeId;
     this.name = name;
-    this.slug = slug;
+    this.urlPath = urlPath;
     this.tag = tag;
     this.description = description;
     this.amountRange = amountRange;
@@ -30,8 +30,8 @@ public class LoanTypeView {
     return name;
   }
 
-  public String getSlug() {
-    return slug;
+  public String getUrlPath() {
+    return urlPath;
   }
 
   public String getTag() {
