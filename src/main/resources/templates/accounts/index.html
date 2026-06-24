@@ -11,14 +11,47 @@
 
 <main class="accounts-page">
 
-    <header class="accounts-title">
+    <header class="accounts-title" th:if="${loggedIn}">
         <p class="accounts-greeting" th:if="${clientName}">
             <span th:text="#{accounts.greeting}">Здравствуйте</span>, <span th:text="${clientName}">Name</span>
         </p>
         <p class="accounts-greeting" th:unless="${clientName}" th:text="#{accounts.greeting}">Здравствуйте</p>
     </header>
 
-    <section class="dashboard-section">
+    <section class="guest-bank-overview" th:unless="${loggedIn}">
+        <div class="guest-bank-intro">
+            <span th:text="#{accounts.guest.label}">Мой Банк</span>
+            <h1 th:text="#{accounts.guest.heading}">Банк для ежедневных финансов</h1>
+            <p th:text="#{accounts.guest.text}">Откройте счет в нужной валюте, храните накопления на депозитах, оформляйте кредиты, переводите деньги и обменивайте валюту в одном приложении.</p>
+        </div>
+
+        <div class="guest-bank-actions">
+            <a class="section-action-link" href="../deposits/index.html" th:href="@{/deposits}" th:text="#{accounts.guest.depositsLink}">Условия депозитов</a>
+            <a class="section-action-link" href="../loans/index.html" th:href="@{/loans}" th:text="#{accounts.guest.loansLink}">Кредитные продукты</a>
+            <a class="section-action-link section-action-link-primary" href="../bank/login.html" th:href="@{/login}" th:text="#{nav.login}">Войти</a>
+        </div>
+
+        <div class="guest-services-grid">
+            <article class="guest-service-card">
+                <h2 th:text="#{accounts.guest.accountsTitle}">Счета в разных валютах</h2>
+                <p th:text="#{accounts.guest.accountsText}">Открывайте счета в KZT, USD, EUR и RUB, выбирайте основной счет и задавайте лимиты на операции.</p>
+            </article>
+            <article class="guest-service-card">
+                <h2 th:text="#{accounts.guest.depositsTitle}">Депозиты</h2>
+                <p th:text="#{accounts.guest.depositsText}">Выбирайте депозит под цель: с пополнением, частичным снятием, капитализацией или повышенной ставкой.</p>
+            </article>
+            <article class="guest-service-card">
+                <h2 th:text="#{accounts.guest.loansTitle}">Кредиты</h2>
+                <p th:text="#{accounts.guest.loansText}">Подавайте заявку на кредит, получайте предложение от менеджера и погашайте платежи через банк.</p>
+            </article>
+            <article class="guest-service-card">
+                <h2 th:text="#{accounts.guest.operationsTitle}">Переводы и обмен валют</h2>
+                <p th:text="#{accounts.guest.operationsText}">Переводите между своими счетами, по телефону или карте, пополняйте продукты и обменивайте валюту.</p>
+            </article>
+        </div>
+    </section>
+
+    <section class="dashboard-section" th:if="${loggedIn}">
         <div class="dashboard-section-header">
             <h2 th:text="#{accounts.myAccounts}">Мои счета</h2>
         </div>
@@ -92,7 +125,7 @@
         <a class="section-action-link section-action-link-below" href="open.html" th:href="${loggedIn} ? @{/accounts/open} : null" th:classappend="${!loggedIn} ? ' disabled-link' : ''" th:attr="aria-disabled=${!loggedIn}" th:text="#{accounts.open}">Открыть счет</a>
     </section>
 
-    <section class="dashboard-section">
+    <section class="dashboard-section" th:if="${loggedIn}">
         <div class="dashboard-section-header">
             <h2 th:text="#{accounts.myDeposits}">Мои депозиты</h2>
         </div>
@@ -172,7 +205,7 @@
         <a class="section-action-link section-action-link-below" href="../deposits/index.html" th:href="${loggedIn} ? @{/deposits} : null" th:classappend="${!loggedIn} ? ' disabled-link' : ''" th:attr="aria-disabled=${!loggedIn}" th:text="#{accounts.openDeposit}">Открыть депозит</a>
     </section>
 
-    <section class="dashboard-section">
+    <section class="dashboard-section" th:if="${loggedIn}">
         <div class="dashboard-section-header">
             <h2 th:text="#{accounts.myLoans}">Мои кредиты</h2>
         </div>
@@ -223,7 +256,7 @@
         <a class="section-action-link section-action-link-below" href="../transfers/loan-payment.html" th:href="${loggedIn} ? @{/transfers/loan-payment} : null" th:classappend="${!loggedIn} ? ' disabled-link' : ''" th:attr="aria-disabled=${!loggedIn}" th:text="#{accounts.payLoan}">Оплатить кредит</a>
     </section>
 
-    <section class="dashboard-section">
+    <section class="dashboard-section" th:if="${loggedIn}">
         <div class="dashboard-section-header">
             <h2 th:text="#{accounts.recentOperations}">Последние операции</h2>
         </div>
