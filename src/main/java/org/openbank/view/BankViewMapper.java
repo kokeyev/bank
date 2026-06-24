@@ -8,6 +8,7 @@ import org.openbank.dto.LoanOption;
 import org.openbank.dto.LoanPaymentScheduleItem;
 import org.openbank.dto.LoanTypeView;
 import org.openbank.dto.LoanView;
+import org.openbank.dto.Page;
 import org.openbank.dto.TransactionView;
 import org.openbank.dto.TransferAccountOption;
 import org.openbank.model.Account;
@@ -98,7 +99,12 @@ public class BankViewMapper {
   }
 
   public LoanView toLoanView(Loan loan) {
+    return toLoanView(loan, 1, Integer.MAX_VALUE);
+  }
+
+  public LoanView toLoanView(Loan loan, int schedulePage, int scheduleSize) {
     LoanType loanType = loanService.getLoanTypeById(loan.getLoanTypeId()).orElseThrow(() -> new IllegalStateException(messageService.get("error.loanType.notFound")));
+    Page<LoanPaymentScheduleItem> paymentSchedulePage = getScheduleItems(loan, schedulePage, scheduleSize);
 
     return new LoanView(
         loan.getLoanId(),
@@ -112,7 +118,8 @@ public class BankViewMapper {
         LoanStatus.OFFERED.name().equals(loan.getStatus()),
         LoanStatus.ACTIVE.name().equals(loan.getStatus()),
         formatter.money(loanService.calculateLatePenalty(loan)) + " ₸",
-        getScheduleItems(loan)
+        paymentSchedulePage.getItems(),
+        paymentSchedulePage
     );
   }
 
@@ -190,15 +197,21 @@ public class BankViewMapper {
     return formatter.money(amount);
   }
 
-  private List<LoanPaymentScheduleItem> getScheduleItems(Loan loan) {
+  private Page<LoanPaymentScheduleItem> getScheduleItems(Loan loan, int page, int size) {
     if (!LoanStatus.ACTIVE.name().equals(loan.getStatus()) || loan.getMonthlyPayment() == null) {
-      return List.of();
+      return new Page<>(List.of(), 1, Math.max(size, 1), 0);
     }
 
     List<LocalDate> dueDates = loanService.getPaymentDueDates(loan);
+    int safeSize = Math.max(size, 1);
+    int total = dueDates.size();
+    int totalPages = Math.max(1, (int) Math.ceil((double) total / safeSize));
+    int currentPage = Math.min(Math.max(page, 1), totalPages);
+    int fromIndex = Math.min((currentPage - 1) * safeSize, total);
+    int toIndex = Math.min(fromIndex + safeSize, total);
     List<LoanPaymentScheduleItem> result = new ArrayList<>();
 
-    for (int i = 0; i < dueDates.size(); i++) {
+    for (int i = fromIndex; i < toIndex; i++) {
       LocalDate dueDate = dueDates.get(i);
       String status = dueDate.isBefore(LocalDate.now()) ? messageService.get("loans.schedule.checkPayment") : messageService.get("loans.schedule.expected");
       result.add(new LoanPaymentScheduleItem(
@@ -209,7 +222,7 @@ public class BankViewMapper {
       ));
     }
 
-    return result;
+    return new Page<>(result, currentPage, safeSize, total);
   }
 
   private String depositName(String productName) {

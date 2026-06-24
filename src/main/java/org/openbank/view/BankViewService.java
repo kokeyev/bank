@@ -104,7 +104,21 @@ public class BankViewService {
   }
 
   public Page<LoanView> getLoanViewsPage(Long userId, int page, int size) {
-    return new Page<>(getLoanViews(userId), page, size);
+    return getLoanViewsPage(userId, page, size, null, 1, Integer.MAX_VALUE);
+  }
+
+  public Page<LoanView> getLoanViewsPage(Long userId, int page, int size, Long scheduleLoanId, int schedulePage, int scheduleSize) {
+    int safeSize = Math.max(size, 1);
+    List<Loan> loans = loanService.getLoansByUserId(userId);
+    Page<Loan> loansPage = new Page<>(loans, page, safeSize);
+    List<LoanView> items = new ArrayList<>();
+
+    for (Loan loan : loansPage.getItems()) {
+      int loanSchedulePage = loan.getLoanId().equals(scheduleLoanId) ? schedulePage : 1;
+      items.add(mapper.toLoanView(loan, loanSchedulePage, scheduleSize));
+    }
+
+    return new Page<>(items, loansPage.getCurrentPage(), safeSize, loans.size());
   }
 
   public List<LoanView> getPendingLoanViews() {

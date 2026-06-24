@@ -167,6 +167,33 @@ public class AccountDaoImpl implements AccountDao {
     return getSingleUserAccount(userId, sql);
   }
 
+  @Override
+  public Optional<Account> getFirstActiveAccountByUserIdAndCurrencyIdForUpdate(Connection connection, Long userId, Long currencyId) {
+    String sql = """
+        select account_id, user_id, card_number, cvv, expiry_date, balance, currency_id, status, transaction_limit, name, is_main
+        from accounts
+        where user_id = ? and currency_id = ? and status = ?
+        order by is_main desc, account_id
+        limit 1
+        for update
+        """;
+
+    try (PreparedStatement statement = connection.prepareStatement(sql)) {
+      statement.setLong(1, userId);
+      statement.setLong(2, currencyId);
+      statement.setString(3, AccountStatus.ACTIVE.name());
+      try (ResultSet resultSet = statement.executeQuery()) {
+        if (resultSet.next()) {
+          return Optional.of(map(resultSet));
+        }
+      }
+
+      return Optional.empty();
+    } catch (SQLException e) {
+      throw new BankDataAccessException("Could not fetch user active account", e);
+    }
+  }
+
   private Optional<Account> getSingleUserAccount(Long userId, String sql) {
     Connection connection = null;
 

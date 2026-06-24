@@ -54,6 +54,7 @@ class DepositServiceTest {
   private static final String DEPOSIT_OPEN_TYPE = "DEPOSIT_OPEN";
   private static final String DEPOSIT_WITHDRAWAL_TYPE = "DEPOSIT_WITHDRAWAL";
   private static final String DEPOSIT_INTEREST_TYPE = "DEPOSIT_INTEREST";
+  private static final String DEPOSIT_REJECTION_REFUND_TYPE = "DEPOSIT_REJECTION_REFUND";
   private static final BigDecimal OPEN_AMOUNT = new BigDecimal("1000");
   private static final BigDecimal ACCOUNT_BALANCE = new BigDecimal("2000");
   private static final BigDecimal MINIMUM_AMOUNT = new BigDecimal("100");
@@ -167,6 +168,25 @@ class DepositServiceTest {
     service.withdrawFromDeposit(USER_ID, DEPOSIT_ID, ACCOUNT_ID, MINIMUM_AMOUNT);
 
     verify(accountDao).topUp(connection, ACCOUNT_ID, MINIMUM_AMOUNT);
+  }
+
+  @Test
+  void rejectDepositReturnsMoneyToActiveAccountAndRejectsApplication() {
+    Deposit deposit = deposit(DEPOSIT_ID, USER_ID, DEPOSIT_TYPE_ID, DepositStatus.PENDING.name(), OPEN_AMOUNT);
+    DepositType type = depositType(DEPOSIT_TYPE_ID, KOPILKA_PRODUCT_NAME, true, MINIMUM_AMOUNT);
+    Account refundAccount = account(ACCOUNT_ID, USER_ID, CURRENCY_ID, ACCOUNT_BALANCE);
+    when(depositDao.getDepositByIdForUpdate(connection, DEPOSIT_ID)).thenReturn(Optional.of(deposit));
+    when(depositTypeDao.getDepositTypeById(DEPOSIT_TYPE_ID)).thenReturn(Optional.of(type));
+    when(accountDao.getFirstActiveAccountByUserIdAndCurrencyIdForUpdate(connection, USER_ID, CURRENCY_ID)).thenReturn(Optional.of(refundAccount));
+    when(depositDao.setStatus(connection, DEPOSIT_ID, DepositStatus.REJECTED)).thenReturn(true);
+    when(accountDao.topUp(connection, ACCOUNT_ID, OPEN_AMOUNT)).thenReturn(true);
+    when(transactionDao.createNewTransaction(eq(connection), eq(null), eq(ACCOUNT_ID), any(), eq(OPEN_AMOUNT), eq(CURRENCY_ID), eq(BigDecimal.ZERO), anyString(), eq(DEPOSIT_REJECTION_REFUND_TYPE))).thenReturn(true);
+
+    service.rejectDeposit(DEPOSIT_ID);
+
+    verify(depositDao).setStatus(connection, DEPOSIT_ID, DepositStatus.REJECTED);
+    verify(accountDao).topUp(connection, ACCOUNT_ID, OPEN_AMOUNT);
+    verify(transactionDao).createNewTransaction(eq(connection), eq(null), eq(ACCOUNT_ID), any(), eq(OPEN_AMOUNT), eq(CURRENCY_ID), eq(BigDecimal.ZERO), anyString(), eq(DEPOSIT_REJECTION_REFUND_TYPE));
   }
 
   @Test

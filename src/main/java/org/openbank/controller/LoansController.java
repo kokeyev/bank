@@ -30,6 +30,7 @@ public class LoansController {
   private static final String AUTO = AutoLoanStrategy.PRODUCT_NAME;
   private static final String MORTGAGE = MortgageLoanStrategy.PRODUCT_NAME;
   private static final int LOAN_PAGE_SIZE = 4;
+  private static final int SCHEDULE_PAGE_SIZE = 6;
 
   private final CurrentUserService currentUserService;
   private final LoanService loanService;
@@ -44,10 +45,10 @@ public class LoansController {
   }
 
   @GetMapping("/loans")
-  public String loans(@RequestParam(value = "page", defaultValue = "1") int page, HttpSession session, Model model) {
+  public String loans(@RequestParam(value = "page", defaultValue = "1") int page, @RequestParam(value = "scheduleLoanId", required = false) Long scheduleLoanId, @RequestParam(value = "schedulePage", defaultValue = "1") int schedulePage, HttpSession session, Model model) {
     model.addAttribute("loanTypes", bankViewService.getLoanTypeViews());
 
-    currentUserService.getCurrentUser(session).ifPresent(user -> model.addAttribute("loansPage", bankViewService.getLoanViewsPage(user.getUserId(), page, LOAN_PAGE_SIZE)));
+    currentUserService.getCurrentUser(session).ifPresent(user -> model.addAttribute("loansPage", bankViewService.getLoanViewsPage(user.getUserId(), page, LOAN_PAGE_SIZE, scheduleLoanId, schedulePage, SCHEDULE_PAGE_SIZE)));
 
     return "loans/index";
   }

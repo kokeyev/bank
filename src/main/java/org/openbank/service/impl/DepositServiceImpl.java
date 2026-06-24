@@ -176,7 +176,24 @@ public class DepositServiceImpl implements DepositService {
   }
 
   public boolean rejectDeposit(Long depositId) {
-    return depositDao.setStatus(depositId, DepositStatus.REJECTED);
+    return transactionRunner.run(messageService.get("deposit.operation.reject.error"), connection -> {
+      Deposit deposit = depositDao.getDepositByIdForUpdate(connection, depositId)
+          .orElseThrow(() -> new IllegalArgumentException(messageService.get("error.deposit.notFound")));
+      validatePendingDeposit(deposit);
+
+      DepositType depositType = depositTypeDao.getDepositTypeById(deposit.getDepositTypeId())
+          .orElseThrow(() -> new IllegalArgumentException(messageService.get("error.depositType.notFound")));
+      Account refundAccount = accountDao.getFirstActiveAccountByUserIdAndCurrencyIdForUpdate(connection, deposit.getUserId(), depositType.getCurrencyId())
+          .orElseThrow(() -> new IllegalArgumentException(messageService.get("error.account.refundNotFound")));
+
+      if (!depositDao.setStatus(connection, depositId, DepositStatus.REJECTED)) {
+        throw new IllegalStateException(messageService.get("deposit.operation.reject.error"));
+      }
+      topUpAccount(connection, refundAccount.getAccountId(), deposit.getCurrentAmount());
+      createTransactionHistory(connection, null, refundAccount.getAccountId(), deposit.getCurrentAmount(), depositType.getCurrencyId(), messageService.get("transaction.message.depositRejectionRefund", depositId), TransactionType.DEPOSIT_REJECTION_REFUND.name());
+
+      return true;
+    });
   }
 
   public int accrueInterestForActiveDeposits() {
@@ -286,6 +303,12 @@ public class DepositServiceImpl implements DepositService {
   private void validateActiveDeposit(Deposit deposit) {
     if (!DepositStatus.ACTIVE.name().equals(deposit.getStatus())) {
       throw new IllegalArgumentException(messageService.get("deposit.validation.activeOnly"));
+    }
+  }
+
+  private void validatePendingDeposit(Deposit deposit) {
+    if (!DepositStatus.PENDING.name().equals(deposit.getStatus())) {
+      throw new IllegalArgumentException(messageService.get("deposit.validation.pendingOnly"));
     }
   }
 

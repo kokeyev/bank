@@ -14,7 +14,8 @@ public enum TransactionType {
   DEPOSIT_OPEN("transaction.type.depositOpen"),
   DEPOSIT_TOP_UP("transaction.type.depositTopUp"),
   DEPOSIT_WITHDRAWAL("transaction.type.depositWithdrawal"),
-  DEPOSIT_INTEREST("transaction.type.depositInterest");
+  DEPOSIT_INTEREST("transaction.type.depositInterest"),
+  DEPOSIT_REJECTION_REFUND("transaction.type.depositRejectionRefund");
 
   private final String messageKey;
 

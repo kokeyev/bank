@@ -105,7 +105,7 @@
                     </form>
                 </div>
 
-                <div class="loan-schedule" th:if="${loan.schedule != null && !loan.schedule.isEmpty()}">
+                <div class="loan-schedule" th:if="${loan.schedulePage != null && !loan.schedulePage.items.isEmpty()}">
                     <h3 th:text="#{loans.schedule}">График платежей</h3>
                     <table class="exchange-table">
                         <thead>
@@ -117,7 +117,7 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <tr th:each="item : ${loan.schedule}">
+                        <tr th:each="item : ${loan.schedulePage.items}">
                             <td th:text="${item.number}">1</td>
                             <td th:text="${item.dueDate}">11.07.2026</td>
                             <td th:text="${item.payment}">27 000.00 ₸</td>
@@ -125,6 +125,11 @@
                         </tr>
                         </tbody>
                     </table>
+                    <nav class="pagination" th:if="${loan.schedulePage.totalPages > 1}">
+                        <a th:if="${loan.schedulePage.hasPrevious}" th:href="@{/loans(page=${loansPage.currentPage},scheduleLoanId=${loan.loanId},schedulePage=${loan.schedulePage.currentPage - 1})}" th:text="#{pagination.previous}">Previous</a>
+                        <span th:text="${loan.schedulePage.currentPage + ' / ' + loan.schedulePage.totalPages}">1 / 1</span>
+                        <a th:if="${loan.schedulePage.hasNext}" th:href="@{/loans(page=${loansPage.currentPage},scheduleLoanId=${loan.loanId},schedulePage=${loan.schedulePage.currentPage + 1})}" th:text="#{pagination.next}">Next</a>
+                    </nav>
                 </div>
             </div>
         </div>

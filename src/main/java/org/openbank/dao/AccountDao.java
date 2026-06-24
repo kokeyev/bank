@@ -32,6 +32,9 @@ public interface AccountDao {
   /** Finds the first active account for a user. */
   Optional<Account> getFirstActiveAccountByUserId(Long userId);
 
+  /** Finds and locks the first active account for a user and currency. */
+  Optional<Account> getFirstActiveAccountByUserIdAndCurrencyIdForUpdate(Connection connection, Long userId, Long currencyId);
+
   /** Returns all accounts for a user. */
   List<Account> getAccountsByUserId(Long userId);
 

@@ -16,12 +16,17 @@ public class LoanView {
   private final boolean active;
   private final String penalty;
   private final List<LoanPaymentScheduleItem> schedule;
+  private final Page<LoanPaymentScheduleItem> schedulePage;
 
   public LoanView(Long loanId, String typeName, String amount, String rate, String duration, String monthlyPayment, String status, String startDate, boolean offered) {
-    this(loanId, typeName, amount, rate, duration, monthlyPayment, status, startDate, offered, false, "0.00 ₸", List.of());
+    this(loanId, typeName, amount, rate, duration, monthlyPayment, status, startDate, offered, false, "0.00 ₸", List.of(), new Page<>(List.of(), 1, 1, 0));
   }
 
   public LoanView(Long loanId, String typeName, String amount, String rate, String duration, String monthlyPayment, String status, String startDate, boolean offered, boolean active, String penalty, List<LoanPaymentScheduleItem> schedule) {
+    this(loanId, typeName, amount, rate, duration, monthlyPayment, status, startDate, offered, active, penalty, schedule, new Page<>(schedule, 1, Math.max(schedule == null ? 1 : schedule.size(), 1)));
+  }
+
+  public LoanView(Long loanId, String typeName, String amount, String rate, String duration, String monthlyPayment, String status, String startDate, boolean offered, boolean active, String penalty, List<LoanPaymentScheduleItem> schedule, Page<LoanPaymentScheduleItem> schedulePage) {
     this.loanId = loanId;
     this.typeName = typeName;
     this.amount = amount;
@@ -34,6 +39,7 @@ public class LoanView {
     this.active = active;
     this.penalty = penalty;
     this.schedule = schedule;
+    this.schedulePage = schedulePage;
   }
 
   public Long getLoanId() {
@@ -82,5 +88,9 @@ public class LoanView {
 
   public List<LoanPaymentScheduleItem> getSchedule() {
     return schedule;
+  }
+
+  public Page<LoanPaymentScheduleItem> getSchedulePage() {
+    return schedulePage;
   }
 }
