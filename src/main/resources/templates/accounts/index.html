@@ -94,7 +94,7 @@
 
                 <div class="account-actions">
 
-                    <form class="action-block" method="post" th:action="@{/accounts/{accountId}/limit(accountId=${account.accountId})}">
+                    <form class="action-block" method="post" th:action="@{/accounts/{accountId}/limit(accountId=${account.accountId})}" novalidate>
             <input type="hidden" name="_csrf" th:value="${csrfToken}">
                         <label th:text="#{accounts.transactionLimit}">Лимит на транзакцию</label>
                         <input type="number" name="transactionLimit" min="0" step="0.01" th:value="${account.transactionLimitValue}" th:placeholder="${account.transactionLimit}" th:disabled="${!account.active}">

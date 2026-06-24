@@ -106,7 +106,7 @@ public class AccountsController {
       addOpenAccountModelAttributes(model, openAccountRequest);
       List<String> errorMessages = new ArrayList<>();
       for (FieldError error : bindingResult.getFieldErrors()) {
-        errorMessages.add(error.getDefaultMessage());
+        errorMessages.add(validationMessage(error));
       }
       model.addAttribute("accountOpenErrors", errorMessages);
       return "accounts/open";
@@ -191,6 +191,15 @@ public class AccountsController {
 
   private String firstError(BindingResult bindingResult) {
     FieldError error = bindingResult.getFieldErrors().getFirst();
-    return error.getDefaultMessage();
+    return validationMessage(error);
+  }
+
+  private String validationMessage(FieldError error) {
+    String message = error.getDefaultMessage();
+    if (message != null && message.startsWith("{") && message.endsWith("}")) {
+      return messageService.get(message.substring(1, message.length() - 1));
+    }
+
+    return message;
   }
 }

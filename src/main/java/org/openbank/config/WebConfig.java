@@ -1,6 +1,7 @@
 package org.openbank.config;
 
 import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -14,6 +15,7 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
+import org.springframework.validation.Validator;
 
 import org.thymeleaf.spring6.SpringTemplateEngine;
 import org.thymeleaf.spring6.templateresolver.SpringResourceTemplateResolver;
@@ -29,11 +31,13 @@ public class WebConfig implements WebMvcConfigurer {
   private final ApplicationContext applicationContext;
   private final LoginRequiredInterceptor loginRequiredInterceptor;
   private final CsrfInterceptor csrfInterceptor;
+  private final Validator validator;
 
-  public WebConfig(ApplicationContext applicationContext, LoginRequiredInterceptor loginRequiredInterceptor, CsrfInterceptor csrfInterceptor) {
+  public WebConfig(ApplicationContext applicationContext, LoginRequiredInterceptor loginRequiredInterceptor, CsrfInterceptor csrfInterceptor, @Qualifier("validator") Validator validator) {
     this.applicationContext = applicationContext;
     this.loginRequiredInterceptor = loginRequiredInterceptor;
     this.csrfInterceptor = csrfInterceptor;
+    this.validator = validator;
   }
 
   @Bean
@@ -93,6 +97,11 @@ public class WebConfig implements WebMvcConfigurer {
     registry.addInterceptor(localeChangeInterceptor());
     registry.addInterceptor(csrfInterceptor);
     registry.addInterceptor(loginRequiredInterceptor);
+  }
+
+  @Override
+  public Validator getValidator() {
+    return validator;
   }
 
   @Override

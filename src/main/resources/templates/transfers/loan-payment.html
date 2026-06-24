@@ -16,7 +16,7 @@
     <section class="transfer-form-card">
         <h1 th:text="#{transfers.loanPayment}">Погасить кредит</h1>
 
-        <form class="transfer-form" method="post" th:action="@{/transfers/loan-payment}" th:object="${loanPaymentRequest}">
+        <form class="transfer-form" method="post" th:action="@{/transfers/loan-payment}" th:object="${loanPaymentRequest}" novalidate>
             <input type="hidden" name="_csrf" th:value="${csrfToken}">
             <div class="transfer-message transfer-message-success" th:if="${loanPaymentSuccess}" th:text="${loanPaymentSuccess}"></div>
 
@@ -41,6 +41,7 @@
             <div class="transfer-field">
                 <label for="amount" th:text="#{transfers.amount}">Сумма перевода</label>
                 <input id="amount" name="amount" th:field="*{amount}" type="number" min="0.01" step="0.01" placeholder="0" required>
+                <p class="field-error" th:if="${#fields.hasErrors('amount')}" th:errors="*{amount}">Ошибка</p>
             </div>
 
             <div class="commission-row">

@@ -16,7 +16,7 @@
     <section class="open-account-card">
         <h1 th:text="#{accounts.open}">Открыть счет</h1>
 
-        <form class="open-account-form" method="post" th:action="@{/accounts/open}" th:object="${openAccountRequest}">
+        <form class="open-account-form" method="post" th:action="@{/accounts/open}" th:object="${openAccountRequest}" novalidate>
             <input type="hidden" name="_csrf" th:value="${csrfToken}">
             <div class="open-account-message open-account-message-error" th:if="${accountOpenError}" th:text="${accountOpenError}"></div>
             <div class="open-account-message open-account-message-error" th:if="${accountOpenErrors}">
