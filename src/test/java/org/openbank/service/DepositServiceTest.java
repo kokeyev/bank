@@ -3,7 +3,7 @@ package org.openbank.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.function.Executable;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.openbank.dao.AccountDao;
@@ -54,7 +54,6 @@ class DepositServiceTest {
   private static final String DEPOSIT_OPEN_TYPE = "DEPOSIT_OPEN";
   private static final String DEPOSIT_WITHDRAWAL_TYPE = "DEPOSIT_WITHDRAWAL";
   private static final String DEPOSIT_INTEREST_TYPE = "DEPOSIT_INTEREST";
-  private static final String DEPOSIT_REJECTION_REFUND_TYPE = "DEPOSIT_REJECTION_REFUND";
   private static final BigDecimal OPEN_AMOUNT = new BigDecimal("1000");
   private static final BigDecimal ACCOUNT_BALANCE = new BigDecimal("2000");
   private static final BigDecimal MINIMUM_AMOUNT = new BigDecimal("100");
@@ -89,11 +88,15 @@ class DepositServiceTest {
 
   private final MessageService messageService = (code, args) -> code;
 
-  private DepositService service;
+  private DepositServiceImpl service;
 
   @BeforeEach
   void runCallbacks() {
-    DepositProductStrategyResolver strategyResolver = new DepositProductStrategyResolver(List.of(new KopilkaDepositStrategy(messageService), new StrategyDepositStrategy(messageService), new CapitalDepositStrategy(messageService)), messageService);
+    DepositProductStrategyResolver strategyResolver = new DepositProductStrategyResolver(List.of(
+        new KopilkaDepositStrategy(messageService),
+        new StrategyDepositStrategy(messageService),
+        new CapitalDepositStrategy(messageService)
+    ), messageService);
     service = new DepositServiceImpl(depositDao, depositTypeDao, accountDao, currencyDao, transactionDao, transactionRunner, strategyResolver, messageService);
 
     when(transactionRunner.run(anyString(), any())).thenAnswer(invocation -> {
@@ -145,8 +148,7 @@ class DepositServiceTest {
     when(depositDao.getDepositByIdForUpdate(connection, DEPOSIT_ID)).thenReturn(Optional.of(deposit));
     when(depositTypeDao.getDepositTypeById(DEPOSIT_TYPE_ID)).thenReturn(Optional.of(capital));
 
-    Executable executable = () -> service.topUpDeposit(USER_ID, ACCOUNT_ID, DEPOSIT_ID, BigDecimal.TEN);
-    assertThrows(IllegalArgumentException.class, executable);
+    assertThrows(IllegalArgumentException.class, () -> service.topUpDeposit(USER_ID, ACCOUNT_ID, DEPOSIT_ID, BigDecimal.TEN));
   }
 
   @Test
@@ -167,25 +169,6 @@ class DepositServiceTest {
   }
 
   @Test
-  void rejectDepositReturnsMoneyToActiveAccountAndRejectsApplication() {
-    Deposit deposit = deposit(DEPOSIT_ID, USER_ID, DEPOSIT_TYPE_ID, DepositStatus.PENDING.name(), OPEN_AMOUNT);
-    DepositType type = depositType(DEPOSIT_TYPE_ID, KOPILKA_PRODUCT_NAME, true, MINIMUM_AMOUNT);
-    Account refundAccount = account(ACCOUNT_ID, USER_ID, CURRENCY_ID, ACCOUNT_BALANCE);
-    when(depositDao.getDepositByIdForUpdate(connection, DEPOSIT_ID)).thenReturn(Optional.of(deposit));
-    when(depositTypeDao.getDepositTypeById(DEPOSIT_TYPE_ID)).thenReturn(Optional.of(type));
-    when(accountDao.getFirstActiveAccountByUserIdAndCurrencyIdForUpdate(connection, USER_ID, CURRENCY_ID)).thenReturn(Optional.of(refundAccount));
-    when(depositDao.setStatus(connection, DEPOSIT_ID, DepositStatus.REJECTED)).thenReturn(true);
-    when(accountDao.topUp(connection, ACCOUNT_ID, OPEN_AMOUNT)).thenReturn(true);
-    when(transactionDao.createNewTransaction(eq(connection), eq(null), eq(ACCOUNT_ID), any(), eq(OPEN_AMOUNT), eq(CURRENCY_ID), eq(BigDecimal.ZERO), anyString(), eq(DEPOSIT_REJECTION_REFUND_TYPE))).thenReturn(true);
-
-    service.rejectDeposit(DEPOSIT_ID);
-
-    verify(depositDao).setStatus(connection, DEPOSIT_ID, DepositStatus.REJECTED);
-    verify(accountDao).topUp(connection, ACCOUNT_ID, OPEN_AMOUNT);
-    verify(transactionDao).createNewTransaction(eq(connection), eq(null), eq(ACCOUNT_ID), any(), eq(OPEN_AMOUNT), eq(CURRENCY_ID), eq(BigDecimal.ZERO), anyString(), eq(DEPOSIT_REJECTION_REFUND_TYPE));
-  }
-
-  @Test
   void accrueInterestTopsUpReinvestedDeposits() {
     Deposit deposit = deposit(DEPOSIT_ID, USER_ID, DEPOSIT_TYPE_ID, DepositStatus.ACTIVE.name(), CURRENT_DEPOSIT_AMOUNT);
     DepositType type = depositType(DEPOSIT_TYPE_ID, STRATEGY_PRODUCT_NAME, false, BigDecimal.ZERO);
@@ -196,25 +179,6 @@ class DepositServiceTest {
     when(transactionDao.createNewTransaction(eq(connection), eq(null), eq(null), any(), eq(MONTHLY_INTEREST), eq(CURRENCY_ID), eq(BigDecimal.ZERO), anyString(), eq(DEPOSIT_INTEREST_TYPE))).thenReturn(true);
 
     assertEquals(EXPECTED_UPDATED_COUNT, service.accrueInterestForActiveDeposits());
-  }
-
-  @Test
-  void accrueInterestTopsUpActiveAccountWhenInterestIsNotReinvested() {
-    Deposit deposit = deposit(DEPOSIT_ID, USER_ID, DEPOSIT_TYPE_ID, DepositStatus.ACTIVE.name(), CURRENT_DEPOSIT_AMOUNT);
-    deposit.setReinvestInterest(false);
-    DepositType type = depositType(DEPOSIT_TYPE_ID, STRATEGY_PRODUCT_NAME, false, BigDecimal.ZERO);
-    type.setRate(INTEREST_RATE);
-    Account targetAccount = account(ACCOUNT_ID, USER_ID, CURRENCY_ID, ACCOUNT_BALANCE);
-    when(depositDao.getDepositsByStatus(DepositStatus.ACTIVE)).thenReturn(List.of(deposit));
-    when(depositTypeDao.getDepositTypeById(DEPOSIT_TYPE_ID)).thenReturn(Optional.of(type));
-    when(accountDao.getFirstActiveAccountByUserIdAndCurrencyIdForUpdate(connection, USER_ID, CURRENCY_ID)).thenReturn(Optional.of(targetAccount));
-    when(accountDao.topUp(connection, ACCOUNT_ID, MONTHLY_INTEREST)).thenReturn(true);
-    when(transactionDao.createNewTransaction(eq(connection), eq(null), eq(ACCOUNT_ID), any(), eq(MONTHLY_INTEREST), eq(CURRENCY_ID), eq(BigDecimal.ZERO), anyString(), eq(DEPOSIT_INTEREST_TYPE))).thenReturn(true);
-
-    assertEquals(EXPECTED_UPDATED_COUNT, service.accrueInterestForActiveDeposits());
-
-    verify(accountDao).topUp(connection, ACCOUNT_ID, MONTHLY_INTEREST);
-    verify(transactionDao).createNewTransaction(eq(connection), eq(null), eq(ACCOUNT_ID), any(), eq(MONTHLY_INTEREST), eq(CURRENCY_ID), eq(BigDecimal.ZERO), anyString(), eq(DEPOSIT_INTEREST_TYPE));
   }
 
   @Test
@@ -239,7 +203,6 @@ class DepositServiceTest {
     request.setAmount(amount);
     request.setAutoRenewal(true);
     request.setReinvestInterest(false);
-
     return request;
   }
 

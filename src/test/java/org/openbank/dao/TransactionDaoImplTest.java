@@ -3,6 +3,7 @@ package org.openbank.dao;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.openbank.dao.impl.TransactionDaoImpl;
@@ -56,12 +57,9 @@ class TransactionDaoImplTest {
   @Mock
   private ResultSet resultSet;
 
+  @InjectMocks
   private TransactionDaoImpl dao;
 
-  @BeforeEach
-  void setUp() {
-    dao = new TransactionDaoImpl(connectionPool);
-  }
 
   @Test
   void createNewTransactionBindsAllFields() throws SQLException {

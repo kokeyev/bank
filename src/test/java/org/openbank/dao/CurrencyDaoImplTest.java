@@ -52,7 +52,6 @@ class CurrencyDaoImplTest {
 
   @BeforeEach
   void setUp() throws SQLException {
-    testingInstance = new CurrencyDaoImpl(connectionPool);
     when(connectionPool.getConnection()).thenReturn(connection);
     when(connection.prepareStatement(anyString())).thenReturn(statement);
   }
