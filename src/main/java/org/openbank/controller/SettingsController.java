@@ -65,6 +65,7 @@ public class SettingsController {
       }
       model.addAttribute("contactErrors", errorMessages);
       addSelectedLanguage(model);
+
       return "settings/index";
     }
 
@@ -78,6 +79,7 @@ public class SettingsController {
     }
 
     addSelectedLanguage(model);
+
     return "settings/index";
   }
 
@@ -102,6 +104,7 @@ public class SettingsController {
       }
       model.addAttribute("passwordErrors", errorMessages);
       addSelectedLanguage(model);
+
       return "settings/index";
     }
 
@@ -115,6 +118,7 @@ public class SettingsController {
     }
 
     addSelectedLanguage(model);
+
     return "settings/index";
   }
 
@@ -128,6 +132,7 @@ public class SettingsController {
 
     userService.deactivateUser(currentUser.get().getUserId());
     session.invalidate();
+
     return "redirect:/?accountDeactivated=true";
   }
 

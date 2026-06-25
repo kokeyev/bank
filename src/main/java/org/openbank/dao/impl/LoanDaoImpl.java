@@ -18,9 +18,11 @@ import java.util.Optional;
 public class LoanDaoImpl implements LoanDao {
 
   private final ConnectionPool connectionPool;
+
   public LoanDaoImpl(ConnectionPool connectionPool) {
     this.connectionPool = connectionPool;
   }
+
   @Override
   public List<Loan> getPendingLoans() {
 
@@ -53,6 +55,7 @@ public class LoanDaoImpl implements LoanDao {
       connectionPool.releaseConnection(connection);
     }
   }
+
   @Override
   public Optional<Loan> getLoanById(Long loanId) {
     String sql = """
@@ -81,6 +84,7 @@ public class LoanDaoImpl implements LoanDao {
       connectionPool.releaseConnection(connection);
     }
   }
+
   @Override
   public List<Loan> getLoansByUserId(Long userId) {
     List<Loan> loans = new ArrayList<>();
@@ -112,6 +116,7 @@ public class LoanDaoImpl implements LoanDao {
       connectionPool.releaseConnection(connection);
     }
   }
+
   @Override
   public List<Loan> getActiveLoansByUserId(Long userId) {
     List<Loan> loans = new ArrayList<>();
@@ -144,6 +149,7 @@ public class LoanDaoImpl implements LoanDao {
       connectionPool.releaseConnection(connection);
     }
   }
+
   @Override
   public boolean createPendingLoan(Long userId, Long loanTypeId, Long accountId, BigDecimal requestedAmount) {
     String sql = """
@@ -163,6 +169,7 @@ public class LoanDaoImpl implements LoanDao {
         statement.setString(5, LoanStatus.PENDING.name());
 
         int rowsAffected = statement.executeUpdate();
+
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
@@ -171,6 +178,7 @@ public class LoanDaoImpl implements LoanDao {
       connectionPool.releaseConnection(connection);
     }
   }
+
   @Override
   public boolean createOffer(Long parentLoanId, Long userId, Long loanTypeId, Long accountId, BigDecimal amount, BigDecimal rate, Integer duration, BigDecimal monthlyPayment) {
     String sql = """
@@ -194,6 +202,7 @@ public class LoanDaoImpl implements LoanDao {
         statement.setBigDecimal(9, monthlyPayment);
 
         int rowsAffected = statement.executeUpdate();
+
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
@@ -202,6 +211,7 @@ public class LoanDaoImpl implements LoanDao {
       connectionPool.releaseConnection(connection);
     }
   }
+
   @Override
   public List<Loan> getOffers(Long userId) {
     List<Loan> loans = new ArrayList<>();
@@ -234,6 +244,7 @@ public class LoanDaoImpl implements LoanDao {
       connectionPool.releaseConnection(connection);
     }
   }
+
   @Override
   public boolean acceptOffer(Long userId, Long loanId) {
     Connection connection = null;
@@ -245,16 +256,19 @@ public class LoanDaoImpl implements LoanDao {
       Optional<Loan> acceptedOffer = acceptOffer(connection, userId, loanId);
       if (acceptedOffer.isEmpty()) {
         connection.rollback();
+
         return false;
       }
 
       connection.commit();
+
       return true;
     } catch (SQLException | RuntimeException e) {
       rollback(connection);
       if (e instanceof RuntimeException runtimeException) {
         throw runtimeException;
       }
+
       throw new BankDataAccessException("Could not accept loan offer", e);
     } finally {
       resetAutoCommit(connection);
@@ -350,6 +364,7 @@ public class LoanDaoImpl implements LoanDao {
         statement.setString(4, LoanStatus.OFFERED.name());
 
         int rowsAffected = statement.executeUpdate();
+
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
@@ -404,6 +419,7 @@ public class LoanDaoImpl implements LoanDao {
         statement.setString(5, LoanStatus.ACTIVE.name());
 
         int rowsAffected = statement.executeUpdate();
+
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
@@ -412,6 +428,7 @@ public class LoanDaoImpl implements LoanDao {
       connectionPool.releaseConnection(connection);
     }
   }
+
   @Override
   public boolean payLoan(Connection connection, Long loanId, BigDecimal amount) {
     String sql = """
@@ -436,6 +453,7 @@ public class LoanDaoImpl implements LoanDao {
 
   private Loan map(ResultSet resultSet) throws SQLException {
     Date startDate = resultSet.getDate("start_date");
+
     return new Loan(
         resultSet.getLong("loan_id"),
         resultSet.getLong("user_id"),
@@ -453,6 +471,7 @@ public class LoanDaoImpl implements LoanDao {
 
   private Long getLongOrNull(ResultSet resultSet, String columnName) throws SQLException {
     long value = resultSet.getLong(columnName);
+
     return resultSet.wasNull() ? null : value;
   }
 

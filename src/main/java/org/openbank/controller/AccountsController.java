@@ -75,6 +75,7 @@ public class AccountsController {
 
     if (bindingResult.hasErrors()) {
       redirectAttributes.addFlashAttribute("depositError", firstError(bindingResult));
+
       return "redirect:/accounts";
     }
 
@@ -91,6 +92,7 @@ public class AccountsController {
   @GetMapping("/accounts/open")
   public String openAccount(Model model) {
     addOpenAccountModelAttributes(model, new OpenAccountRequest());
+
     return "accounts/open";
   }
 
@@ -109,6 +111,7 @@ public class AccountsController {
         errorMessages.add(validationMessage(error));
       }
       model.addAttribute("accountOpenErrors", errorMessages);
+
       return "accounts/open";
     }
 
@@ -191,6 +194,7 @@ public class AccountsController {
 
   private String firstError(BindingResult bindingResult) {
     FieldError error = bindingResult.getFieldErrors().getFirst();
+
     return validationMessage(error);
   }
 

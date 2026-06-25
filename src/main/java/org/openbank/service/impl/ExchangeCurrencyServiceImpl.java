@@ -38,6 +38,7 @@ public class ExchangeCurrencyServiceImpl implements ExchangeCurrencyService {
 
     BigDecimal fromRate = currencyDao.getCurrencyRateToKztById(fromCurrencyId);
     BigDecimal toRate = currencyDao.getCurrencyRateToKztById(toCurrencyId);
+
     return amount.multiply(fromRate).divide(toRate, 2, RoundingMode.HALF_UP);
   }
 
@@ -48,6 +49,7 @@ public class ExchangeCurrencyServiceImpl implements ExchangeCurrencyService {
     if (rateToKzt == null || rateToKzt.compareTo(BigDecimal.ZERO) <= 0) {
       throw new IllegalArgumentException(messageService.get("exchange.validation.rate.positive"));
     }
+
     return currencyDao.updateCurrencyRate(currencyId, rateToKzt);
   }
 }

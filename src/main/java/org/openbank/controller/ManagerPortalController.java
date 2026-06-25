@@ -36,6 +36,7 @@ public class ManagerPortalController {
     }
 
     model.addAttribute("createUserRequest", new CreateUserRequest());
+
     return "manager/index";
   }
 
@@ -47,10 +48,12 @@ public class ManagerPortalController {
       model.addAttribute("managerLoginError", messageService.get("manager.login.invalid"));
       model.addAttribute("managerLogin", login);
       model.addAttribute("createUserRequest", new CreateUserRequest());
+
       return "manager/index";
     }
 
     staffSessionService.loginManager(session, manager.get());
+
     return "redirect:/manager/accounts";
   }
 
@@ -71,6 +74,7 @@ public class ManagerPortalController {
   @PostMapping("/manager/logout")
   public String logout(HttpSession session) {
     staffSessionService.logoutManager(session);
+
     return "redirect:/manager";
   }
 }

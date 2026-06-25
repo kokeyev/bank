@@ -36,6 +36,7 @@ public class LoanProductStrategyResolver {
     if (strategy == null) {
       throw new IllegalArgumentException(messageService.get("error.loanType.notFound"));
     }
+
     return strategy;
   }
 
@@ -53,6 +54,7 @@ public class LoanProductStrategyResolver {
     if (strategy == null) {
       throw new IllegalStateException(messageService.get("loan.validation.strategies.notConfigured"));
     }
+
     return strategy;
   }
 }

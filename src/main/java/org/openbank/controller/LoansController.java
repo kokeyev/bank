@@ -47,7 +47,6 @@ public class LoansController {
   @GetMapping("/loans")
   public String loans(@RequestParam(value = "page", defaultValue = "1") int page, @RequestParam(value = "scheduleLoanId", required = false) Long scheduleLoanId, @RequestParam(value = "schedulePage", defaultValue = "1") int schedulePage, HttpSession session, Model model) {
     model.addAttribute("loanTypes", bankViewService.getLoanTypeViews());
-
     currentUserService.getCurrentUser(session).ifPresent(user -> model.addAttribute("loansPage", bankViewService.getLoanViewsPage(user.getUserId(), page, LOAN_PAGE_SIZE, scheduleLoanId, schedulePage, SCHEDULE_PAGE_SIZE)));
 
     return "loans/index";
@@ -56,6 +55,7 @@ public class LoansController {
   @GetMapping("/loans/purpose")
   public String purposeLoan(HttpSession session, Model model) {
     addLoanFormModel(model, PURPOSE, new LoanApplicationRequest(), session);
+
     return "loans/purpose";
   }
 
@@ -67,6 +67,7 @@ public class LoansController {
   @GetMapping("/loans/auto")
   public String autoLoan(HttpSession session, Model model) {
     addLoanFormModel(model, AUTO, new LoanApplicationRequest(), session);
+
     return "loans/auto";
   }
 
@@ -78,6 +79,7 @@ public class LoansController {
   @GetMapping("/loans/mortgage")
   public String mortgageLoan(HttpSession session, Model model) {
     addLoanFormModel(model, MORTGAGE, new LoanApplicationRequest(), session);
+
     return "loans/mortgage";
   }
 
@@ -110,7 +112,6 @@ public class LoansController {
     if (currentUser.isEmpty()) {
       return "redirect:/login?loginRequired=true";
     }
-
     if (loanService.rejectOffer(currentUser.get().getUserId(), loanId)) {
       redirectAttributes.addFlashAttribute("loanSuccess", messageService.get("loans.offer.reject.success"));
     } else {
@@ -129,6 +130,7 @@ public class LoansController {
 
     if (bindingResult.hasErrors()) {
       addLoanFormModel(model, loanTypeName, request, session);
+
       return template;
     }
 
@@ -147,7 +149,6 @@ public class LoansController {
   private void addLoanFormModel(Model model, String loanTypeName, LoanApplicationRequest request, HttpSession session) {
     model.addAttribute("loanApplicationRequest", request);
     model.addAttribute("loanType", bankViewService.getLoanTypeView(loanTypeName));
-    currentUserService.getCurrentUser(session)
-        .ifPresent(user -> model.addAttribute("kztAccountOptions", bankViewService.getKztAccountOptions(user.getUserId())));
+    currentUserService.getCurrentUser(session).ifPresent(user -> model.addAttribute("kztAccountOptions", bankViewService.getKztAccountOptions(user.getUserId())));
   }
 }

@@ -263,6 +263,7 @@ class UserServiceTest {
     request.setEmail(RAW_EMAIL);
     request.setPassword(PASSWORD);
     request.setConfirmPassword(PASSWORD);
+
     return request;
   }
 

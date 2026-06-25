@@ -37,6 +37,7 @@ public class ManagerLoansController {
   @GetMapping("/manager/loans")
   public String pendingLoans(@RequestParam(value = "page", defaultValue = "1") int page, Model model) {
     addPendingLoanModel(model, new LoanOfferRequest(), page);
+
     return "manager/loans";
   }
 
@@ -50,6 +51,7 @@ public class ManagerLoansController {
       }
       model.addAttribute("managerLoanErrors", errorMessages);
       addPendingLoanModel(model, request, page);
+
       return "manager/loans";
     }
 

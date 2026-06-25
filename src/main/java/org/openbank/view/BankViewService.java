@@ -55,6 +55,7 @@ public class BankViewService {
     for (Account account : accountService.getAccountsByUserId(userId)) {
       result.add(mapper.toAccountView(account));
     }
+
     return result;
   }
 
@@ -76,6 +77,7 @@ public class BankViewService {
     for (Deposit deposit : depositService.getDepositsByUserId(userId)) {
       result.add(mapper.toDepositView(deposit));
     }
+
     return result;
   }
 
@@ -88,6 +90,7 @@ public class BankViewService {
     for (Deposit deposit : depositService.getPendingDeposits()) {
       result.add(mapper.toDepositView(deposit));
     }
+
     return result;
   }
 
@@ -100,6 +103,7 @@ public class BankViewService {
     for (Loan loan : loanService.getLoansByUserId(userId)) {
       result.add(mapper.toLoanView(loan));
     }
+
     return result;
   }
 
@@ -126,6 +130,7 @@ public class BankViewService {
     for (Loan loan : loanService.getPendingLoans()) {
       result.add(mapper.toPendingLoanView(loan));
     }
+
     return result;
   }
 
@@ -138,6 +143,7 @@ public class BankViewService {
     for (LoanType loanType : loanService.getAllLoanTypes()) {
       result.add(mapper.toLoanTypeView(loanType));
     }
+
     return result;
   }
 
@@ -146,6 +152,7 @@ public class BankViewService {
     if (loanTypeOptional.isEmpty()) {
       throw new IllegalStateException(messageService.get("error.loanType.notFound"));
     }
+
     return mapper.toLoanTypeView(loanTypeOptional.get());
   }
 
@@ -154,6 +161,7 @@ public class BankViewService {
     for (Transaction transaction : transactionService.getRecentTransactionsByUserId(userId, limit)) {
       result.add(mapper.toTransactionView(transaction));
     }
+
     return result;
   }
 
@@ -228,6 +236,7 @@ public class BankViewService {
         result.add(currency.getName());
       }
     }
+
     return result;
   }
 
@@ -240,6 +249,7 @@ public class BankViewService {
     for (Loan loan : loanService.getActiveLoansByUserId(userId)) {
       result.add(mapper.toLoanOption(loan));
     }
+
     return result;
   }
 
@@ -250,6 +260,7 @@ public class BankViewService {
         result.add(mapper.toDepositOption(deposit));
       }
     }
+
     return result;
   }
 
@@ -259,6 +270,7 @@ public class BankViewService {
     }
 
     DepositType depositType = depositService.getDepositTypeById(deposit.getDepositTypeId()).orElseThrow(() -> new IllegalStateException(messageService.get("error.depositType.notFound")));
+
     return depositService.canTopUpDeposit(deposit, depositType);
   }
 

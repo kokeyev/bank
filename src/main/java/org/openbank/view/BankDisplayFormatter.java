@@ -35,6 +35,7 @@ public class BankDisplayFormatter {
 
     DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
     symbols.setGroupingSeparator(' ');
+
     return new DecimalFormat(PATTERN, symbols).format(amount);
   }
 

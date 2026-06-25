@@ -92,6 +92,7 @@ public class DepositsController {
 
     if (bindingResult.hasErrors()) {
       addDepositFormModel(session, model, productName, request);
+
       return template;
     }
 

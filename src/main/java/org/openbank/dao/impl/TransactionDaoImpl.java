@@ -21,20 +21,24 @@ import java.util.Optional;
 public class TransactionDaoImpl implements TransactionDao {
 
   private final ConnectionPool connectionPool;
+
   public TransactionDaoImpl(ConnectionPool connectionPool) {
     this.connectionPool = connectionPool;
   }
+
   @Override
   public boolean createNewTransaction(Long senderAccountId, Long receiverAccountId, LocalDateTime transactionDate, BigDecimal amount, Long currencyId, BigDecimal fee, String message, String transactionType) {
     Connection connection = null;
 
     try {
       connection = connectionPool.getConnection();
+
       return createNewTransaction(connection, senderAccountId, receiverAccountId, transactionDate, amount, currencyId, fee, message, transactionType);
     } finally {
       connectionPool.releaseConnection(connection);
     }
   }
+
   @Override
   public boolean createNewTransaction(Connection connection, Long senderAccountId, Long receiverAccountId, LocalDateTime transactionDate, BigDecimal amount, Long currencyId, BigDecimal fee, String message, String transactionType) {
     String sql = """
@@ -57,6 +61,7 @@ public class TransactionDaoImpl implements TransactionDao {
       throw new BankDataAccessException("Could not save transaction history", e);
     }
   }
+
   @Override
   public Optional<Transaction> getTransactionById(Long transactionId) {
     String sql = """
@@ -85,6 +90,7 @@ public class TransactionDaoImpl implements TransactionDao {
       connectionPool.releaseConnection(connection);
     }
   }
+
   @Override
   public List<Transaction> getTransactionsByAccountId(Long accountId) {
     List<Transaction> transactions = new ArrayList<>();
@@ -117,6 +123,7 @@ public class TransactionDaoImpl implements TransactionDao {
       connectionPool.releaseConnection(connection);
     }
   }
+
   @Override
   public List<Transaction> getRecentTransactionsByUserId(Long userId, int limit) {
     return getTransactionsByUserId(userId, limit, 0);
@@ -159,6 +166,7 @@ public class TransactionDaoImpl implements TransactionDao {
       connectionPool.releaseConnection(connection);
     }
   }
+
   @Override
   public int countTransactionsByUserId(Long userId) {
     String sql = """

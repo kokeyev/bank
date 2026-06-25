@@ -186,6 +186,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
       try (PreparedStatement statement = connection.prepareStatement(sql)) {
         statement.setBigDecimal(1, rateToKzt);
         statement.setLong(2, currencyId);
+
         return statement.executeUpdate() > 0;
       }
     } catch (SQLException e) {

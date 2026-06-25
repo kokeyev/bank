@@ -57,7 +57,6 @@ public class AdminController {
     if (!staffSessionService.isAdminLoggedIn(session)) {
       return "admin/login";
     }
-
     addAdminModel(model, managersPage);
 
     return "admin/index";
@@ -67,10 +66,7 @@ public class AdminController {
   public String login(@RequestParam("login") String login, @RequestParam("password") String password, HttpSession session, Model model) {
     Optional<User> admin = userService.authenticateAdmin(login, password);
     if (admin.isPresent()) {
-      staffSessionService.loginAdmin(
-          session,
-          admin.get()
-      );
+      staffSessionService.loginAdmin(session, admin.get());
 
       return "redirect:/admin";
     }
@@ -197,6 +193,7 @@ public class AdminController {
 
     FieldError fieldError = bindingResult.getFieldErrors().getFirst();
     redirectAttributes.addFlashAttribute("adminError", fieldError.getDefaultMessage());
+
     return true;
   }
 }

@@ -47,12 +47,14 @@ public class TransfersController {
   @GetMapping("/transfers")
   public String transfers(@RequestParam(value = "page", defaultValue = "1") int page, HttpSession session, Model model) {
     currentUserService.getCurrentUser(session).ifPresent(user -> model.addAttribute("transactionsPage", bankViewService.getTransactionViewsPage(user.getUserId(), page, TRANSACTION_PAGE_SIZE)));
+
     return "transfers/index";
   }
 
   @GetMapping("/transfers/between-accounts")
   public String transferBetweenAccounts(HttpSession session, Model model) {
     addBetweenAccountsModelAttributes(session, model, new TransferBetweenAccountsRequest());
+
     return "transfers/between-accounts";
   }
 
@@ -66,6 +68,7 @@ public class TransfersController {
 
     if (bindingResult.hasErrors()) {
       addBetweenAccountsModelAttributes(session, model, transferRequest);
+
       return "transfers/between-accounts";
     }
 
@@ -85,6 +88,7 @@ public class TransfersController {
   @GetMapping("/transfers/account-top-up")
   public String accountTopUp(HttpSession session, Model model) {
     addAccountTopUpModelAttributes(session, model, new AccountTopUpRequest());
+
     return "transfers/account-top-up";
   }
 
@@ -97,6 +101,7 @@ public class TransfersController {
 
     if (bindingResult.hasErrors()) {
       addAccountTopUpModelAttributes(session, model, request);
+
       return "transfers/account-top-up";
     }
 
@@ -115,6 +120,7 @@ public class TransfersController {
   @GetMapping("/transfers/by-phone")
   public String transferByPhone(HttpSession session, Model model) {
     addPhoneTransferModelAttributes(session, model, new PhoneTransferRequest());
+
     return "transfers/by-phone";
   }
 
@@ -127,6 +133,7 @@ public class TransfersController {
 
     if (bindingResult.hasErrors()) {
       addPhoneTransferModelAttributes(session, model, request);
+
       return "transfers/by-phone";
     }
 
@@ -145,6 +152,7 @@ public class TransfersController {
   @GetMapping("/transfers/by-card")
   public String transferByCard(HttpSession session, Model model) {
     addCardTransferModelAttributes(session, model, new CardTransferRequest());
+
     return "transfers/by-card";
   }
 
@@ -157,6 +165,7 @@ public class TransfersController {
 
     if (bindingResult.hasErrors()) {
       addCardTransferModelAttributes(session, model, request);
+
       return "transfers/by-card";
     }
 
@@ -175,6 +184,7 @@ public class TransfersController {
   @GetMapping("/transfers/deposit-top-up")
   public String depositTopUp(HttpSession session, Model model) {
     addDepositTopUpModelAttributes(session, model, new DepositTopUpRequest());
+
     return "transfers/deposit-top-up";
   }
 
@@ -188,6 +198,7 @@ public class TransfersController {
 
     if (bindingResult.hasErrors()) {
       addDepositTopUpModelAttributes(session, model, request);
+
       return "transfers/deposit-top-up";
     }
 
@@ -206,6 +217,7 @@ public class TransfersController {
   @GetMapping("/transfers/loan-payment")
   public String loanPayment(HttpSession session, Model model) {
     addLoanPaymentModelAttributes(session, model, new LoanPaymentRequest());
+
     return "transfers/loan-payment";
   }
 
@@ -218,6 +230,7 @@ public class TransfersController {
 
     if (bindingResult.hasErrors()) {
       addLoanPaymentModelAttributes(session, model, request);
+
       return "transfers/loan-payment";
     }
 
@@ -236,6 +249,7 @@ public class TransfersController {
   @GetMapping("/transfers/currency-exchange")
   public String currencyExchange(HttpSession session, Model model) {
     addBetweenAccountsModelAttributes(session, model, new TransferBetweenAccountsRequest());
+
     return "transfers/currency-exchange";
   }
 
@@ -248,6 +262,7 @@ public class TransfersController {
 
     if (bindingResult.hasErrors()) {
       addBetweenAccountsModelAttributes(session, model, request);
+
       return "transfers/currency-exchange";
     }
 
@@ -310,6 +325,7 @@ public class TransfersController {
     if (userId.isPresent()) {
       return bankViewService.getTransferAccountOptions(userId.get());
     }
+
     return List.of();
   }
 
@@ -318,6 +334,7 @@ public class TransfersController {
     if (currentUser.isPresent()) {
       return Optional.of(currentUser.get().getUserId());
     }
+
     return Optional.empty();
   }
 }

@@ -29,6 +29,7 @@ public class ManagerAccountsController {
   @GetMapping("/manager/accounts")
   public String pendingAccounts(@RequestParam(value = "page", defaultValue = "1") int page, Model model) {
     model.addAttribute("pendingAccountsPage", bankViewService.getPendingAccountViewsPage(page, PAGE_SIZE));
+
     return "manager/accounts";
   }
 

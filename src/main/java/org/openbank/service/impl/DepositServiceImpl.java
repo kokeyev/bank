@@ -177,14 +177,11 @@ public class DepositServiceImpl implements DepositService {
 
   public boolean rejectDeposit(Long depositId) {
     return transactionRunner.run(messageService.get("deposit.operation.reject.error"), connection -> {
-      Deposit deposit = depositDao.getDepositByIdForUpdate(connection, depositId)
-          .orElseThrow(() -> new IllegalArgumentException(messageService.get("error.deposit.notFound")));
+      Deposit deposit = depositDao.getDepositByIdForUpdate(connection, depositId).orElseThrow(() -> new IllegalArgumentException(messageService.get("error.deposit.notFound")));
       validatePendingDeposit(deposit);
 
-      DepositType depositType = depositTypeDao.getDepositTypeById(deposit.getDepositTypeId())
-          .orElseThrow(() -> new IllegalArgumentException(messageService.get("error.depositType.notFound")));
-      Account refundAccount = accountDao.getFirstActiveAccountByUserIdAndCurrencyIdForUpdate(connection, deposit.getUserId(), depositType.getCurrencyId())
-          .orElseThrow(() -> new IllegalArgumentException(messageService.get("error.account.refundNotFound")));
+      DepositType depositType = depositTypeDao.getDepositTypeById(deposit.getDepositTypeId()).orElseThrow(() -> new IllegalArgumentException(messageService.get("error.depositType.notFound")));
+      Account refundAccount = accountDao.getFirstActiveAccountByUserIdAndCurrencyIdForUpdate(connection, deposit.getUserId(), depositType.getCurrencyId()).orElseThrow(() -> new IllegalArgumentException(messageService.get("error.account.refundNotFound")));
 
       if (!depositDao.setStatus(connection, depositId, DepositStatus.REJECTED)) {
         throw new IllegalStateException(messageService.get("deposit.operation.reject.error"));
@@ -217,8 +214,7 @@ public class DepositServiceImpl implements DepositService {
             throw new IllegalStateException(messageService.get("deposit.operation.accrueInterest.error"));
           }
         } else {
-          Account targetAccount = accountDao.getFirstActiveAccountByUserIdAndCurrencyIdForUpdate(connection, deposit.getUserId(), depositType.getCurrencyId())
-              .orElseThrow(() -> new IllegalArgumentException(messageService.get("error.account.refundNotFound")));
+          Account targetAccount = accountDao.getFirstActiveAccountByUserIdAndCurrencyIdForUpdate(connection, deposit.getUserId(), depositType.getCurrencyId()).orElseThrow(() -> new IllegalArgumentException(messageService.get("error.account.refundNotFound")));
           topUpAccount(connection, targetAccount.getAccountId(), monthlyInterest);
           receiverAccountId = targetAccount.getAccountId();
         }
@@ -237,8 +233,7 @@ public class DepositServiceImpl implements DepositService {
     LocalDate today = LocalDate.now();
 
     for (Deposit deposit : depositDao.getDepositsByStatus(DepositStatus.ACTIVE)) {
-      DepositType depositType = depositTypeDao.getDepositTypeById(deposit.getDepositTypeId())
-          .orElseThrow(() -> new IllegalArgumentException(messageService.get("error.depositType.notFound")));
+      DepositType depositType = depositTypeDao.getDepositTypeById(deposit.getDepositTypeId()).orElseThrow(() -> new IllegalArgumentException(messageService.get("error.depositType.notFound")));
       DepositProductStrategy strategy = strategyResolver.resolve(depositType);
       LocalDate endDate = strategy.maturityDate(deposit, depositType);
       if (endDate == null) {
@@ -361,6 +356,7 @@ public class DepositServiceImpl implements DepositService {
     if (CapitalDepositStrategy.PRODUCT_NAME.equals(productName)) {
       return messageService.get("deposits.capital.name");
     }
+
     return productName == null ? "" : productName;
   }
 

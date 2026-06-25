@@ -51,10 +51,7 @@ public abstract class AbstractDepositProductStrategy implements DepositProductSt
 
   @Override
   public BigDecimal calculateMonthlyInterest(Deposit deposit, DepositType depositType) {
-    return deposit.getCurrentAmount()
-        .multiply(depositType.getRate())
-        .divide(BigDecimal.valueOf(100), 8, RoundingMode.HALF_UP)
-        .divide(BigDecimal.valueOf(12), 2, RoundingMode.HALF_UP);
+    return deposit.getCurrentAmount().multiply(depositType.getRate()).divide(BigDecimal.valueOf(100), 8, RoundingMode.HALF_UP).divide(BigDecimal.valueOf(12), 2, RoundingMode.HALF_UP);
   }
 
   @Override
@@ -62,6 +59,7 @@ public abstract class AbstractDepositProductStrategy implements DepositProductSt
     if (deposit.getStartDate() == null || depositType.getDuration() == null) {
       return null;
     }
+
     return deposit.getStartDate().plusMonths(depositType.getDuration());
   }
 }

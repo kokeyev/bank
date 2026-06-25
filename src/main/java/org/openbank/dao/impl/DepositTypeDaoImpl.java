@@ -45,6 +45,7 @@ public class DepositTypeDaoImpl implements DepositTypeDao {
         statement.setLong(6, currencyId);
 
         int rowsAffected = statement.executeUpdate();
+
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
@@ -130,6 +131,7 @@ public class DepositTypeDaoImpl implements DepositTypeDao {
         statement.setLong(2, depositTypeId);
 
         int rowsAffected = statement.executeUpdate();
+
         return rowsAffected > 0;
       }
     } catch (SQLException e) {

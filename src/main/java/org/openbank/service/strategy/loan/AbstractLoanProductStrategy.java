@@ -72,6 +72,7 @@ public abstract class AbstractLoanProductStrategy implements LoanProductStrategy
     }
 
     BigDecimal overdueAmount = loan.getRemainingAmount().subtract(expectedRemaining);
+
     return overdueAmount.multiply(BigDecimal.valueOf(0.01)).setScale(2, RoundingMode.HALF_UP);
   }
 
@@ -85,6 +86,7 @@ public abstract class AbstractLoanProductStrategy implements LoanProductStrategy
     for (int month = 1; month <= loan.getDuration(); month++) {
       dates.add(loan.getStartDate().plusMonths(month));
     }
+
     return dates;
   }
 

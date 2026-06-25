@@ -29,6 +29,7 @@ public class ManagerDepositsController {
   @GetMapping("/manager/deposits")
   public String deposits(@RequestParam(value = "page", defaultValue = "1") int page, Model model) {
     model.addAttribute("pendingDepositsPage", bankViewService.getPendingDepositViewsPage(page, PAGE_SIZE));
+
     return "manager/deposits";
   }
 
@@ -58,6 +59,7 @@ public class ManagerDepositsController {
   public String processExpiration(RedirectAttributes redirectAttributes) {
     int count = depositService.processExpiredDeposits();
     redirectAttributes.addFlashAttribute("depositManagerSuccess", messageService.get("manager.deposits.processExpiration.success", count));
+
     return "redirect:/manager/deposits";
   }
 
@@ -65,6 +67,7 @@ public class ManagerDepositsController {
   public String accrueInterest(RedirectAttributes redirectAttributes) {
     int count = depositService.accrueInterestForActiveDeposits();
     redirectAttributes.addFlashAttribute("depositManagerSuccess", messageService.get("manager.deposits.accrueInterest.success", count));
+
     return "redirect:/manager/deposits";
   }
 }

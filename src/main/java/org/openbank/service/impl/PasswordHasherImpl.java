@@ -43,6 +43,7 @@ public class PasswordHasherImpl implements PasswordHasher {
     try {
       MessageDigest digest = MessageDigest.getInstance("SHA-256");
       digest.update(salt);
+
       return digest.digest(password.getBytes());
     } catch (Exception e) {
       throw new IllegalStateException(messageService.get("password.error.processing"), e);

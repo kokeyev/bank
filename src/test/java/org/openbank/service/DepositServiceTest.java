@@ -93,11 +93,7 @@ class DepositServiceTest {
 
   @BeforeEach
   void runCallbacks() {
-    DepositProductStrategyResolver strategyResolver = new DepositProductStrategyResolver(List.of(
-        new KopilkaDepositStrategy(messageService),
-        new StrategyDepositStrategy(messageService),
-        new CapitalDepositStrategy(messageService)
-    ), messageService);
+    DepositProductStrategyResolver strategyResolver = new DepositProductStrategyResolver(List.of(new KopilkaDepositStrategy(messageService), new StrategyDepositStrategy(messageService), new CapitalDepositStrategy(messageService)), messageService);
     service = new DepositServiceImpl(depositDao, depositTypeDao, accountDao, currencyDao, transactionDao, transactionRunner, strategyResolver, messageService);
 
     when(transactionRunner.run(anyString(), any())).thenAnswer(invocation -> {

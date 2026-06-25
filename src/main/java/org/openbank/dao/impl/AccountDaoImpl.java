@@ -52,6 +52,7 @@ public class AccountDaoImpl implements AccountDao {
         statement.setBoolean(10, Boolean.TRUE.equals(main));
 
         int rowsAffected = statement.executeUpdate();
+
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
@@ -298,6 +299,7 @@ public class AccountDaoImpl implements AccountDao {
         statement.setString(2, status.name());
         try (ResultSet resultSet = statement.executeQuery()) {
           resultSet.next();
+
           return resultSet.getLong(1);
         }
       }
@@ -325,6 +327,7 @@ public class AccountDaoImpl implements AccountDao {
         statement.setLong(2, accountId);
 
         int rowsAffected = statement.executeUpdate();
+
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
@@ -352,6 +355,7 @@ public class AccountDaoImpl implements AccountDao {
         statement.setString(3, currentStatus.name());
 
         int rowsAffected = statement.executeUpdate();
+
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
@@ -378,6 +382,7 @@ public class AccountDaoImpl implements AccountDao {
         statement.setLong(2, accountId);
 
         int rowsAffected = statement.executeUpdate();
+
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
@@ -427,6 +432,7 @@ public class AccountDaoImpl implements AccountDao {
         statement.setLong(1, accountId);
 
         int rowsAffected = statement.executeUpdate();
+
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
@@ -454,6 +460,7 @@ public class AccountDaoImpl implements AccountDao {
         statement.setBigDecimal(3, amountToWithdraw);
 
         int rowsAffected = statement.executeUpdate();
+
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
@@ -474,6 +481,7 @@ public class AccountDaoImpl implements AccountDao {
     try (PreparedStatement statement = connection.prepareStatement(sql)) {
       statement.setBigDecimal(1, amountToWithdraw);
       statement.setLong(2, accountId);
+
       return statement.executeUpdate() > 0;
     } catch (SQLException e) {
       throw new BankDataAccessException("Could not debit account", e);
@@ -497,6 +505,7 @@ public class AccountDaoImpl implements AccountDao {
         statement.setLong(2, accountId);
 
         int rowsAffected = statement.executeUpdate();
+
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
@@ -517,6 +526,7 @@ public class AccountDaoImpl implements AccountDao {
     try (PreparedStatement statement = connection.prepareStatement(sql)) {
       statement.setBigDecimal(1, amountToTopUp);
       statement.setLong(2, accountId);
+
       return statement.executeUpdate() > 0;
     } catch (SQLException e) {
       throw new BankDataAccessException("Could not credit account", e);

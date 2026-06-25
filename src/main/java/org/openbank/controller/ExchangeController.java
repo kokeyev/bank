@@ -43,6 +43,7 @@ public class ExchangeController {
   @GetMapping("/exchange")
   public String exchange(HttpSession session, Model model) {
     addExchangeModel(session, model);
+
     return "exchange/index";
   }
 
@@ -51,6 +52,7 @@ public class ExchangeController {
     if (bindingResult.hasErrors()) {
       model.addAttribute("exchangeError", firstError(bindingResult));
       addExchangeModel(session, model);
+
       return "exchange/index";
     }
 
@@ -61,6 +63,7 @@ public class ExchangeController {
       model.addAttribute("exchangeError", e.getMessage());
     }
     addExchangeModel(session, model);
+
     return "exchange/index";
   }
 
@@ -73,6 +76,7 @@ public class ExchangeController {
 
     if (bindingResult.hasErrors()) {
       redirectAttributes.addFlashAttribute("exchangeError", firstError(bindingResult));
+
       return "redirect:/exchange";
     }
 
@@ -95,6 +99,7 @@ public class ExchangeController {
 
   private String firstError(BindingResult bindingResult) {
     FieldError error = bindingResult.getFieldErrors().getFirst();
+
     return error.getDefaultMessage();
   }
 

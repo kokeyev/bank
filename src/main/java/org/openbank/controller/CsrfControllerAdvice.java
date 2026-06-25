@@ -18,7 +18,6 @@ public class CsrfControllerAdvice {
     if (existingToken instanceof String token && !token.isBlank()) {
       return token;
     }
-
     byte[] tokenBytes = new byte[32];
     secureRandom.nextBytes(tokenBytes);
     String token = Base64.getUrlEncoder().withoutPadding().encodeToString(tokenBytes);

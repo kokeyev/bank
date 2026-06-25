@@ -49,6 +49,7 @@ public class ConnectionPool {
         wait();
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
+
         throw new BankInfrastructureException("Waiting for an available connection was interrupted", e);
       }
     }
@@ -89,5 +90,4 @@ public class ConnectionPool {
       }
     }
   }
-
 }

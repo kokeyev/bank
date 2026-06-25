@@ -37,16 +37,20 @@ public class LoginRequiredInterceptor implements HandlerInterceptor {
     if (isAdminArea(path)) {
       if (!staffSessionService.isAdminLoggedIn(request.getSession())) {
         response.sendRedirect(request.getContextPath() + "/admin");
+
         return false;
       }
+
       return true;
     }
 
     if (isManagerArea(path)) {
       if (!staffSessionService.isManagerLoggedIn(request.getSession())) {
         response.sendRedirect(request.getContextPath() + "/manager");
+
         return false;
       }
+
       return true;
     }
 

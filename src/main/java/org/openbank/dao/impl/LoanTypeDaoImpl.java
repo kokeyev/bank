@@ -19,9 +19,11 @@ import java.util.Optional;
 public class LoanTypeDaoImpl implements LoanTypeDao {
 
   private final ConnectionPool connectionPool;
+
   public LoanTypeDaoImpl(ConnectionPool connectionPool) {
     this.connectionPool = connectionPool;
   }
+
   @Override
   public boolean createNewTypeOfLoan(String name, BigDecimal rate, Integer duration, BigDecimal minimumAmount, BigDecimal maximumAmount, Long currencyId) {
     String sql = """
@@ -42,6 +44,7 @@ public class LoanTypeDaoImpl implements LoanTypeDao {
         statement.setLong(6, currencyId);
 
         int rowsAffected = statement.executeUpdate();
+
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
@@ -50,6 +53,7 @@ public class LoanTypeDaoImpl implements LoanTypeDao {
       connectionPool.releaseConnection(connection);
     }
   }
+
   @Override
   public Optional<LoanType> getLoanTypeById(Long loanTypeId) {
     String sql = """
@@ -78,6 +82,7 @@ public class LoanTypeDaoImpl implements LoanTypeDao {
       connectionPool.releaseConnection(connection);
     }
   }
+
   @Override
   public List<LoanType> getAllLoanTypes() {
     List<LoanType> loanTypes = new ArrayList<>();
@@ -107,6 +112,7 @@ public class LoanTypeDaoImpl implements LoanTypeDao {
       connectionPool.releaseConnection(connection);
     }
   }
+
   @Override
   public boolean changeRateOfLoanType(Long loanTypeId, BigDecimal newRate) {
     String sql = """
@@ -122,6 +128,7 @@ public class LoanTypeDaoImpl implements LoanTypeDao {
       try (PreparedStatement statement = connection.prepareStatement(sql)) {
         statement.setBigDecimal(1, newRate);
         statement.setLong(2, loanTypeId);
+
         return statement.executeUpdate() > 0;
       }
     } catch (SQLException e) {

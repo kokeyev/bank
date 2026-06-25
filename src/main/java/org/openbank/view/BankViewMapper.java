@@ -125,8 +125,7 @@ public class BankViewMapper {
   }
 
   public LoanView toPendingLoanView(Loan loan) {
-    LoanType loanType = loanService.getLoanTypeById(loan.getLoanTypeId())
-        .orElseThrow(() -> new IllegalStateException(messageService.get("error.loanType.notFound")));
+    LoanType loanType = loanService.getLoanTypeById(loan.getLoanTypeId()).orElseThrow(() -> new IllegalStateException(messageService.get("error.loanType.notFound")));
 
     return new LoanView(
         loan.getLoanId(),

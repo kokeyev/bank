@@ -42,6 +42,7 @@ public class UserDaoImpl implements UserDao {
         statement.setString(8, user.getPasswordHash());
 
         int rowsAffected = statement.executeUpdate();
+
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
@@ -70,6 +71,7 @@ public class UserDaoImpl implements UserDao {
             return Optional.of(map(resultSet));
           }
         }
+
         return Optional.empty();
       }
     } catch (SQLException e) {
@@ -98,6 +100,7 @@ public class UserDaoImpl implements UserDao {
             return Optional.of(map(resultSet));
           }
         }
+
         return Optional.empty();
       }
     } catch (SQLException e) {
@@ -126,6 +129,7 @@ public class UserDaoImpl implements UserDao {
             return Optional.of(map(resultSet));
           }
         }
+
         return Optional.empty();
       }
     } catch (SQLException e) {
@@ -159,6 +163,7 @@ public class UserDaoImpl implements UserDao {
           }
         }
       }
+
       return users;
     } catch (SQLException e) {
       throw new BankDataAccessException("Could not fetch users by role", e);
@@ -232,6 +237,7 @@ public class UserDaoImpl implements UserDao {
         statement.setLong(2, userId);
 
         int rowsAffected = statement.executeUpdate();
+
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
@@ -256,6 +262,7 @@ public class UserDaoImpl implements UserDao {
         statement.setLong(2, userId);
 
         int rowsAffected = statement.executeUpdate();
+
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
@@ -280,6 +287,7 @@ public class UserDaoImpl implements UserDao {
         statement.setLong(2, userId);
 
         int rowsAffected = statement.executeUpdate();
+
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
@@ -326,6 +334,7 @@ public class UserDaoImpl implements UserDao {
         statement.setLong(1, userId);
 
         int rowsAffected = statement.executeUpdate();
+
         return rowsAffected > 0;
       }
     } catch (SQLException e) {
@@ -338,7 +347,6 @@ public class UserDaoImpl implements UserDao {
 
   private User map(ResultSet resultSet) throws SQLException {
     User user = new User();
-
     user.setUserId(resultSet.getLong("user_id"));
     user.setName(resultSet.getString("name"));
     user.setSurname(resultSet.getString("surname"));

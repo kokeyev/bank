@@ -50,6 +50,7 @@ public class TransactionServiceImpl implements TransactionService {
 
   public boolean createNewTransaction(Long senderAccountId, Long receiverAccountId, BigDecimal amount, Long currencyId, BigDecimal fee, String message, String transactionType) {
     validatePositive(amount, messageService.get("transaction.validation.amount.positive"));
+
     return transactionDao.createNewTransaction(
         senderAccountId,
         receiverAccountId,
@@ -149,8 +150,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     return transactionRunner.run(messageService.get("transfers.loan.error"), connection -> {
       Account senderAccount = getAccountForUpdate(connection, senderAccountId);
-      Loan loan = loanDao.getLoanById(loanId)
-          .orElseThrow(() -> new IllegalArgumentException(messageService.get("error.loan.notFound")));
+      Loan loan = loanDao.getLoanById(loanId).orElseThrow(() -> new IllegalArgumentException(messageService.get("error.loan.notFound")));
 
       validateActive(senderAccount);
       validateAccountBelongsToUser(senderAccount, loan.getUserId(), messageService.get("transaction.validation.senderAccount.notLoanOwner"));
@@ -259,6 +259,7 @@ public class TransactionServiceImpl implements TransactionService {
     if (account.isEmpty()) {
       throw new IllegalArgumentException(messageService.get("error.account.notFound"));
     }
+
     return account.get();
   }
 
@@ -293,8 +294,7 @@ public class TransactionServiceImpl implements TransactionService {
   }
 
   private Account getAccountForUpdate(Connection connection, Long accountId) {
-    return accountDao.getAccountByIdForUpdate(connection, accountId)
-        .orElseThrow(() -> new IllegalArgumentException(messageService.get("error.account.notFound")));
+    return accountDao.getAccountByIdForUpdate(connection, accountId).orElseThrow(() -> new IllegalArgumentException(messageService.get("error.account.notFound")));
   }
 
   private void withdraw(Connection connection, Long accountId, BigDecimal amount) {
@@ -344,13 +344,12 @@ public class TransactionServiceImpl implements TransactionService {
 
     BigDecimal fromRate = currencyDao.getCurrencyRateToKztById(fromCurrencyId);
     BigDecimal toRate = currencyDao.getCurrencyRateToKztById(toCurrencyId);
+
     return amount.multiply(fromRate).divide(toRate, 2, RoundingMode.HALF_UP);
   }
 
   private Long getKztCurrencyId() {
-    return currencyDao.getCurrencyByName("KZT")
-        .orElseThrow(() -> new IllegalStateException(messageService.get("error.currency.kzt.notFound")))
-        .getCurrencyId();
+    return currencyDao.getCurrencyByName("KZT").orElseThrow(() -> new IllegalStateException(messageService.get("error.currency.kzt.notFound"))).getCurrencyId();
   }
 
   private String cleanPhone(String phone) {
@@ -367,6 +366,7 @@ public class TransactionServiceImpl implements TransactionService {
     if (digits.length() == 10) {
       return "+7" + digits;
     }
+
     return digits;
   }
 
@@ -383,5 +383,4 @@ public class TransactionServiceImpl implements TransactionService {
   private String clean(String value) {
     return value == null ? "" : value.trim();
   }
-
 }

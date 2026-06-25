@@ -19,6 +19,7 @@ public class AppConfig {
     messageSource.setBasename("messages");
     messageSource.setDefaultEncoding("UTF-8");
     messageSource.setFallbackToSystemLocale(false);
+
     return messageSource;
   }
 
@@ -26,6 +27,7 @@ public class AppConfig {
   public LocalValidatorFactoryBean validator() {
     LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
     validator.setValidationMessageSource(messageSource());
+
     return validator;
   }
 }

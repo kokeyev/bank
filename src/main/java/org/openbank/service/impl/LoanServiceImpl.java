@@ -62,6 +62,7 @@ public class LoanServiceImpl implements LoanService {
         return Optional.of(loanType);
       }
     }
+
     return Optional.empty();
   }
 
@@ -179,10 +180,7 @@ public class LoanServiceImpl implements LoanService {
       return BigDecimal.ZERO;
     }
 
-    return loanTypeDao.getLoanTypeById(loan.getLoanTypeId())
-        .map(strategyResolver::resolve)
-        .map(strategy -> strategy.calculateLatePenalty(loan))
-        .orElse(BigDecimal.ZERO);
+    return loanTypeDao.getLoanTypeById(loan.getLoanTypeId()).map(strategyResolver::resolve).map(strategy -> strategy.calculateLatePenalty(loan)).orElse(BigDecimal.ZERO);
   }
 
   public List<LocalDate> getPaymentDueDates(Loan loan) {
@@ -190,10 +188,7 @@ public class LoanServiceImpl implements LoanService {
       return List.of();
     }
 
-    return loanTypeDao.getLoanTypeById(loan.getLoanTypeId())
-        .map(strategyResolver::resolve)
-        .map(strategy -> strategy.getPaymentDueDates(loan))
-        .orElse(List.of());
+    return loanTypeDao.getLoanTypeById(loan.getLoanTypeId()).map(strategyResolver::resolve).map(strategy -> strategy.getPaymentDueDates(loan)).orElse(List.of());
   }
 
   public BigDecimal calculateMonthlyPayment(BigDecimal amount, BigDecimal annualRate, Integer duration) {
@@ -213,8 +208,7 @@ public class LoanServiceImpl implements LoanService {
   }
 
   private void validateKztAccount(Long userId, Long accountId) {
-    Account account = accountDao.getAccountById(accountId)
-        .orElseThrow(() -> new IllegalArgumentException(messageService.get("error.account.notFound")));
+    Account account = accountDao.getAccountById(accountId).orElseThrow(() -> new IllegalArgumentException(messageService.get("error.account.notFound")));
     validateKztAccount(userId, account);
   }
 
@@ -232,7 +226,6 @@ public class LoanServiceImpl implements LoanService {
   }
 
   private Account getAccountForUpdate(Connection connection, Long accountId) {
-    return accountDao.getAccountByIdForUpdate(connection, accountId)
-        .orElseThrow(() -> new IllegalArgumentException(messageService.get("error.account.notFound")));
+    return accountDao.getAccountByIdForUpdate(connection, accountId).orElseThrow(() -> new IllegalArgumentException(messageService.get("error.account.notFound")));
   }
 }

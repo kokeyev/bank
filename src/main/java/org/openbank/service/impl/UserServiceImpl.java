@@ -86,9 +86,7 @@ public class UserServiceImpl implements UserService {
     }
 
     String cleanedLogin = clean(login);
-    Optional<User> user = cleanedLogin.contains("@")
-        ? userDao.getUserByEmailAddress(cleanedLogin.toLowerCase(Locale.ROOT))
-        : userDao.getUserByPhoneNumber(cleanedLogin);
+    Optional<User> user = cleanedLogin.contains("@") ? userDao.getUserByEmailAddress(cleanedLogin.toLowerCase(Locale.ROOT)) : userDao.getUserByPhoneNumber(cleanedLogin);
 
     if (user.isEmpty() || !UserStatus.ACTIVE.name().equals(user.get().getStatus()) || !passwordHasher.matches(password, user.get().getPasswordHash())) {
       return Optional.empty();
@@ -186,8 +184,7 @@ public class UserServiceImpl implements UserService {
       throw new ContactUpdateException(List.of(messageService.get("validation.contact.required")));
     }
 
-    return userDao.getUserById(currentUser.getUserId())
-        .orElseThrow(() -> new IllegalStateException(messageService.get("error.user.notFound")));
+    return userDao.getUserById(currentUser.getUserId()).orElseThrow(() -> new IllegalStateException(messageService.get("error.user.notFound")));
   }
 
   private List<String> validate(CreateUserRequest request) {
@@ -253,6 +250,7 @@ public class UserServiceImpl implements UserService {
 
     if (newPhone.isEmpty() && newEmail.isEmpty()) {
       errors.add(messageService.get("validation.contact.required"));
+
       return errors;
     }
 

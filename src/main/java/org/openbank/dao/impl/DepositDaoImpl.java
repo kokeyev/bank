@@ -18,20 +18,24 @@ import java.util.Optional;
 public class DepositDaoImpl implements DepositDao {
 
   private final ConnectionPool connectionPool;
+
   public DepositDaoImpl(ConnectionPool connectionPool) {
     this.connectionPool = connectionPool;
   }
+
   @Override
   public boolean createDeposit(Long userId, Long depositTypeId, Boolean reinvestInterest, Boolean autoRenewal, DepositStatus status, LocalDate startDate, BigDecimal currentAmount) {
     Connection connection = null;
 
     try {
       connection = connectionPool.getConnection();
+
       return createDeposit(connection, userId, depositTypeId, reinvestInterest, autoRenewal, status, startDate, currentAmount);
     } finally {
       connectionPool.releaseConnection(connection);
     }
   }
+
   @Override
   public boolean createDeposit(Connection connection, Long userId, Long depositTypeId, Boolean reinvestInterest, Boolean autoRenewal, DepositStatus status, LocalDate startDate, BigDecimal currentAmount) {
     String sql = """
@@ -53,6 +57,7 @@ public class DepositDaoImpl implements DepositDao {
       throw new BankDataAccessException("Could not create deposit", e);
     }
   }
+
   @Override
   public Optional<Deposit> getDepositById(Long depositId) {
     String sql = """
@@ -81,6 +86,7 @@ public class DepositDaoImpl implements DepositDao {
       connectionPool.releaseConnection(connection);
     }
   }
+
   @Override
   public Optional<Deposit> getDepositByIdForUpdate(Connection connection, Long depositId) {
     String sql = """
@@ -103,6 +109,7 @@ public class DepositDaoImpl implements DepositDao {
       throw new BankDataAccessException("Could not fetch deposit", e);
     }
   }
+
   @Override
   public List<Deposit> getDepositsByUserId(Long userId) {
     List<Deposit> deposits = new ArrayList<>();
@@ -133,6 +140,7 @@ public class DepositDaoImpl implements DepositDao {
       connectionPool.releaseConnection(connection);
     }
   }
+
   @Override
   public List<Deposit> getDepositsByStatus(DepositStatus status) {
     List<Deposit> deposits = new ArrayList<>();
@@ -164,6 +172,7 @@ public class DepositDaoImpl implements DepositDao {
       connectionPool.releaseConnection(connection);
     }
   }
+
   @Override
   public boolean topUpDeposit(Connection connection, Long depositId, BigDecimal amount) {
     String sql = """
@@ -175,11 +184,13 @@ public class DepositDaoImpl implements DepositDao {
     try (PreparedStatement statement = connection.prepareStatement(sql)) {
       statement.setBigDecimal(1, amount);
       statement.setLong(2, depositId);
+
       return statement.executeUpdate() > 0;
     } catch (SQLException e) {
       throw new BankDataAccessException("Could not top up deposit", e);
     }
   }
+
   @Override
   public boolean withdrawFromDeposit(Connection connection, Long depositId, BigDecimal amount) {
     String sql = """
@@ -192,6 +203,7 @@ public class DepositDaoImpl implements DepositDao {
       statement.setBigDecimal(1, amount);
       statement.setLong(2, depositId);
       statement.setBigDecimal(3, amount);
+
       return statement.executeUpdate() > 0;
     } catch (SQLException e) {
       throw new BankDataAccessException("Could not withdraw from deposit", e);
@@ -203,6 +215,7 @@ public class DepositDaoImpl implements DepositDao {
 
     try {
       connection = connectionPool.getConnection();
+
       return setStatus(connection, depositId, status);
     } finally {
       connectionPool.releaseConnection(connection);
@@ -219,11 +232,13 @@ public class DepositDaoImpl implements DepositDao {
     try (PreparedStatement statement = connection.prepareStatement(sql)) {
       statement.setString(1, status.name());
       statement.setLong(2, depositId);
+
       return statement.executeUpdate() > 0;
     } catch (SQLException e) {
       throw new BankDataAccessException("Could not update deposit status", e);
     }
   }
+
   @Override
   public boolean updateStartDate(Connection connection, Long depositId, LocalDate startDate) {
     String sql = """
@@ -235,6 +250,7 @@ public class DepositDaoImpl implements DepositDao {
     try (PreparedStatement statement = connection.prepareStatement(sql)) {
       statement.setDate(1, Date.valueOf(startDate));
       statement.setLong(2, depositId);
+
       return statement.executeUpdate() > 0;
     } catch (SQLException e) {
       throw new BankDataAccessException("Could not update deposit date", e);
@@ -287,6 +303,7 @@ public class DepositDaoImpl implements DepositDao {
         statement.setLong(2, depositId);
 
         int rowsAffected = statement.executeUpdate();
+
         return rowsAffected > 0;
       }
     } catch (SQLException e) {

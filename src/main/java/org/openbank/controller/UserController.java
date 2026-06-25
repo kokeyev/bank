@@ -39,6 +39,7 @@ public class UserController {
     if (Boolean.TRUE.equals(loginRequired)) {
       model.addAttribute("loginError", messageService.get("auth.login.required"));
     }
+
     return "bank/login";
   }
 
@@ -49,22 +50,26 @@ public class UserController {
     if (user.isEmpty()) {
       model.addAttribute("loginError", messageService.get("auth.login.invalid"));
       model.addAttribute("login", login);
+
       return "bank/login";
     }
 
     currentUserService.login(session, user.get());
+
     return "redirect:/accounts";
   }
 
   @PostMapping("/logout")
   public String logout(HttpSession session) {
     currentUserService.logout(session);
+
     return "redirect:/login";
   }
 
   @GetMapping("/register")
   public String register(Model model) {
     model.addAttribute("createUserRequest", new CreateUserRequest());
+
     return "bank/register";
   }
 
@@ -78,15 +83,18 @@ public class UserController {
         errorMessages.add(error.getDefaultMessage());
       }
       model.addAttribute("errors", errorMessages);
+
       return "bank/register";
     }
 
     try {
       userService.createUser(createUserRequest);
+
       return "redirect:/login";
     } catch (UserRegistrationException e) {
       model.addAttribute("createUserRequest", createUserRequest);
       model.addAttribute("errors", e.getErrors());
+
       return "bank/register";
     }
   }
