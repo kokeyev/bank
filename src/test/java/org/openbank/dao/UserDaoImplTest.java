@@ -19,6 +19,7 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
@@ -93,5 +94,25 @@ class UserDaoImplTest {
     assertEquals(NAME, user.get().getName());
     assertEquals(PASSWORD_HASH, user.get().getPasswordHash());
     verify(statement).setLong(1, USER_ID);
+  }
+
+  @Test
+  void existsByEmailAddressReturnsFalseWhenNoRowExists() throws SQLException {
+    when(statement.executeQuery()).thenReturn(resultSet);
+    when(resultSet.next()).thenReturn(false);
+
+    assertFalse(dao.existsByEmailAddress(EMAIL));
+
+    verify(statement).setString(1, EMAIL);
+  }
+
+  @Test
+  void changeStatusOfUserByIdBindsStatusAndUserId() throws SQLException {
+    when(statement.executeUpdate()).thenReturn(UPDATED_ROW_COUNT);
+
+    assertTrue(dao.changeStatusOfUserById(USER_ID, UserStatus.DEACTIVATED.name()));
+
+    verify(statement).setString(1, UserStatus.DEACTIVATED.name());
+    verify(statement).setLong(2, USER_ID);
   }
 }

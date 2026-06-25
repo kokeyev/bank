@@ -1,5 +1,3 @@
--- Reference and demo data for local development.
--- The script is idempotent for currencies, products, users, and the demo account.
 
 INSERT INTO currencies (name, rate_to_kzt)
 VALUES
