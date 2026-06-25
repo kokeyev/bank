@@ -23,6 +23,7 @@ public class CsrfControllerAdvice {
     secureRandom.nextBytes(tokenBytes);
     String token = Base64.getUrlEncoder().withoutPadding().encodeToString(tokenBytes);
     session.setAttribute(SessionKeys.CSRF_TOKEN, token);
+
     return token;
   }
 }

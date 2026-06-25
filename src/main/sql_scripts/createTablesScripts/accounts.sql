@@ -20,5 +20,3 @@ CONSTRAINT fk_accounts_currency
 FOREIGN KEY (currency_id)
 REFERENCES currencies(currency_id)
 );
-
-COMMENT ON COLUMN accounts.cvv IS 'Course-project simulation value for displaying issued demo cards. Production banking systems must not store CVV after card issuance/authorization.';

@@ -28,6 +28,9 @@ import org.openbank.service.MessageService;
 import org.openbank.service.strategy.deposit.CapitalDepositStrategy;
 import org.openbank.service.strategy.deposit.KopilkaDepositStrategy;
 import org.openbank.service.strategy.deposit.StrategyDepositStrategy;
+import org.openbank.service.strategy.loan.AutoLoanStrategy;
+import org.openbank.service.strategy.loan.MortgageLoanStrategy;
+import org.openbank.service.strategy.loan.PurposeLoanStrategy;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -45,15 +48,13 @@ public class BankViewMapper {
   private final DepositService depositService;
   private final LoanService loanService;
   private final BankDisplayFormatter formatter;
-  private final LoanProductText loanProductText;
   private final MessageService messageService;
 
-  public BankViewMapper(AccountService accountService, DepositService depositService, LoanService loanService, BankDisplayFormatter formatter, LoanProductText loanProductText, MessageService messageService) {
+  public BankViewMapper(AccountService accountService, DepositService depositService, LoanService loanService, BankDisplayFormatter formatter, MessageService messageService) {
     this.accountService = accountService;
     this.depositService = depositService;
     this.loanService = loanService;
     this.formatter = formatter;
-    this.loanProductText = loanProductText;
     this.messageService = messageService;
   }
 
@@ -108,7 +109,7 @@ public class BankViewMapper {
 
     return new LoanView(
         loan.getLoanId(),
-        loanProductText.name(loanType.getName()),
+        loanName(loanType.getName()),
         formatter.money(loan.getRemainingAmount()) + " ₸",
         loan.getRate() == null ? "-" : formatter.rate(loan.getRate()),
         loan.getDuration() == null ? "-" : formatter.duration(loan.getDuration()),
@@ -129,7 +130,7 @@ public class BankViewMapper {
 
     return new LoanView(
         loan.getLoanId(),
-        loanProductText.name(loanType.getName()),
+        loanName(loanType.getName()),
         formatter.money(loan.getRemainingAmount()) + " ₸",
         loan.getRate() == null ? "-" : formatter.rate(loan.getRate()),
         loan.getDuration() == null ? "-" : formatter.duration(loan.getDuration()),
@@ -143,13 +144,13 @@ public class BankViewMapper {
   public LoanTypeView toLoanTypeView(LoanType loanType) {
     return new LoanTypeView(
         loanType.getLoanTypeId(),
-        loanProductText.name(loanType.getName()),
-        loanProductText.urlPath(loanType.getName()),
-        loanProductText.tag(loanType.getName()),
-        loanProductText.description(loanType.getName()),
-        loanProductText.amountRange(formatter.money(loanType.getMinimumAmount()), formatter.money(loanType.getMaximumAmount())),
-        loanProductText.durationUpTo(loanType.getDuration()),
-        loanProductText.rateFrom(formatter.rate(loanType.getRate()))
+        loanName(loanType.getName()),
+        loanUrlPath(loanType.getName()),
+        loanTag(loanType.getName()),
+        loanDescription(loanType.getName()),
+        messageService.get("loans.amount.range", formatter.money(loanType.getMinimumAmount()), formatter.money(loanType.getMaximumAmount())),
+        messageService.get("loans.duration.upTo", loanType.getDuration()),
+        messageService.get("loans.rate.from", formatter.rate(loanType.getRate()))
     );
   }
 
@@ -175,7 +176,7 @@ public class BankViewMapper {
   public LoanOption toLoanOption(Loan loan) {
     LoanType loanType = loanService.getLoanTypeById(loan.getLoanTypeId()).orElseThrow(() -> new IllegalStateException(messageService.get("error.loanType.notFound")));
 
-    return new LoanOption(loan.getLoanId(), loanProductText.remainingAmount(loanType.getName(), formatter.money(loan.getRemainingAmount())));
+    return new LoanOption(loan.getLoanId(), messageService.get("loans.remaining", loanName(loanType.getName()), formatter.money(loan.getRemainingAmount())));
   }
 
   public DepositOption toDepositOption(Deposit deposit) {
@@ -237,5 +238,42 @@ public class BankViewMapper {
     }
 
     return productName == null ? "" : productName;
+  }
+
+  private String loanName(String productName) {
+    return messageService.get(loanMessagePrefix(productName) + ".name");
+  }
+
+  private String loanTag(String productName) {
+    return messageService.get(loanMessagePrefix(productName) + ".tag");
+  }
+
+  private String loanDescription(String productName) {
+    return messageService.get(loanMessagePrefix(productName) + ".description");
+  }
+
+  private String loanUrlPath(String productName) {
+    if (AutoLoanStrategy.PRODUCT_NAME.equals(productName)) {
+      return "auto";
+    }
+    if (MortgageLoanStrategy.PRODUCT_NAME.equals(productName)) {
+      return "mortgage";
+    }
+
+    return "purpose";
+  }
+
+  private String loanMessagePrefix(String productName) {
+    if (AutoLoanStrategy.PRODUCT_NAME.equals(productName)) {
+      return "loans.auto";
+    }
+    if (MortgageLoanStrategy.PRODUCT_NAME.equals(productName)) {
+      return "loans.mortgage";
+    }
+    if (PurposeLoanStrategy.PRODUCT_NAME.equals(productName)) {
+      return "loans.purpose";
+    }
+
+    return "loans.purpose";
   }
 }

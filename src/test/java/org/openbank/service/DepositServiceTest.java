@@ -203,6 +203,25 @@ class DepositServiceTest {
   }
 
   @Test
+  void accrueInterestTopsUpActiveAccountWhenInterestIsNotReinvested() {
+    Deposit deposit = deposit(DEPOSIT_ID, USER_ID, DEPOSIT_TYPE_ID, DepositStatus.ACTIVE.name(), CURRENT_DEPOSIT_AMOUNT);
+    deposit.setReinvestInterest(false);
+    DepositType type = depositType(DEPOSIT_TYPE_ID, STRATEGY_PRODUCT_NAME, false, BigDecimal.ZERO);
+    type.setRate(INTEREST_RATE);
+    Account targetAccount = account(ACCOUNT_ID, USER_ID, CURRENCY_ID, ACCOUNT_BALANCE);
+    when(depositDao.getDepositsByStatus(DepositStatus.ACTIVE)).thenReturn(List.of(deposit));
+    when(depositTypeDao.getDepositTypeById(DEPOSIT_TYPE_ID)).thenReturn(Optional.of(type));
+    when(accountDao.getFirstActiveAccountByUserIdAndCurrencyIdForUpdate(connection, USER_ID, CURRENCY_ID)).thenReturn(Optional.of(targetAccount));
+    when(accountDao.topUp(connection, ACCOUNT_ID, MONTHLY_INTEREST)).thenReturn(true);
+    when(transactionDao.createNewTransaction(eq(connection), eq(null), eq(ACCOUNT_ID), any(), eq(MONTHLY_INTEREST), eq(CURRENCY_ID), eq(BigDecimal.ZERO), anyString(), eq(DEPOSIT_INTEREST_TYPE))).thenReturn(true);
+
+    assertEquals(EXPECTED_UPDATED_COUNT, service.accrueInterestForActiveDeposits());
+
+    verify(accountDao).topUp(connection, ACCOUNT_ID, MONTHLY_INTEREST);
+    verify(transactionDao).createNewTransaction(eq(connection), eq(null), eq(ACCOUNT_ID), any(), eq(MONTHLY_INTEREST), eq(CURRENCY_ID), eq(BigDecimal.ZERO), anyString(), eq(DEPOSIT_INTEREST_TYPE));
+  }
+
+  @Test
   void processExpiredDepositsRenewsAutoRenewalDeposits() {
     Deposit deposit = deposit(DEPOSIT_ID, USER_ID, DEPOSIT_TYPE_ID, DepositStatus.ACTIVE.name(), CURRENT_DEPOSIT_AMOUNT);
     deposit.setAutoRenewal(true);

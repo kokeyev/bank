@@ -210,10 +210,19 @@ public class DepositServiceImpl implements DepositService {
       }
 
       transactionRunner.run(messageService.get("deposit.operation.accrueInterest.error"), connection -> {
+        Long receiverAccountId = null;
+
         if (Boolean.TRUE.equals(deposit.getReinvestInterest())) {
-          depositDao.topUpDeposit(connection, deposit.getDepositId(), monthlyInterest);
+          if (!depositDao.topUpDeposit(connection, deposit.getDepositId(), monthlyInterest)) {
+            throw new IllegalStateException(messageService.get("deposit.operation.accrueInterest.error"));
+          }
+        } else {
+          Account targetAccount = accountDao.getFirstActiveAccountByUserIdAndCurrencyIdForUpdate(connection, deposit.getUserId(), depositType.getCurrencyId())
+              .orElseThrow(() -> new IllegalArgumentException(messageService.get("error.account.refundNotFound")));
+          topUpAccount(connection, targetAccount.getAccountId(), monthlyInterest);
+          receiverAccountId = targetAccount.getAccountId();
         }
-        createTransactionHistory(connection, null, null, monthlyInterest, depositType.getCurrencyId(), messageService.get("transaction.message.depositInterest", deposit.getDepositId()), TransactionType.DEPOSIT_INTEREST.name());
+        createTransactionHistory(connection, null, receiverAccountId, monthlyInterest, depositType.getCurrencyId(), messageService.get("transaction.message.depositInterest", deposit.getDepositId()), TransactionType.DEPOSIT_INTEREST.name());
 
         return null;
       });

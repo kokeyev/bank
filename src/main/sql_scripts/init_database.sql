@@ -1,4 +1,4 @@
--- Run with psql from this directory:
+-- Run with psql:
 -- psql -d bank -f init_database.sql
 
 \ir createTablesScripts/currencies.sql
